@@ -1395,7 +1395,7 @@ export default function ProductsPage() {
                                             Complete one enquiry
                                             with your company,
                                             products, quantities
-                                            and delivery details.
+                                            and delivery details..
 
                                         </p>
 
