@@ -41,7 +41,6 @@ const products = [
         price: 699,
         oldPrice: 749,
         stock: 28,
-        image: "/Assets/Products/product1.jpg",
         description:
             "Professional cordless hammer drill for concrete, steel, timber and demanding construction applications.",
     },
@@ -54,7 +53,6 @@ const products = [
         price: 419,
         oldPrice: null,
         stock: 18,
-        image: "/Assets/Products/product3.jpg",
         description:
             "High-performance angle grinder for professional cutting, grinding and finishing work.",
     },
@@ -67,7 +65,6 @@ const products = [
         price: 69,
         oldPrice: 79,
         stock: 64,
-        image: "/Assets/Products/product4.jpg",
         description:
             "Durable professional combination pliers for gripping, cutting and maintenance applications.",
     },
@@ -80,7 +77,6 @@ const products = [
         price: 289,
         oldPrice: null,
         stock: 9,
-        image: "/Assets/Products/angle grinder.jpg",
         description:
             "Digital electrical testing meter designed for professional maintenance and diagnostics.",
     },
@@ -93,7 +89,6 @@ const products = [
         price: 42,
         oldPrice: null,
         stock: 120,
-        image: "/Assets/Products/Steel Bars.jpg",
         description:
             "High-quality PVC pressure pipe for residential, commercial and industrial plumbing systems.",
     },
@@ -106,7 +101,6 @@ const products = [
         price: 34,
         oldPrice: 39,
         stock: 85,
-        image: "/Assets/Products/Circular saw.jpg",
         description:
             "Premium stainless steel hinge for commercial and residential door installations.",
     },
@@ -119,7 +113,6 @@ const products = [
         price: 4.5,
         oldPrice: null,
         stock: 400,
-        image: "/Assets/Products/chain saw.jpg",
         description:
             "Heavy-duty anchor solution for concrete, structural fixing and professional construction.",
     },
@@ -132,7 +125,6 @@ const products = [
         price: 58,
         oldPrice: null,
         stock: 44,
-        image: "/Assets/Products/wrench.jpg",
         description:
             "Professional industrial head protection for construction and engineering environments.",
     },
@@ -183,6 +175,18 @@ const sortOptions = [
     "Price High to Low",
     "Name A-Z",
 ];
+
+/* =========================================================
+   PRODUCT CARD STYLE
+========================================================= */
+
+function getCategoryCardStyle() {
+    return {
+        accent: "bg-[#101411]",
+        badge: "bg-[#EEF0EC] text-[#4F5650]",
+        panel: "bg-[#F7F8F4]",
+    };
+}
 
 /* =========================================================
    MAIN PAGE
@@ -632,7 +636,7 @@ export default function ProductsPage() {
 
                 <section className="relative overflow-hidden bg-[#07100D] px-5 pb-16 pt-36 text-white md:px-10 lg:px-14 lg:pb-20">
 
-                    {/* Background Image */}
+                    {/* Banner Background Image */}
 
                     <div
                         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -1052,94 +1056,86 @@ export default function ProductsPage() {
                                                     product.id
                                             );
 
+                                        const cardStyle =
+                                            getCategoryCardStyle();
+
                                         return (
 
                                             <article
                                                 key={
                                                     product.id
                                                 }
-                                                className="group overflow-hidden rounded-[28px] border border-black/[0.07] bg-white transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_25px_80px_rgba(0,0,0,.10)]"
+                                                className="group overflow-hidden rounded-[28px] border border-black/[0.10] bg-white shadow-[0_10px_28px_rgba(16,20,17,.08)] transition-all duration-300 hover:-translate-y-1 hover:border-black/[0.16] hover:shadow-[0_18px_42px_rgba(16,20,17,.12)]"
                                             >
 
-                                                {/* Full Image */}
-
-                                                <Link
-                                                    href="/product-details"
-                                                    className="relative block h-[290px] overflow-hidden bg-[#E9ECE5]"
-                                                >
-
-                                                    <ProductImage
-                                                        src={
-                                                            product.image
-                                                        }
-                                                        name={
-                                                            product.name
-                                                        }
-                                                    />
-
-                                                </Link>
+                                                <div
+                                                    className={`h-2 w-full ${cardStyle.accent}`}
+                                                />
 
                                                 {/* Card Content */}
 
                                                 <div className="p-5 md:p-6">
 
-                                                    <div className="flex items-center justify-between gap-4">
-
-                                                        <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#505751]">
-                                                            {
-                                                                product.brand
-                                                            }
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <span
+                                                            className={`rounded-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] ${cardStyle.badge}`}
+                                                        >
+                                                            {product.category}
                                                         </span>
 
-                                                        <span className="text-[10px] font-semibold text-[#777E78]">
-                                                            {
-                                                                product.sku
-                                                            }
+                                                        <span className="text-[10px] font-semibold uppercase tracking-[0.11em] text-[#747B75]">
+                                                            {product.sku}
                                                         </span>
-
                                                     </div>
 
-                                                    <Link href="/product-details">
-
-                                                        <h3 className="mt-3 min-h-[58px] text-[21px] font-semibold leading-[1.28] tracking-[-0.025em] text-[#111512] transition-colors hover:text-[#4D5F14]">
-
-                                                            {
-                                                                product.name
-                                                            }
-
+                                                    <Link
+                                                        href="/product-details"
+                                                        className="block"
+                                                    >
+                                                        <h3 className="mt-4 text-[25px] font-bold leading-[1.13] tracking-[-0.038em] text-[#101411] transition-colors hover:text-[#52651A] md:text-[28px]">
+                                                            {product.name}
                                                         </h3>
-
                                                     </Link>
 
-                                                    <p className="mt-3 line-clamp-2 min-h-[44px] text-[13px] leading-[1.7] text-[#535A54]">
+                                                    <div
+                                                        className={`mt-5 rounded-[18px] border border-black/[0.05] p-4 ${cardStyle.panel}`}
+                                                    >
+                                                        <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#6F766F]">
+                                                            Product Details
+                                                        </p>
 
-                                                        {
-                                                            product.description
-                                                        }
+                                                        <p className="mt-2 line-clamp-3 min-h-[66px] text-[13px] leading-[1.75] text-[#444B45]">
+                                                            {product.description}
+                                                        </p>
+                                                    </div>
 
-                                                    </p>
+                                                    <div className="mt-4 flex items-center justify-between gap-4 rounded-[16px] border border-black/[0.06] bg-[#F5F6F1] px-4 py-3">
+                                                        <div>
+                                                            <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#7A817A]">
+                                                                Brand
+                                                            </p>
 
-                                                    {/* Stock */}
+                                                            <p className="mt-1 text-[12px] font-bold text-[#303630]">
+                                                                {product.brand}
+                                                            </p>
+                                                        </div>
 
-                                                    <div className="mt-4 flex items-center gap-2">
+                                                        <div className="text-right">
+                                                            <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#7A817A]">
+                                                                Availability
+                                                            </p>
 
-                                                        <span
-                                                            className={`h-2.5 w-2.5 rounded-full ${product.stock <=
-                                                                15
-                                                                ? "bg-orange-500"
-                                                                : "bg-green-600"
-                                                                }`}
-                                                        />
-
-                                                        <span className="text-[11px] font-semibold uppercase tracking-[0.09em] text-[#505751]">
-
-                                                            {product.stock <=
-                                                                15
-                                                                ? `Only ${product.stock} left`
-                                                                : "In Stock"}
-
-                                                        </span>
-
+                                                            <p
+                                                                className={`mt-1 text-[11px] font-bold ${product.stock <= 15
+                                                                        ? "text-[#B66B19]"
+                                                                        : "text-[#34733D]"
+                                                                    }`}
+                                                            >
+                                                                {product.stock <= 15
+                                                                    ? `Only ${product.stock} left`
+                                                                    : "In Stock"}
+                                                            </p>
+                                                        </div>
                                                     </div>
 
                                                     {/* Price */}
@@ -1188,27 +1184,32 @@ export default function ProductsPage() {
                                                                 )
                                                             }
                                                             className={`
-                                flex
-                                h-12
-                                w-12
+                                inline-flex
+                                h-11
                                 shrink-0
                                 items-center
                                 justify-center
                                 rounded-full
+                                px-5
+                                text-[11px]
+                                font-bold
                                 transition-all
                                 duration-300
 
                                 ${added
-                                                                    ? "bg-[#D8FF65] text-black"
-                                                                    : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-black"
+                                                                    ? "bg-[#D8FF65] text-[#101411]"
+                                                                    : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
                                                                 }
                               `}
                                                         >
 
                                                             {added ? (
-                                                                <Check className="h-4 w-4" />
+                                                                <>
+                                                                    <Check className="mr-2 h-3.5 w-3.5" />
+                                                                    Added
+                                                                </>
                                                             ) : (
-                                                                <Plus className="h-4 w-4" />
+                                                                "Order"
                                                             )}
 
                                                         </button>
@@ -1538,22 +1539,7 @@ export default function ProductsPage() {
 
                                                 <div className="flex gap-4">
 
-                                                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-[17px] bg-[#ECEFE6]">
 
-                                                        <img
-                                                            src={item.image}
-                                                            alt={item.name}
-                                                            onError={(e) => {
-                                                                e.currentTarget.onerror =
-                                                                    null;
-
-                                                                e.currentTarget.src =
-                                                                    "https://placehold.co/400x400/EEF0E8/101411?text=Product";
-                                                            }}
-                                                            className="h-full w-full object-cover"
-                                                        />
-
-                                                    </div>
 
                                                     <div className="min-w-0 flex-1">
 
@@ -1724,30 +1710,6 @@ export default function ProductsPage() {
             )}
 
         </>
-    );
-}
-
-/* =========================================================
-   PRODUCT IMAGE
-========================================================= */
-
-function ProductImage({
-    src,
-    name,
-}) {
-    return (
-        <img
-            src={src}
-            alt={name}
-            onError={(e) => {
-                e.currentTarget.onerror =
-                    null;
-
-                e.currentTarget.src =
-                    "https://placehold.co/900x700/EEF0E8/101411?text=Top+Range+Product";
-            }}
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-        />
     );
 }
 
@@ -2445,19 +2407,7 @@ ${form.description || "No additional requirements provided."}
                                                     className="flex min-w-0 items-center gap-3 rounded-[14px] bg-[#F4F5EF] p-2.5 sm:rounded-[16px] sm:p-3"
                                                 >
 
-                                                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-[10px] bg-[#E8EBE4] sm:h-14 sm:w-14 sm:rounded-[12px]">
 
-                                                        <img
-                                                            src={
-                                                                item.image
-                                                            }
-                                                            alt={
-                                                                item.name
-                                                            }
-                                                            className="h-full w-full object-cover"
-                                                        />
-
-                                                    </div>
 
                                                     <div className="min-w-0 flex-1">
 
