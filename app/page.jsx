@@ -1,2899 +1,2912 @@
-import HomeEffects from "@/components/HomeEffects";
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+
 import {
-  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
   ArrowUpRight,
-  BadgeCheck,
-  BadgeDollarSign,
-  Blocks,
-  Boxes,
   Check,
   ChevronDown,
-  Clock3,
-  Construction,
-  FileCheck2,
-  Headphones,
-  LayoutGrid,
-  PackageCheck,
-  PackagePlus,
-  Paintbrush,
-  PanelTop,
+  Minus,
+  Package,
+  Plus,
   Search,
-  Send,
+  ShieldCheck,
+  ShoppingBag,
+  SlidersHorizontal,
+  Trash2,
   Truck,
-  Wrench,
+  X,
 } from "lucide-react";
 
+/* =========================================================
+   SETTINGS
+========================================================= */
 
+const PRODUCTS_PER_PAGE = 12; // 3 rows × 4 products on desktop
 
-export default function HomePage() {
+/* =========================================================
+   PRODUCT DATA
+========================================================= */
+
+const products = [
+  {
+    id: 1,
+    name: "Cordless Hammer Drill",
+    category: "Power Tools",
+    brand: "DeWalt",
+    sku: "TR-PT-001",
+    price: 699,
+    oldPrice: 749,
+    stock: 28,
+    description:
+      "Professional cordless hammer drill for concrete, steel, timber and demanding construction applications.",
+  },
+  {
+    id: 2,
+    name: "Professional Angle Grinder",
+    category: "Power Tools",
+    brand: "Bosch",
+    sku: "TR-PT-002",
+    price: 419,
+    oldPrice: null,
+    stock: 18,
+    description:
+      "High-performance angle grinder for professional cutting, grinding and finishing work.",
+  },
+  {
+    id: 3,
+    name: "Heavy Duty Combination Pliers",
+    category: "Hand Tools",
+    brand: "Stanley",
+    sku: "TR-HT-001",
+    price: 69,
+    oldPrice: 79,
+    stock: 64,
+    description:
+      "Durable professional combination pliers for gripping, cutting and maintenance applications.",
+  },
+  {
+    id: 4,
+    name: "Digital Clamp Meter",
+    category: "Electrical",
+    brand: "Fluke",
+    sku: "TR-EL-001",
+    price: 289,
+    oldPrice: null,
+    stock: 9,
+    description:
+      "Digital electrical testing meter designed for professional maintenance and diagnostics.",
+  },
+  {
+    id: 5,
+    name: "Steel Bars",
+    category: "Plumbing",
+    brand: "Hepworth",
+    sku: "TR-PL-001",
+    price: 42,
+    oldPrice: null,
+    stock: 120,
+    description:
+      "High-quality PVC pressure pipe for residential, commercial and industrial plumbing systems.",
+  },
+  {
+    id: 6,
+    name: "Circular Saw",
+    category: "Hardware",
+    brand: "Dormakaba",
+    sku: "TR-HW-001",
+    price: 34,
+    oldPrice: 39,
+    stock: 85,
+    description:
+      "Premium stainless steel hinge for commercial and residential door installations.",
+  },
+  {
+    id: 7,
+    name: "Chainsaw",
+    category: "Fasteners",
+    brand: "Fischer",
+    sku: "TR-FA-001",
+    price: 4.5,
+    oldPrice: null,
+    stock: 400,
+    description:
+      "Heavy-duty anchor solution for concrete, structural fixing and professional construction.",
+  },
+  {
+    id: 8,
+    name: "Cordless Impact Wrench",
+    category: "Safety",
+    brand: "3M",
+    sku: "TR-SF-001",
+    price: 58,
+    oldPrice: null,
+    stock: 44,
+    description:
+      "Professional industrial head protection for construction and engineering environments.",
+  },
+
+];
+
+/* =========================================================
+   FILTER DATA
+========================================================= */
+
+const productCategories = [
+  "All Products",
+  "Power Tools",
+  "Hand Tools",
+  "Electrical",
+  "Plumbing",
+  "Hardware",
+  "Fasteners",
+  "Safety",
+  "Paint & Adhesives",
+  "Construction Materials",
+  "HVAC",
+];
+
+const productBrands = [
+  "All Brands",
+  "3M",
+  "Bosch",
+  "DeWalt",
+  "Dormakaba",
+  "Fischer",
+  "Fluke",
+  "Hepworth",
+  "Mueller",
+  "Sika",
+  "Stanley",
+];
+
+const availabilityOptions = [
+  "All Availability",
+  "In Stock",
+  "Low Stock",
+];
+
+const sortOptions = [
+  "Default",
+  "Price Low to High",
+  "Price High to Low",
+  "Name A-Z",
+];
+
+/* =========================================================
+   PRODUCT CARD STYLE
+========================================================= */
+
+function getCategoryCardStyle() {
+  return {
+    accent: "bg-[#101411]",
+    badge: "bg-[#EEF0EC] text-[#4F5650]",
+    panel: "bg-[#F7F8F4]",
+  };
+}
+
+/* =========================================================
+   MAIN PAGE
+========================================================= */
+
+export default function ProductsPage() {
+  const [search, setSearch] = useState("");
+
+  const [category, setCategory] =
+    useState("All Products");
+
+  const [brand, setBrand] =
+    useState("All Brands");
+
+  const [availability, setAvailability] =
+    useState("All Availability");
+
+  const [sort, setSort] =
+    useState("Default");
+
+  const [showFilters, setShowFilters] =
+    useState(false);
+
+  const [currentPage, setCurrentPage] =
+    useState(1);
+
+  const [cart, setCart] =
+    useState([]);
+
+  const [cartLoaded, setCartLoaded] =
+    useState(false);
+
+  const [cartOpen, setCartOpen] =
+    useState(false);
+
+  const [quoteOpen, setQuoteOpen] =
+    useState(false);
+
+  /* =========================================================
+     DRAWER / MODAL CLOSE HELPERS
+  ========================================================= */
+
+  const closeCart = () => {
+    setCartOpen(false);
+  };
+
+  const closeQuote = () => {
+    setQuoteOpen(false);
+  };
+
+  /* =========================================================
+     ESC KEY + BODY SCROLL LOCK
+  ========================================================= */
+
+  useEffect(() => {
+    if (!cartOpen && !quoteOpen) {
+      return;
+    }
+
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
+
+    const handleKeyDown = (event) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      if (quoteOpen) {
+        closeQuote();
+        return;
+      }
+
+      if (cartOpen) {
+        closeCart();
+      }
+    };
+
+    window.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
+    return () => {
+      document.body.style.overflow =
+        previousOverflow;
+
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
+    };
+  }, [cartOpen, quoteOpen]);
+
+  /* =========================================================
+     FILTER PRODUCTS
+  ========================================================= */
+
+  const filteredProducts = useMemo(() => {
+    let result = [...products];
+
+    if (search.trim()) {
+      const searchValue =
+        search.toLowerCase();
+
+      result = result.filter((product) =>
+        [
+          product.name,
+          product.category,
+          product.brand,
+          product.sku,
+          product.description,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(searchValue)
+      );
+    }
+
+    if (
+      category !==
+      "All Products"
+    ) {
+      result = result.filter(
+        (product) =>
+          product.category ===
+          category
+      );
+    }
+
+    if (
+      brand !==
+      "All Brands"
+    ) {
+      result = result.filter(
+        (product) =>
+          product.brand ===
+          brand
+      );
+    }
+
+    if (
+      availability ===
+      "In Stock"
+    ) {
+      result = result.filter(
+        (product) =>
+          product.stock > 15
+      );
+    }
+
+    if (
+      availability ===
+      "Low Stock"
+    ) {
+      result = result.filter(
+        (product) =>
+          product.stock > 0 &&
+          product.stock <= 15
+      );
+    }
+
+    if (
+      sort ===
+      "Price Low to High"
+    ) {
+      result.sort(
+        (a, b) =>
+          a.price - b.price
+      );
+    }
+
+    if (
+      sort ===
+      "Price High to Low"
+    ) {
+      result.sort(
+        (a, b) =>
+          b.price - a.price
+      );
+    }
+
+    if (
+      sort ===
+      "Name A-Z"
+    ) {
+      result.sort((a, b) =>
+        a.name.localeCompare(
+          b.name
+        )
+      );
+    }
+
+    return result;
+  }, [
+    search,
+    category,
+    brand,
+    availability,
+    sort,
+  ]);
+
+  /* =========================================================
+ LOAD SHARED CART
+========================================================= */
+
+  useEffect(() => {
+    try {
+      const savedCart =
+        localStorage.getItem(
+          "toprange_cart"
+        );
+
+      if (savedCart) {
+        const parsedCart =
+          JSON.parse(savedCart);
+
+        if (Array.isArray(parsedCart)) {
+          setCart(parsedCart);
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Unable to load cart:",
+        error
+      );
+    } finally {
+      setCartLoaded(true);
+    }
+  }, []);
+
+  /* =========================================================
+     SAVE + SYNC SHARED CART
+  ========================================================= */
+
+  useEffect(() => {
+    if (!cartLoaded) {
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        "toprange_cart",
+        JSON.stringify(cart)
+      );
+
+      window.dispatchEvent(
+        new Event(
+          "toprange-cart-updated"
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Unable to save cart:",
+        error
+      );
+    }
+  }, [cart, cartLoaded]);
+
+  /* =========================================================
+     PAGINATION
+  ========================================================= */
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(
+      filteredProducts.length /
+      PRODUCTS_PER_PAGE
+    )
+  );
+
+  const startIndex =
+    (currentPage - 1) *
+    PRODUCTS_PER_PAGE;
+
+  const endIndex =
+    startIndex +
+    PRODUCTS_PER_PAGE;
+
+  const paginatedProducts =
+    filteredProducts.slice(
+      startIndex,
+      endIndex
+    );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    search,
+    category,
+    brand,
+    availability,
+    sort,
+  ]);
+
+  useEffect(() => {
+    if (
+      currentPage >
+      totalPages
+    ) {
+      setCurrentPage(
+        totalPages
+      );
+    }
+  }, [
+    currentPage,
+    totalPages,
+  ]);
+
+  const changePage = (page) => {
+    if (
+      page < 1 ||
+      page > totalPages
+    ) {
+      return;
+    }
+
+    setCurrentPage(page);
+
+    setTimeout(() => {
+      document
+        .getElementById(
+          "products-section"
+        )
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    }, 50);
+  };
+
+  /* =========================================================
+     CART
+  ========================================================= */
+
+  const addToCart = (product) => {
+    setCart((current) => {
+      const existing =
+        current.find(
+          (item) =>
+            item.id ===
+            product.id
+        );
+
+      if (existing) {
+        return current.map(
+          (item) =>
+            item.id ===
+              product.id
+              ? {
+                ...item,
+                quantity:
+                  item.quantity +
+                  1,
+              }
+              : item
+        );
+      }
+
+      return [
+        ...current,
+        {
+          ...product,
+          quantity: 1,
+        },
+      ];
+    });
+
+    setCartOpen(true);
+  };
+
+  const updateQuantity = (
+    id,
+    amount
+  ) => {
+    setCart((current) =>
+      current
+        .map((item) =>
+          item.id === id
+            ? {
+              ...item,
+              quantity:
+                Math.max(
+                  0,
+                  item.quantity +
+                  amount
+                ),
+            }
+            : item
+        )
+        .filter(
+          (item) =>
+            item.quantity > 0
+        )
+    );
+  };
+
+  const removeProduct = (id) => {
+    setCart((current) =>
+      current.filter(
+        (item) =>
+          item.id !== id
+      )
+    );
+  };
+
+  const cartCount =
+    cart.reduce(
+      (total, item) =>
+        total +
+        item.quantity,
+      0
+    );
+
+  const cartTotal =
+    cart.reduce(
+      (total, item) =>
+        total +
+        item.price *
+        item.quantity,
+      0
+    );
+
+  /* =========================================================
+     RESET FILTERS
+  ========================================================= */
+
+  const resetFilters = () => {
+    setSearch("");
+    setCategory("All Products");
+    setBrand("All Brands");
+    setAvailability(
+      "All Availability"
+    );
+    setSort("Default");
+  };
+
   return (
     <>
-      <HomeEffects />
-      <div id="scrollProgress" />
-      <main>
-
-        <section id="home" className="relative min-h-screen overflow-hidden">
-
-          <div className="hero-bg absolute inset-0"></div>
-
-          <div className="hero-vignette absolute inset-0"></div>
-
-
-          <div className="relative z-10 mx-auto
-                      flex min-h-screen
-                      max-w-[1450px]
-                      flex-col justify-end
-                      px-5 pb-10 pt-32
-                      md:px-10 md:pb-12
-                      lg:px-14 lg:pb-14">
-
-            {/* Label */}
-            <div className="hero-intro mb-5
-                          flex items-center gap-3">
-
-              <span className="h-2 w-2
-                              rounded-full
-                              bg-[#D8FF65]
-                              shadow-[0_0_18px_#D8FF65]"></span>
-
-              <span className="text-[11px]
-                              font-medium uppercase
-                              tracking-[0.22em]
-                              text-white/65">
-                Building Materials Solutions
-              </span>
-
-            </div>
-
-
-            <div
-              className="
-    grid items-end gap-8
-    lg:grid-cols-[minmax(0,1fr)_360px]
-    lg:gap-10
-  "
-            >
-              {/* =====================================================
-      HERO COPY
-  ====================================================== */}
-
-              <div className="hero-content relative z-20 min-w-0">
-                <h1
-                  className="
-        hero-title
-        font-display
-        max-w-[1050px]
-        text-[42px]
-        font-medium
-        leading-[0.94]
-        tracking-[-0.055em]
-        text-white
-        min-[390px]:text-[46px]
-        sm:text-[60px]
-        md:text-[76px]
-        lg:text-[88px]
-        xl:text-[100px]
-      "
-                >
-                  {/* First line */}
-                  <span className="block">
-                    Materials that
-                  </span>
-
-                  {/* =================================================
-          SECOND LINE
-          build + animated word
-      ================================================== */}
-
-                  <span
-                    className="
-          mt-[0.05em]
-          flex
-          max-w-full
-          items-center
-          gap-[0.14em]
-          whitespace-nowrap
-        "
-                  >
-                    <span
-                      className="
-            block
-            shrink-0
-            leading-none
-          "
-                    >
-                      build
-                    </span>
-
-                    {/* =================================================
-            WORD SLIDER VIEWPORT
-        ================================================== */}
-
-                    <span
-                      id="heroWordWindow"
-                      className="
-            relative
-            block
-            h-[1.18em]
-            min-w-[5.05em]
-            shrink-0
-            overflow-hidden
-            text-[#D8FF65]
-          "
-                    >
-                      <span
-                        id="wordSlider"
-                        className="
-              absolute
-              left-0
-              top-[0.04em]
-              block
-              w-full
-              translate-y-0
-              will-change-transform
-            "
-                      >
-                        {/* 01 */}
-
-                        <span
-                          className="
-                hero-word-row
-                flex
-                h-[1.10em]
-                items-center
-                whitespace-nowrap
-                leading-none
-              "
-                        >
-                          better.
-                        </span>
-
-                        {/* 02 */}
-
-                        <span
-                          className="
-                hero-word-row
-                flex
-                h-[1.10em]
-                items-center
-                whitespace-nowrap
-                leading-none
-              "
-                        >
-                          stronger.
-                        </span>
-
-                        {/* 03 */}
-
-                        <span
-                          className="
-                hero-word-row
-                flex
-                h-[1.10em]
-                items-center
-                whitespace-nowrap
-                leading-none
-              "
-                        >
-                          smarter.
-                        </span>
-
-                        {/* 04 */}
-
-                        <span
-                          className="
-                hero-word-row
-                flex
-                h-[1.10em]
-                items-center
-                whitespace-nowrap
-                leading-none
-              "
-                        >
-                          greener.
-                        </span>
-
-                        {/* Clone for seamless loop */}
-
-                        <span
-                          aria-hidden="true"
-                          className="
-                hero-word-row
-                flex
-                h-[1.10em]
-                items-center
-                whitespace-nowrap
-                leading-none
-              "
-                        >
-                          better.
-                        </span>
-                      </span>
-                    </span>
-
-                    {/* SEO / accessibility fallback */}
-
-                    <span className="sr-only">
-                      better.
-                    </span>
-                  </span>
-                </h1>
-
-                {/* =====================================================
-        DESCRIPTION
-    ====================================================== */}
-
-                <p
-                  className="
-        hero-copy
-        mt-5
-        max-w-2xl
-        text-[15px]
-        leading-7
-        text-white/70
-        md:mt-6
-        md:text-lg
-      "
-                >
-                  Your trusted source for quality building materials,
-                  construction products and reliable supply solutions
-                  for residential, commercial and industrial projects.
-                </p>
-
-                {/* =====================================================
-        ACTIONS
-    ====================================================== */}
-
-                <div
-                  className="
-        hero-actions
-        mt-7
-        flex
-        flex-wrap
-        gap-3
-        md:mt-8
-      "
-                >
-                  <a
-                    href="/products"
-                    data-magnetic
-                    className="
-          group
-          flex
-          items-center
-          gap-3
-          rounded-full
-          bg-[#D8FF65]
-          px-6
-          py-4
-          text-sm
-          font-semibold
-          text-[#101411]
-          transition
-          duration-300
-          hover:scale-[1.03]
-          hover:bg-white
-        "
-                  >
-                    Explore Products
-
-                    <ArrowUpRight
-                      className="
-            h-4 w-4
-            transition-transform
-            duration-300
-            group-hover:translate-x-1
-            group-hover:-translate-y-1
-          "
-                    />
-                  </a>
-
-                  <a
-                    href="#quote"
-                    className="
-          flex
-          items-center
-          rounded-full
-          border
-          border-white/20
-          bg-white/10
-          px-6
-          py-4
-          text-sm
-          font-medium
-          text-white
-          backdrop-blur-xl
-          transition
-          duration-300
-          hover:bg-white
-          hover:text-black
-        "
-                  >
-                    Request a Quote
-                  </a>
-                </div>
-              </div>
-
-              {/* =====================================================
-    FLOATING PRODUCT CARD
-====================================================== */}
-
-              <aside
-                data-float
-                className="
-    hero-card
-    relative
-    z-20
-    hidden
-    lg:block
-  "
-              >
-                <div
-                  className="
-      group
-      relative
-      isolate
-      overflow-hidden
-      rounded-[28px]
-      border
-      border-white/15
-      p-6
-      text-white
-      shadow-[0_30px_90px_rgba(0,0,0,0.38)]
-    "
-                  style={{
-                    background: `
-        radial-gradient(
-          circle at 88% 4%,
-          rgba(255,255,255,0.34) 0%,
-          rgba(255,255,255,0.14) 18%,
-          transparent 42%
-        ),
-        radial-gradient(
-          circle at 5% 105%,
-          rgba(216,138,45,0.30) 0%,
-          rgba(216,138,45,0.13) 28%,
-          transparent 55%
-        ),
-        radial-gradient(
-          circle at 100% 105%,
-          rgba(184,219,56,0.34) 0%,
-          rgba(184,219,56,0.14) 32%,
-          transparent 58%
-        ),
-        linear-gradient(
-          135deg,
-          rgba(255,255,255,0.10),
-          rgba(255,255,255,0.025) 48%,
-          rgba(0,0,0,0.14)
-        ),
-        rgba(17,20,18,0.62)
-      `,
-
-                    backdropFilter: "blur(30px) saturate(145%)",
-                    WebkitBackdropFilter: "blur(30px) saturate(145%)",
-                  }}
-                >
-                  {/* =====================================================
-        INNER GLASS HIGHLIGHT
-    ====================================================== */}
-
-                  <div
-                    className="
-        pointer-events-none
-        absolute
-        inset-[1px]
-        rounded-[27px]
-        border
-        border-white/[0.04]
-      "
-                  />
-
-                  {/* Top shine */}
-
-                  <div
-                    className="
-        pointer-events-none
-        absolute
-        left-[8%]
-        right-[8%]
-        top-0
-        h-px
-        bg-gradient-to-r
-        from-transparent
-        via-white/40
-        to-transparent
-      "
-                  />
-
-                  {/* Extra soft white glow */}
-
-                  <div
-                    className="
-        pointer-events-none
-        absolute
-        -right-14
-        -top-20
-        h-52
-        w-52
-        rounded-full
-        bg-white/10
-        blur-[55px]
-      "
-                  />
-
-                  {/* Amber glow */}
-
-                  <div
-                    className="
-        pointer-events-none
-        absolute
-        -bottom-24
-        -left-20
-        h-56
-        w-56
-        rounded-full
-        bg-[#D88A2D]/20
-        blur-[60px]
-      "
-                  />
-
-                  {/* Lime glow */}
-
-                  <div
-                    className="
-        pointer-events-none
-        absolute
-        -bottom-24
-        -right-20
-        h-60
-        w-60
-        rounded-full
-        bg-[#B8DB38]/20
-        blur-[65px]
-      "
-                  />
-
-                  {/* =====================================================
-        CONTENT
-    ====================================================== */}
-
-                  <div className="relative z-10">
-                    {/* Header */}
-
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="
-            text-[10px]
-            font-semibold
-            uppercase
-            tracking-[0.2em]
-            text-white/55
-          "
-                      >
-                        Product Solutions
-                      </span>
-
-                      <div
-                        className="
-            flex
-            h-10
-            w-10
-            items-center
-            justify-center
-            rounded-full
-            border
-            border-white/15
-            bg-white/[0.06]
-            text-white
-            backdrop-blur-xl
-          "
-                      >
-                        <Boxes className="h-4 w-4" />
-                      </div>
-                    </div>
-
-                    {/* Heading */}
-
-                    <h3
-                      className="
-          mt-7
-          text-[21px]
-          font-medium
-          leading-[1.3]
-          tracking-[-0.025em]
-          text-white
-        "
-                    >
-                      Everything your project needs.
-                    </h3>
-
-                    {/* Description */}
-
-                    <p
-                      className="
-          mt-3
-          text-sm
-          leading-6
-          text-white/65
-        "
-                    >
-                      Reliable construction materials from trusted brands for every
-                      stage of your project.
-                    </p>
-
-                    {/* =====================================================
-          PRODUCT MINI CARDS
-      ====================================================== */}
-
-                    <div className="mt-6 grid grid-cols-2 gap-2">
-                      {["Cement", "Steel", "Aluminium", "Paints"].map((item) => (
-                        <div
-                          key={item}
-                          className="
-              rounded-[14px]
-              border
-              border-white/15
-              bg-white/[0.055]
-              px-4
-              py-3
-              text-sm
-              font-medium
-              text-white/75
-              shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]
-              backdrop-blur-xl
-              transition-all
-              duration-300
-              hover:-translate-y-[2px]
-              hover:border-white/25
-              hover:bg-white/[0.10]
-              hover:text-white
-            "
-                        >
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* =====================================================
-          VIEW CATEGORIES
-      ====================================================== */}
-
-                    <a
-                      href="#products"
-                      className="
-          group/link
-          mt-5
-          flex
-          items-center
-          justify-between
-          border-t
-          border-white/10
-          pt-5
-          text-sm
-          font-medium
-          text-white/85
-        "
-                    >
-                      <span>View Categories</span>
-
-                      <span
-                        className="
-            flex
-            h-10
-            w-10
-            items-center
-            justify-center
-            rounded-full
-            bg-[#D8FF65]
-            text-[#101411]
-            shadow-[0_8px_25px_rgba(216,255,101,0.20)]
-            transition-all
-            duration-300
-            group-hover/link:rotate-45
-            group-hover/link:bg-white
-          "
-                      >
-                        <ArrowUpRight className="h-4 w-4" />
-                      </span>
-                    </a>
-                  </div>
-                </div>
-              </aside>
-            </div>
-
-
-            {/* =====================================================
-          HERO PRODUCT SEARCH + FILTERS
-      ====================================================== */}
-
-            <div className="hero-search hero-brands mt-8
-          rounded-[26px]
-          bg-white
-          p-3
-          shadow-[0_20px_70px_rgba(0,0,0,0.22)]
-          md:p-4">
-
-              <div className="grid gap-2
-              lg:grid-cols-[1.5fr_1fr_1fr_auto]
-              lg:items-center">
-
-                {/* =================================================
-                  SEARCH INPUT
-              ================================================== */}
-
-                <div className="hero-search-field
-                  flex min-h-[72px]
-                  items-center gap-4
-                  rounded-[18px]
-                  bg-[#F5F6F2]
-                  px-5">
-
-                  <span className="hero-search-icon">
-                    <Search className="h-[18px] w-[18px]" />
-                  </span>
-
-
-                  <div className="min-w-0 flex-1">
-
-                    <label htmlFor="productSearch" className="hero-search-label">
-                      Search Products
-                    </label>
-
-                    <input id="productSearch" type="text" autoComplete="off"
-                      placeholder="Cement, steel, paint..." className="mt-1 w-full
-                          border-0
-                          bg-transparent
-                          p-0
-                          text-sm
-                          font-semibold
-                          text-[#101411]
-                          outline-none
-                          placeholder:font-medium
-                          placeholder:text-black/30" />
-
-                  </div>
-
-                </div>
-
-
-                {/* =================================================
-                  CATEGORY CUSTOM DROPDOWN
-              ================================================== */}
-
-                <div className="custom-select" data-dropdown="" data-dropdown-type="category">
-
-                  <button type="button" className="custom-select-trigger" data-dropdown-trigger=""
-                    aria-expanded="false">
-
-                    <span className="custom-select-left">
-
-                      <span className="custom-select-icon">
-
-                        <LayoutGrid className="h-[18px] w-[18px]" />
-
-                      </span>
-
-
-                      <span className="custom-select-copy">
-
-                        <small>
-                          Category
-                        </small>
-
-                        <strong data-dropdown-label="">
-                          All Products
-                        </strong>
-
-                      </span>
-
-                    </span>
-
-
-                    <span className="custom-select-arrow">
-
-                      <ChevronDown className="h-4 w-4" />
-
-                    </span>
-
-                  </button>
-
-
-                  {/* Menu */}
-
-                  <div className="custom-select-menu" data-dropdown-menu="">
-
-                    <div className="custom-select-menu-head">
-
-                      <span>
-                        Select Category
-                      </span>
-
-                      <span>
-                        Products
-                      </span>
-
-                    </div>
-
-
-                    {/* All */}
-                    <button type="button" className="custom-select-option active" data-value="">
-
-                      <span className="option-icon">
-
-                        <Boxes />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          All Products
-                        </strong>
-
-                        <small>
-                          Browse every category
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-
-                    {/* Cement */}
-                    <button type="button" className="custom-select-option" data-value="cement">
-
-                      <span className="option-icon">
-
-                        <Blocks />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          Cement & Concrete
-                        </strong>
-
-                        <small>
-                          Cement, blocks and concrete
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-
-                    {/* Steel */}
-                    <button type="button" className="custom-select-option" data-value="steel">
-
-                      <span className="option-icon">
-
-                        <Construction />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          Steel & Metals
-                        </strong>
-
-                        <small>
-                          Structural metal materials
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-
-                    {/* Aluminium */}
-                    <button type="button" className="custom-select-option" data-value="aluminium">
-
-                      <span className="option-icon">
-
-                        <PanelTop />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          Aluminium
-                        </strong>
-
-                        <small>
-                          Profiles, sheets and systems
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-
-                    {/* Paint */}
-                    <button type="button" className="custom-select-option" data-value="paint">
-
-                      <span className="option-icon">
-
-                        <Paintbrush />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          Paints & Coatings
-                        </strong>
-
-                        <small>
-                          Interior and exterior finishes
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-
-                    {/* Hardware */}
-                    <button type="button" className="custom-select-option" data-value="hardware">
-
-                      <span className="option-icon">
-
-                        <Wrench />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          Hardware
-                        </strong>
-
-                        <small>
-                          Tools, fixings and accessories
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-                  </div>
-
-
-                  <input type="hidden" id="categoryFilter" defaultValue="" />
-
-                </div>
-
-
-                {/* =================================================
-                  BRAND CUSTOM DROPDOWN
-              ================================================== */}
-
-                <div className="custom-select" data-dropdown="" data-dropdown-type="brand">
-
-                  <button type="button" className="custom-select-trigger" data-dropdown-trigger=""
-                    aria-expanded="false">
-
-                    <span className="custom-select-left">
-
-                      <span className="custom-select-icon">
-
-                        <BadgeCheck className="h-[18px] w-[18px]" />
-
-                      </span>
-
-
-                      <span className="custom-select-copy">
-
-                        <small>
-                          Brand
-                        </small>
-
-                        <strong data-dropdown-label="">
-                          All Brands
-                        </strong>
-
-                      </span>
-
-                    </span>
-
-
-                    <span className="custom-select-arrow">
-
-                      <ChevronDown className="h-4 w-4" />
-
-                    </span>
-
-                  </button>
-
-
-                  {/* Menu */}
-
-                  <div className="custom-select-menu" data-dropdown-menu="">
-
-                    <div className="custom-select-menu-head">
-
-                      <span>
-                        Select Brand
-                      </span>
-
-                      <span>
-                        Partners
-                      </span>
-
-                    </div>
-
-
-                    {/* All */}
-                    <button type="button" className="custom-select-option active" data-value="">
-
-                      <span className="option-icon">
-
-                        <BadgeCheck />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          All Brands
-                        </strong>
-
-                        <small>
-                          Browse every manufacturer
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-
-                    {/* Asian Paints */}
-                    <button type="button" className="custom-select-option" data-value="asian-paints">
-
-                      <span className="option-brand-logo">
-
-                        <img src="/Assets/asian-paints-logo-free-png.png" alt="Asian Paints" />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          Asian Paints
-                        </strong>
-
-                        <small>
-                          Paints & coatings
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-
-                    {/* Brand 2 */}
-                    <button type="button" className="custom-select-option" data-value="brand-2">
-
-                      <span className="option-brand-logo">
-
-                        <img src="/Assets/brand-2.png" alt="Brand 2" />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          Brand 02
-                        </strong>
-
-                        <small>
-                          Building materials
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-
-                    {/* Brand 3 */}
-                    <button type="button" className="custom-select-option" data-value="brand-3">
-
-                      <span className="option-brand-logo">
-
-                        <img src="/Assets/brand-3.png" alt="Brand 3" />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          Brand 03
-                        </strong>
-
-                        <small>
-                          Construction products
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-
-                    {/* Brand 4 */}
-                    <button type="button" className="custom-select-option" data-value="brand-4">
-
-                      <span className="option-brand-logo">
-
-                        <img src="/Assets/brand-4.png" alt="Brand 4" />
-
-                      </span>
-
-
-                      <span className="option-copy">
-
-                        <strong>
-                          Brand 04
-                        </strong>
-
-                        <small>
-                          Professional materials
-                        </small>
-
-                      </span>
-
-
-                      <span className="option-check-wrap">
-
-                        <Check className="option-check" />
-
-                      </span>
-
-                    </button>
-
-                  </div>
-
-
-                  <input type="hidden" id="brandFilter" defaultValue="" />
-
-                </div>
-
-
-                {/* =================================================
-                  SEARCH BUTTON
-              ================================================== */}
-
-                <button id="heroSearchButton" type="button" className="hero-search-button group">
-
-                  <span>
-                    Search
-                  </span>
-
-
-                  <span className="hero-search-button-icon">
-
-                    <ArrowUpRight className="h-4 w-4" />
-
-                  </span>
-
-                </button>
-
-              </div>
-
-
-              {/* =====================================================
-              QUICK CATEGORY FILTERS
-          ====================================================== */}
-
-              <div className="hero-quick-filters
-              mt-3 flex items-center
-              gap-2 overflow-x-auto
-              px-1 pb-1">
-
-                <span className="quick-filter-title">
-                  Popular
-                </span>
-
-
-                <button type="button" className="quick-filter active" data-quick-filter="">
-                  All
-                </button>
-
-
-                <button type="button" className="quick-filter" data-quick-filter="cement">
-                  Cement
-                </button>
-
-
-                <button type="button" className="quick-filter" data-quick-filter="steel">
-                  Steel
-                </button>
-
-
-                <button type="button" className="quick-filter" data-quick-filter="aluminium">
-                  Aluminium
-                </button>
-
-
-                <button type="button" className="quick-filter" data-quick-filter="paint">
-                  Paints
-                </button>
-
-
-                <button type="button" className="quick-filter" data-quick-filter="hardware">
-                  Hardware
-                </button>
-
-              </div>
-
-            </div>
-
-
-
-
-            {/* =====================================================
-          HERO STATS
-      ====================================================== */}
-
-            <div
-              className="
-                              hero-stats mt-7
-                              grid w-full max-w-[660px] grid-cols-3
-                              overflow-hidden rounded-[22px]
-                              border border-white/10
-                              bg-black/20 text-white
-                              shadow-[0_14px_45px_rgba(0,0,0,0.14)]
-                              backdrop-blur-xl
-                          "
-            >
-              <div className="flex min-w-0 flex-col justify-center px-3 py-4 sm:px-5 sm:py-5">
-                <p className="flex min-h-[28px] items-baseline justify-center text-xl font-semibold leading-none tracking-[-0.03em] sm:min-h-[32px] sm:justify-start sm:text-2xl [font-variant-numeric:tabular-nums]">
-                  <span data-counter="500" className="inline-block min-w-[3ch] text-right">500</span>
-                  <span aria-hidden="true" className="ml-[1px]">+</span>
-                </p>
-
-                <p className="mt-2 min-h-[28px] text-center text-[10px] leading-[1.35] text-white/45 sm:min-h-0 sm:text-left sm:text-xs">
-                  Building Products
-                </p>
-              </div>
-
-              <div className="flex min-w-0 flex-col justify-center border-x border-white/10 px-3 py-4 sm:px-5 sm:py-5">
-                <p className="flex min-h-[28px] items-baseline justify-center text-xl font-semibold leading-none tracking-[-0.03em] sm:min-h-[32px] sm:justify-start sm:text-2xl [font-variant-numeric:tabular-nums]">
-                  <span data-counter="30" className="inline-block min-w-[3ch] text-right">30</span>
-                  <span aria-hidden="true" className="ml-[1px]">+</span>
-                </p>
-
-                <p className="mt-2 min-h-[28px] text-center text-[10px] leading-[1.35] text-white/45 sm:min-h-0 sm:text-left sm:text-xs">
-                  Trusted Brands
-                </p>
-              </div>
-
-              <div className="flex min-w-0 flex-col justify-center px-3 py-4 sm:px-5 sm:py-5">
-                <p className="flex min-h-[28px] items-baseline justify-center text-xl font-semibold leading-none tracking-[-0.03em] sm:min-h-[32px] sm:justify-start sm:text-2xl [font-variant-numeric:tabular-nums]">
-                  <span data-counter="250" className="inline-block min-w-[3ch] text-right">250</span>
-                  <span aria-hidden="true" className="ml-[1px]">+</span>
-                </p>
-
-                <p className="mt-2 min-h-[28px] text-center text-[10px] leading-[1.35] text-white/45 sm:min-h-0 sm:text-left sm:text-xs">
-                  Projects Supplied
-                </p>
-              </div>
-            </div>
-
-          </div>
-
-        </section>
-        {/* =================================================
-                  MARQUEE
-              ================================================== */}
-
-        <section className="overflow-hidden
-                  border-y border-black/5
-                  bg-[#D8FF65]
-                  py-4">
-
-          <div className="marquee">
-
-            <div className="marquee-track">
-
-              <div className="marquee-item">CEMENT</div>
-              <div className="marquee-dot"></div>
-
-              <div className="marquee-item">STEEL</div>
-              <div className="marquee-dot"></div>
-
-              <div className="marquee-item">ALUMINIUM</div>
-              <div className="marquee-dot"></div>
-
-              <div className="marquee-item">PAINTS</div>
-              <div className="marquee-dot"></div>
-
-              <div className="marquee-item">HARDWARE</div>
-              <div className="marquee-dot"></div>
-
-              <div className="marquee-item">BUILD BETTER</div>
-              <div className="marquee-dot"></div>
-
-
-              {/* duplicate */}
-
-              <div className="marquee-item">CEMENT</div>
-              <div className="marquee-dot"></div>
-
-              <div className="marquee-item">STEEL</div>
-              <div className="marquee-dot"></div>
-
-              <div className="marquee-item">ALUMINIUM</div>
-              <div className="marquee-dot"></div>
-
-              <div className="marquee-item">PAINTS</div>
-              <div className="marquee-dot"></div>
-
-              <div className="marquee-item">HARDWARE</div>
-              <div className="marquee-dot"></div>
-
-              <div className="marquee-item">BUILD BETTER</div>
-              <div className="marquee-dot"></div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-                  PRODUCTS
-              ================================================== */}
-
-        <section id="products" className="bg-[#F5F5F0]
-                  py-20 md:py-24 lg:py-28">
-
-          <div className="mx-auto max-w-[1450px]
-                      px-5 md:px-10 lg:px-14">
-
-            <div className="mb-10 grid gap-6
-                          md:mb-12
-                          lg:grid-cols-2
-                          lg:items-end">
-
-              <div data-reveal="">
-
-                <div className="mb-4 flex items-center gap-3">
-
-                  <span className="h-[2px] w-8
-                                      bg-[#96C11F]"></span>
-
-                  <span className="text-[11px]
-                                      font-semibold uppercase
-                                      tracking-[0.22em]
-                                      text-black/40">
-                    Product Categories
-                  </span>
-
-                </div>
-
-
-                <h2 className="max-w-2xl
-                                  text-[40px]
-                                  font-medium
-                                  leading-[1.03]
-                                  tracking-[-0.045em]
-                                  md:text-[54px]
-                                  lg:text-[62px]">
-
-                  Everything needed
-
-                  <span className="text-black/30">
-                    to build better.
-                  </span>
-
-                </h2>
-
-              </div>
-
-
-              <div data-reveal="" className="lg:flex lg:justify-end">
-
-                <p className="max-w-lg
-                                  text-base leading-7
-                                  text-black/50">
-                  Explore construction materials selected for
-                  performance, reliability and long-term project value.
-                </p>
-
-              </div>
-
-            </div>
-
-
-            {/* Product Grid */}
-            <div data-stagger="" className="grid grid-cols-1 gap-4
-                          md:grid-cols-2
-                          lg:grid-cols-3">
-
-              {/* 01 */}
-              <a href="/products" data-tilt="" className="group relative
-                              min-h-[420px]
-                              overflow-hidden
-                              rounded-[28px]
-                              bg-[#111]">
-
-                <img loading="lazy" src="/Assets/cement.jpg" alt="Cement" className="category-image
-                                  absolute inset-0
-                                  h-full w-full object-cover" />
-
-                <div className="absolute inset-0
-                                  bg-gradient-to-t
-                                  from-black/90
-                                  via-black/20
-                                  to-transparent"></div>
-
-                <div className="absolute inset-x-0 bottom-0 p-7">
-
-                  <div className="mb-5 flex
-                                      items-center justify-between">
-
-                    <span className="text-xs text-white/45">
-                      01
-                    </span>
-
-                    <span className="circle-arrow">
-
-                      <ArrowUpRight className="h-4 w-4" />
-
-                    </span>
-
-                  </div>
-
-
-                  <h3 className="text-2xl
-                                      font-semibold text-white
-                                      md:text-3xl">
-                    Cement & Concrete
-                  </h3>
-
-                  <p className="mt-3 max-w-sm
-                                      text-sm leading-6
-                                      text-white/55">
-                    High-performance cement and concrete
-                    solutions for modern construction.
-                  </p>
-
-                </div>
-
-              </a>
-
-
-              {/* 02 */}
-              <a href="/products" data-tilt="" className="group relative
-                              min-h-[420px]
-                              overflow-hidden
-                              rounded-[28px]
-                              bg-[#111]">
-
-                <img loading="lazy" src="/Assets/steel.jpg" alt="Steel" className="category-image
-                                  absolute inset-0
-                                  h-full w-full object-cover" />
-
-                <div className="absolute inset-0
-                                  bg-gradient-to-t
-                                  from-black/90
-                                  via-black/20
-                                  to-transparent"></div>
-
-                <div className="absolute inset-x-0 bottom-0 p-7">
-
-                  <div className="mb-5 flex
-                                      items-center justify-between">
-
-                    <span className="text-xs text-white/45">
-                      02
-                    </span>
-
-                    <span className="circle-arrow">
-
-                      <ArrowUpRight className="h-4 w-4" />
-
-                    </span>
-
-                  </div>
-
-                  <h3 className="text-2xl
-                                      font-semibold text-white
-                                      md:text-3xl">
-                    Steel & Metals
-                  </h3>
-
-                  <p className="mt-3 max-w-sm
-                                      text-sm leading-6
-                                      text-white/55">
-                    Structural steel and metal solutions
-                    for demanding construction projects.
-                  </p>
-
-                </div>
-
-              </a>
-
-
-              {/* 03 */}
-              <a href="/products" data-tilt="" className="group relative
-                              min-h-[420px]
-                              overflow-hidden
-                              rounded-[28px]
-                              bg-[#111]">
-
-                <img loading="lazy" src="/Assets/Paint.jpg" alt="Paints" className="category-image
-                                  absolute inset-0
-                                  h-full w-full object-cover" />
-
-                <div className="absolute inset-0
-                                  bg-gradient-to-t
-                                  from-black/90
-                                  via-black/20
-                                  to-transparent"></div>
-
-                <div className="absolute inset-x-0 bottom-0 p-7">
-
-                  <div className="mb-5 flex
-                                      items-center justify-between">
-
-                    <span className="text-xs text-white/45">
-                      03
-                    </span>
-
-                    <span className="circle-arrow">
-
-                      <ArrowUpRight className="h-4 w-4" />
-
-                    </span>
-
-                  </div>
-
-                  <h3 className="text-2xl
-                                      font-semibold text-white
-                                      md:text-3xl">
-                    Paints & Coatings
-                  </h3>
-
-                  <p className="mt-3 max-w-sm
-                                      text-sm leading-6
-                                      text-white/55">
-                    Protective and decorative finishes
-                    for every surface.
-                  </p>
-
-                </div>
-
-              </a>
-
-
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-                  ABOUT
-              ================================================== */}
-
-        <section id="about" className="overflow-hidden
-                  bg-white
-                  py-20 md:py-24 lg:py-28">
-
-          <div className="mx-auto max-w-[1450px]
-                      px-5 md:px-10 lg:px-14">
-
-            <div className="grid gap-10
-                          lg:grid-cols-2
-                          lg:items-center
-                          lg:gap-16">
-
-              {/* Image */}
-              <div data-image-reveal="" className="relative
-                              overflow-hidden
-                              rounded-[32px]">
-
-                <div className="h-[480px]
-                                  overflow-hidden
-                                  md:h-[650px]">
-
-                  <img loading="lazy" data-parallax="" src="/Assets/site.jpg" alt="Construction project"
-                    className="h-[115%] w-full object-cover" />
-
-                </div>
-
-
-                <div data-float="" className="absolute bottom-6 left-6
-                                  rounded-[24px]
-                                  border border-white/20
-                                  bg-black/25
-                                  p-5 text-white
-                                  backdrop-blur-xl">
-
-                  <p className="text-4xl font-semibold">
-                    15+
-                  </p>
-
-                  <p className="mt-1 text-xs text-white/60">
-                    Years of trusted supply
-                  </p>
-
-                </div>
-
-              </div>
-
-
-              {/* Copy */}
-              <div data-reveal-right="">
-
-                <p className="eyebrow">
-                  About Top Range
-                </p>
-
-                <h2 className="mt-5 max-w-xl
-                                  text-[40px]
-                                  font-medium
-                                  leading-[1.05]
-                                  tracking-[-0.045em]
-                                  md:text-[54px]
-                                  lg:text-[60px]">
-
-                  Building trust into
-
-                  <span className="text-black/30">
-                    every project.
-                  </span>
-
-                </h2>
-
-
-                <p className="mt-6 max-w-xl
-                                  text-base leading-8
-                                  text-black/50">
-                  Top Range Building Materials delivers reliable
-                  construction products for contractors, developers,
-                  consultants and businesses across residential,
-                  commercial and industrial projects.
-                </p>
-
-
-                <div className="mt-9 grid gap-5
-                                  sm:grid-cols-2">
-
-                  <div className="about-feature">
-
-                    <BadgeCheck className="h-5 w-5 text-[#88AE1D]" />
-
-                    <h4 className="mt-4 font-semibold">
-                      Trusted Products
-                    </h4>
-
-                    <p className="mt-2 text-sm
-                                          leading-6 text-black/45">
-                      Carefully selected materials
-                      from established manufacturers.
-                    </p>
-
-                  </div>
-
-
-                  <div className="about-feature">
-
-                    <Truck className="h-5 w-5 text-[#88AE1D]" />
-
-                    <h4 className="mt-4 font-semibold">
-                      Reliable Supply
-                    </h4>
-
-                    <p className="mt-2 text-sm
-                                          leading-6 text-black/45">
-                      Efficient procurement and
-                      dependable project delivery.
-                    </p>
-
-                  </div>
-
-                </div>
-
-
-                <a href="#buildStory" data-magnetic="" className="mt-9 inline-flex
-                                  items-center gap-3
-                                  rounded-full
-                                  bg-[#101411]
-                                  px-6 py-4
-                                  text-sm font-medium
-                                  text-white">
-
-                  Discover Our Story
-
-                  <ArrowDown className="h-4 w-4" />
-
-                </a>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-                  STICKY STORY
-              ================================================== */}
-
-        <section id="buildStory" className="relative bg-[#0E1512] text-white">
-
-          <div className="mx-auto grid
-                      max-w-[1450px]
-                      gap-12
-                      px-5 py-20
-                      md:px-10 md:py-24
-                      lg:grid-cols-2
-                      lg:gap-16
-                      lg:px-14 lg:py-28">
-
-            {/* Sticky image */}
-            <div className="lg:sticky
-                          lg:top-24
-                          lg:h-[calc(100vh-120px)]">
-
-              <div className="relative h-[520px]
-                              overflow-hidden
-                              rounded-[32px]
-                              lg:h-full">
-
-                <img loading="lazy" data-story-image="0" src="/Assets/baement.jpg" alt="Foundation"
-                  className="story-image" />
-
-                <img loading="lazy" data-story-image="1" src="/Assets/constraction.jpg" alt="Structure"
-                  className="story-image" />
-
-                <img loading="lazy" data-story-image="2" src="/Assets/final paiting.jpg" alt="Finishing"
-                  className="story-image" />
-
-
-                <div className="absolute inset-0
-                                  bg-gradient-to-t
-                                  from-black/70
-                                  via-transparent
-                                  to-black/10"></div>
-
-
-                <div className="absolute left-6 top-6
-                                  flex h-14 w-14
-                                  items-center justify-center
-                                  rounded-full
-                                  border border-white/20
-                                  bg-black/20
-                                  text-sm
-                                  backdrop-blur-xl">
-
-                  <span id="storyNumber">
-                    01
-                  </span>
-
-                </div>
-
-
-                <div className="absolute bottom-0 left-0 p-8">
-
-                  <p className="eyebrow text-white/40">
-                    Building Process
-                  </p>
-
-                  <p id="storyLabel" className="mt-2 text-2xl font-medium">
-                    Foundation
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            {/* Scroll copy */}
-            <div className="lg:pt-[8vh]">
-
-              <div className="mb-20 lg:mb-24">
-
-                <p data-reveal="" className="eyebrow text-white/40">
-                  From Ground to Finish
-                </p>
-
-                <h2 className="mt-5 max-w-xl
-                                  text-[42px]
-                                  font-medium
-                                  leading-[1.03]
-                                  tracking-[-0.05em]
-                                  md:text-[58px]
-                                  lg:text-[64px]">
-
-                  Materials for
-                  every stage of
-
-                  <span className="text-[#D8FF65]">
-                    construction.
-                  </span>
-
-                </h2>
-
-              </div>
-
-
-              {/* step */}
-              <article data-story="0" data-label="Foundation" className="story-step active">
-
-                <div>
-
-                  <span className="story-number">
-                    01 · Foundation
-                  </span>
-
-                  <h3 className="story-heading">
-                    Start with strength.
-                  </h3>
-
-                  <p className="story-copy">
-                    Reliable cement and concrete products
-                    designed to support strong foundations,
-                    structural stability and long-term performance.
-                  </p>
-
-                  <div className="story-tags">
-
-                    <span>Cement</span>
-                    <span>Concrete</span>
-                    <span>Blocks</span>
-
-                  </div>
-
-                </div>
-
-              </article>
-
-
-              <article data-story="1" data-label="Structure" className="story-step">
-
-                <div>
-
-                  <span className="story-number">
-                    02 · Structure
-                  </span>
-
-                  <h3 className="story-heading">
-                    Build with precision.
-                  </h3>
-
-                  <p className="story-copy">
-                    Structural steel, aluminium and metal
-                    products engineered for demanding
-                    construction requirements.
-                  </p>
-
-                  <div className="story-tags">
-
-                    <span>Steel</span>
-                    <span>Aluminium</span>
-                    <span>Profiles</span>
-
-                  </div>
-
-                </div>
-
-              </article>
-
-
-              <article data-story="2" data-label="Finishing" className="story-step">
-
-                <div>
-
-                  <span className="story-number">
-                    03 · Finishing
-                  </span>
-
-                  <h3 className="story-heading">
-                    Finish with confidence.
-                  </h3>
-
-                  <p className="story-copy">
-                    Complete each project with coatings,
-                    paints, hardware and finishing materials
-                    designed for lasting quality.
-                  </p>
-
-                  <div className="story-tags">
-
-                    <span>Paint</span>
-                    <span>Coatings</span>
-                    <span>Hardware</span>
-
-                  </div>
-
-                </div>
-
-              </article>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-                  HORIZONTAL PRODUCT EXPERIENCE
-              ================================================== */}
-
-        <section id="materialShowcase" className="horizontal-section
-                  bg-[#F5F5F0]
-                  py-20 md:py-24 lg:py-28">
-
-          <div className="mx-auto max-w-[1450px]
-                      px-5 md:px-10 lg:px-14">
-
-            <div className="mb-12 grid gap-8
-                          lg:grid-cols-2
-                          lg:items-end">
-
-              <div>
-
-                <p data-reveal="" className="eyebrow">
-                  Explore Materials
-                </p>
-
-                <h2 className="mt-4 max-w-3xl
-                                  text-[42px]
-                                  font-medium
-                                  leading-[1.03]
-                                  tracking-[-0.05em]
-                                  md:text-[58px]
-                                  lg:text-[68px]">
-
-                  <span className="reveal-line">
-                    <span className="reveal-line-inner">
-                      Built for today.
-                    </span>
-                  </span>
-
-                  <span className="reveal-line text-black/30">
-                    <span className="reveal-line-inner">
-                      Ready for tomorrow.
-                    </span>
-                  </span>
-
-                </h2>
-
-              </div>
-
-
-              <div data-reveal="" className="lg:flex lg:justify-end">
-
-                <p className="max-w-md
-                                  text-base leading-7
-                                  text-black/45">
-                  Browse material solutions across foundation,
-                  structural and finishing applications.
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div className="horizontal-track
-                      px-5 md:px-10 lg:px-14">
-
-            {/* horizontal card */}
-            <article className="horizontal-card horizontal-image-card">
-
-              <img loading="lazy" src="/Assets/Driller.jpg" alt="Concrete" />
-
-              <div className="horizontal-overlay"></div>
-
-              <div className="horizontal-copy">
-
-                <h3>Drill & Driver</h3>
-
-                <p>
-                  Dependable solutions for foundations
-                  and structural applications.
-                </p>
-
-              </div>
-
-            </article>
-
-
-            <article className="horizontal-card horizontal-image-card">
-
-              <img loading="lazy" src="/Assets/angle grinter.jpg" alt="Steel" />
-
-              <div className="horizontal-overlay"></div>
-
-              <div className="horizontal-copy">
-
-
-                <h3>Angle Grinder</h3>
-
-                <p>
-                  Strength, precision and durability for
-                  structural construction.
-                </p>
-
-              </div>
-
-            </article>
-
-
-            <article className="horizontal-card horizontal-image-card">
-
-              <img loading="lazy" src="/Assets/hammer driller.jpg" alt="Finishes" />
-
-              <div className="horizontal-overlay"></div>
-
-              <div className="horizontal-copy">
-
-
-                <h3>Cordless Hammer Drill</h3>
-
-                <p>
-                  Finishing solutions developed for
-                  protection and lasting appearance.
-                </p>
-
-              </div>
-
-            </article>
-
-
-            {/* CTA Card */}
-            <article className="horizontal-card
-                          flex min-h-[520px]
-                          flex-col justify-between
-                          rounded-[32px]
-                          bg-[#D8FF65]
-                          p-8
-                          md:min-h-[600px]
-                          md:p-10">
-
-              <div className="flex justify-between">
-
-                <span className="eyebrow">
-                  Full Catalogue
-                </span>
-
-                <span className="text-sm">
-                  500+
-                </span>
-
-              </div>
-
-
-              <div>
-
-                <h3 className="max-w-xl
-                                  text-4xl font-medium
-                                  leading-[1]
-                                  tracking-[-0.04em]
-                                  md:text-6xl">
-                  Find what your project needs.
-                </h3>
-
-                <a href="#products" data-magnetic="" className="mt-8 inline-flex
-                                  items-center gap-3
-                                  rounded-full
-                                  bg-black
-                                  px-6 py-4
-                                  text-sm font-medium
-                                  text-white">
-
-                  Browse Catalogue
-
-                  <ArrowUpRight className="h-4 w-4" />
-
-                </a>
-
-              </div>
-
-            </article>
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-                  WHY US
-              ================================================== */}
-
-        <section className="relative overflow-hidden
-                  bg-[#101713]
-                  py-20 text-white
-                  md:py-24 lg:py-28">
-
-          <div className="ambient-glow"></div>
-
-          <div className="relative mx-auto
-                      max-w-[1450px]
-                      px-5 md:px-10 lg:px-14">
-
-            <div className="grid gap-12
-                          lg:grid-cols-[0.9fr_1.1fr]
-                          lg:gap-16">
-
-              <div data-reveal="">
-
-                <p className="eyebrow text-white/40">
-                  Why Top Range
-                </p>
-
-                <h2 className="mt-5 max-w-xl
-                                  text-[40px]
-                                  font-medium
-                                  leading-[1.05]
-                                  tracking-[-0.045em]
-                                  md:text-[56px]
-                                  lg:text-[62px]">
-                  Supply that keeps
-                  projects moving.
-                </h2>
-
-              </div>
-
-
-              <div data-stagger="" className="feature-grid">
-
-                <div className="feature-card">
-
-                  <PackageCheck className="h-6 w-6 text-[#D8FF65]" />
-
-                  <h3>Quality Assured</h3>
-
-                  <p>
-                    Selected products suited to demanding
-                    construction requirements.
-                  </p>
-
-                </div>
-
-
-                <div className="feature-card">
-
-                  <Truck className="h-6 w-6 text-[#D8FF65]" />
-
-                  <h3>Reliable Delivery</h3>
-
-                  <p>
-                    Efficient supply coordination aligned
-                    with your project schedule.
-                  </p>
-
-                </div>
-
-
-                <div className="feature-card">
-
-                  <Headphones className="h-6 w-6 text-[#D8FF65]" />
-
-                  <h3>Expert Support</h3>
-
-                  <p>
-                    Professional assistance from product
-                    enquiry through delivery.
-                  </p>
-
-                </div>
-
-
-                <div className="feature-card">
-
-                  <BadgeDollarSign className="h-6 w-6 text-[#D8FF65]" />
-
-                  <h3>Competitive Value</h3>
-
-                  <p>
-                    Practical sourcing solutions designed
-                    around project budgets.
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            {/* Counters */}
-            <div className="mt-16 grid gap-8
-                          border-t border-white/10
-                          pt-10
-                          sm:grid-cols-2
-                          lg:grid-cols-4">
-
-              <div className="counter-block">
-
-                <p>
-                  <span data-counter="500" className="tabular-nums">500</span>+
-                </p>
-
-                <span>Building Products</span>
-
-              </div>
-
-              <div className="counter-block">
-
-                <p>
-                  <span data-counter="30" className="tabular-nums">30</span>+
-                </p>
-
-                <span>Trusted Brands</span>
-
-              </div>
-
-              <div className="counter-block">
-
-                <p>
-                  <span data-counter="250" className="tabular-nums">250</span>+
-                </p>
-
-                <span>Projects Supplied</span>
-
-              </div>
-
-              <div className="counter-block">
-
-                <p>
-                  <span data-counter="15" className="tabular-nums">15</span>+
-                </p>
-
-                <span>Years Experience</span>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-                  PROJECTS
-              ================================================== */}
-
-        <section id="projects" className="bg-white
-                  py-20 md:py-24 lg:py-28">
-
-          <div className="mx-auto max-w-[1450px]
-                      px-5 md:px-10 lg:px-14">
-
-            <div data-reveal="" className="mb-12">
-
-              <p className="eyebrow">
-                Applications
-              </p>
-
-              <h2 className="mt-4 max-w-3xl
-                              text-[42px]
-                              font-medium
-                              leading-[1.05]
-                              tracking-[-0.045em]
-                              md:text-[58px]
-                              lg:text-[64px]">
-                Materials made for
-                real-world projects.
-              </h2>
-
-            </div>
-
-
-            <div data-stagger="" className="grid gap-4
-                          lg:grid-cols-12">
-
-              <article className="project-card group
-                              min-h-[520px]
-                              lg:col-span-7">
-
-                <img loading="lazy" data-parallax="" src="/Assets/construction full.jpg"
-                  alt="Commercial high rise" />
-
-                <div className="project-overlay"></div>
-
-                <div className="project-copy">
-
-                  <span>Commercial</span>
-
-                  <h3>
-                    High-Rise Developments
-                  </h3>
-
-                </div>
-
-              </article>
-
-
-              <div className="grid gap-4
-                              lg:col-span-5">
-
-                <article className="project-card group min-h-[250px]">
-
-                  <img loading="lazy" data-parallax="" src="/Assets/Hero.jpg" alt="Villa" />
-
-                  <div className="project-overlay"></div>
-
-                  <div className="project-copy">
-
-                    <span>Residential</span>
-
-                    <h3>
-                      Villa Construction
-                    </h3>
-
-                  </div>
-
-                </article>
-
-
-                <article className="project-card group min-h-[250px]">
-
-                  <img loading="lazy" data-parallax=""
-                    src="https://images.unsplash.com/photo-1565793298595-6a879b1d9492?auto=format&fit=crop&w=1000&q=85"
-                    alt="Industrial" />
-
-                  <div className="project-overlay"></div>
-
-                  <div className="project-copy">
-
-                    <span>Industrial</span>
-
-                    <h3>
-                      Industrial Facilities
-                    </h3>
-
-                  </div>
-
-                </article>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-                  QUOTE PROCESS
-              ================================================== */}
+      <main className="min-h-screen bg-[#F4F5EF] text-[#101411]">
 
         {/* =====================================================
-          REQUEST A QUOTE SECTION
-      ====================================================== */}
+            HERO
+        ===================================================== */}
 
-        <section id="quote" className="bg-[#F5F5F0]
-          py-20
-          md:py-24
-          lg:py-28">
+        <section className="relative overflow-hidden bg-[#07100D] px-5 pb-16 pt-36 text-white md:px-10 lg:px-14 lg:pb-20">
 
-          <div className="mx-auto
-              max-w-[1450px]
-              px-5
-              md:px-10
-              lg:px-14">
+          {/* Banner Background Image */}
 
-            <div className="grid gap-12
-                  lg:grid-cols-[0.8fr_1.2fr]
-                  lg:items-start
-                  lg:gap-20">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{
+              backgroundImage:
+                "url('/Assets/Product Banner.jpg')",
+            }}
+          />
 
-              {/* =============================================
-                      LEFT CONTENT
-                  ============================================== */}
+          {/* Dark Overlays */}
 
-              <div data-reveal="" className="lg:sticky lg:top-32">
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,16,13,0.98)_0%,rgba(7,16,13,0.93)_42%,rgba(7,16,13,0.72)_72%,rgba(7,16,13,0.55)_100%)]" />
+
+          <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(7,16,13,0.98)_0%,rgba(7,16,13,0.28)_55%,rgba(7,16,13,0.12)_100%)]" />
+
+          {/* Glows */}
+
+          <div className="pointer-events-none absolute -right-40 -top-20 h-[600px] w-[600px] rounded-full bg-[#D8FF65]/10 blur-[170px]" />
+
+          <div className="pointer-events-none absolute -bottom-48 -left-40 h-[500px] w-[500px] rounded-full bg-[#C6772C]/10 blur-[150px]" />
+
+          <div className="relative z-10 mx-auto max-w-[1450px]">
+
+            <div className="grid gap-12 lg:grid-cols-[1fr_390px] lg:items-end">
+
+              {/* Hero Content */}
+
+              <div>
 
                 <div className="flex items-center gap-3">
 
-                  <span className="h-[2px] w-8
-                              bg-[#91B927]"></span>
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#D8FF65] shadow-[0_0_18px_#D8FF65]" />
 
-                  <p className="text-[11px]
-                              font-semibold uppercase
-                              tracking-[0.22em]
-                              text-black/35">
-                    Request a Quote
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/80">
+                    Product Catalogue
+                  </span>
+
+                </div>
+
+                <h1 className="mt-6 max-w-[1000px] text-[50px] font-medium leading-[0.92] tracking-[-0.06em] sm:text-[66px] md:text-[80px] lg:text-[94px]">
+
+                  Everything your
+                  <br />
+
+                  <span className="text-[#D8FF65]">
+                    project needs.
+                  </span>
+
+                </h1>
+
+                <p className="mt-7 max-w-2xl text-[16px] leading-8 text-white/80 md:text-[18px]">
+
+                  Explore professional
+                  building materials,
+                  power tools, hardware,
+                  plumbing, electrical
+                  supplies and
+                  construction products
+                  from trusted
+                  manufacturers.
+
+                </p>
+
+              </div>
+
+              {/* Quote Card */}
+
+              <div className="rounded-[30px] border border-white/15 bg-black/25 p-7 shadow-[0_30px_80px_rgba(0,0,0,.25)] backdrop-blur-2xl">
+
+                <p className="text-[11px] font-semibold uppercase tracking-[0.17em] text-[#D8FF65]">
+                  Project Procurement
+                </p>
+
+                <h3 className="mt-6 text-[29px] font-semibold leading-[1.08] tracking-[-0.035em] text-white">
+                  Buying materials
+                  <br />
+                  in bulk?
+                </h3>
+
+                <p className="mt-4 text-[14px] leading-7 text-white/75">
+
+                  Combine multiple
+                  products into one
+                  professional
+                  quotation request.
+
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setQuoteOpen(true)
+                  }
+                  className="group mt-7 flex w-full items-center justify-between border-t border-white/15 pt-5 text-[14px] font-semibold text-white"
+                >
+
+                  Request quotation
+
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D8FF65] text-black transition-transform duration-300 group-hover:rotate-45">
+
+                    <ArrowUpRight className="h-4 w-4" />
+
+                  </span>
+
+                </button>
+
+              </div>
+
+            </div>
+
+            {/* =================================================
+                SEARCH
+            ================================================= */}
+
+            <div className="mt-14 flex flex-col gap-2 rounded-[24px] border border-white/15 bg-black/25 p-2 shadow-[0_20px_60px_rgba(0,0,0,.2)] backdrop-blur-xl md:flex-row">
+
+              <div className="flex flex-1 items-center gap-4 px-4">
+
+                <Search className="h-5 w-5 shrink-0 text-white/75" />
+
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) =>
+                    setSearch(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Search products, brands, categories or SKU..."
+                  className="h-14 w-full bg-transparent text-[15px] font-medium text-white outline-none placeholder:text-white/55"
+                />
+
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowFilters(
+                    (prev) => !prev
+                  )
+                }
+                className="flex h-14 items-center justify-center gap-3 rounded-[17px] bg-[#D8FF65] px-7 text-[14px] font-semibold text-[#101411] transition hover:bg-white"
+              >
+
+                <SlidersHorizontal className="h-4 w-4" />
+
+                Filters
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* =====================================================
+            CATEGORIES
+        ===================================================== */}
+
+        <section className="border-b border-black/[0.07] bg-white">
+
+          <div className="mx-auto max-w-[1450px] overflow-x-auto px-5 py-5 md:px-10 lg:px-14">
+
+            <div className="flex min-w-max gap-2">
+
+              {productCategories.map(
+                (item) => (
+
+                  <button
+                    type="button"
+                    key={item}
+                    onClick={() =>
+                      setCategory(item)
+                    }
+                    className={`
+                      rounded-full
+                      px-5
+                      py-3
+                      text-[12px]
+                      font-semibold
+                      transition-all
+                      duration-300
+
+                      ${category ===
+                        item
+                        ? "bg-[#101411] text-white"
+                        : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
+                      }
+                    `}
+                  >
+                    {item}
+                  </button>
+
+                )
+              )}
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* =====================================================
+            PRODUCTS
+        ===================================================== */}
+
+        <section
+          id="products-section"
+          className="scroll-mt-24 py-12 md:py-16"
+        >
+
+          <div className="mx-auto max-w-[1450px] px-5 md:px-10 lg:px-14">
+
+            {/* =================================================
+                FILTER PANEL
+            ================================================= */}
+
+            {showFilters && (
+
+              <div className="mb-8 grid gap-4 rounded-[28px] border border-black/[0.07] bg-white p-5 shadow-[0_20px_60px_rgba(0,0,0,.05)] sm:grid-cols-2 lg:grid-cols-4">
+
+                <FilterDropdown
+                  label="Category"
+                  value={category}
+                  options={
+                    productCategories
+                  }
+                  onChange={
+                    setCategory
+                  }
+                />
+
+                <FilterDropdown
+                  label="Brand"
+                  value={brand}
+                  options={
+                    productBrands
+                  }
+                  onChange={
+                    setBrand
+                  }
+                />
+
+                <FilterDropdown
+                  label="Availability"
+                  value={
+                    availability
+                  }
+                  options={
+                    availabilityOptions
+                  }
+                  onChange={
+                    setAvailability
+                  }
+                />
+
+                <div className="flex items-end">
+
+                  <button
+                    type="button"
+                    onClick={
+                      resetFilters
+                    }
+                    className="h-[54px] w-full rounded-[15px] border border-black/10 bg-[#F4F5EF] text-[13px] font-semibold text-[#303530] transition hover:bg-[#101411] hover:text-white"
+                  >
+                    Reset Filters
+                  </button>
+
+                </div>
+
+              </div>
+
+            )}
+
+            {/* =================================================
+                PRODUCT HEADER
+            ================================================= */}
+
+            <div className="mb-8 flex flex-col gap-6 border-b border-black/[0.08] pb-7 md:flex-row md:items-end md:justify-between">
+
+              <div>
+
+                <p className="text-[11px] font-semibold uppercase tracking-[0.17em] text-[#545B55]">
+                  Product Collection
+                </p>
+
+                <h2 className="mt-2 text-[35px] font-semibold tracking-[-0.045em] text-[#101411] md:text-[44px]">
+                  {category}
+                </h2>
+
+                <p className="mt-2 text-[14px] font-medium text-[#626963]">
+
+                  {
+                    filteredProducts.length
+                  }{" "}
+                  products found
+
+                </p>
+
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+
+                <FilterDropdown
+                  value={sort}
+                  options={
+                    sortOptions
+                  }
+                  onChange={
+                    setSort
+                  }
+                  compact
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCartOpen(true)
+                  }
+                  className="relative flex h-[50px] items-center gap-3 rounded-full bg-[#101411] px-6 text-[13px] font-semibold text-white"
+                >
+
+                  <ShoppingBag className="h-4 w-4" />
+
+                  Cart
+
+                  {cartCount > 0 && (
+
+                    <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#D8FF65] px-1.5 text-[10px] font-bold text-black">
+                      {cartCount}
+                    </span>
+
+                  )}
+
+                </button>
+
+              </div>
+
+            </div>
+
+            {/* Results Info */}
+
+            {filteredProducts.length >
+              0 && (
+
+                <div className="mb-5 flex items-center justify-between">
+
+                  <p className="text-[13px] font-medium text-[#5B625C]">
+
+                    Showing{" "}
+
+                    <span className="font-bold text-[#101411]">
+                      {startIndex + 1}
+                    </span>
+
+                    {" "}–{" "}
+
+                    <span className="font-bold text-[#101411]">
+                      {Math.min(
+                        endIndex,
+                        filteredProducts.length
+                      )}
+                    </span>
+
+                    {" "}of{" "}
+
+                    <span className="font-bold text-[#101411]">
+                      {
+                        filteredProducts.length
+                      }
+                    </span>
+
+                    {" "}products
+
+                  </p>
+
+                  {totalPages >
+                    1 && (
+
+                      <p className="hidden text-[13px] font-medium text-[#606761] sm:block">
+
+                        Page{" "}
+
+                        <span className="font-bold text-[#101411]">
+                          {currentPage}
+                        </span>
+
+                        {" "}of{" "}
+
+                        {totalPages}
+
+                      </p>
+
+                    )}
+
+                </div>
+
+              )}
+
+            {/* =================================================
+                PRODUCT GRID
+            ================================================= */}
+
+            {paginatedProducts.length >
+              0 ? (
+
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+
+                {paginatedProducts.map(
+                  (product) => {
+
+                    const added =
+                      cart.some(
+                        (item) =>
+                          item.id ===
+                          product.id
+                      );
+
+                    const cardStyle =
+                      getCategoryCardStyle();
+
+                    return (
+
+                      <article
+                        key={
+                          product.id
+                        }
+                        className="group overflow-hidden rounded-[28px] border border-black/[0.10] bg-white shadow-[0_10px_28px_rgba(16,20,17,.08)] transition-all duration-300 hover:-translate-y-1 hover:border-black/[0.16] hover:shadow-[0_18px_42px_rgba(16,20,17,.12)]"
+                      >
+
+                        <div
+                          className={`h-2 w-full ${cardStyle.accent}`}
+                        />
+
+                        {/* Card Content */}
+
+                        <div className="p-5 md:p-6">
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`rounded-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] ${cardStyle.badge}`}
+                            >
+                              {product.category}
+                            </span>
+
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.11em] text-[#747B75]">
+                              {product.sku}
+                            </span>
+                          </div>
+
+                          <Link
+                            href="/product-details"
+                            className="block"
+                          >
+                            <h3 className="mt-4 text-[25px] font-bold leading-[1.13] tracking-[-0.038em] text-[#101411] transition-colors hover:text-[#52651A] md:text-[28px]">
+                              {product.name}
+                            </h3>
+                          </Link>
+
+                          <div
+                            className={`mt-5 rounded-[18px] border border-black/[0.05] p-4 ${cardStyle.panel}`}
+                          >
+                            <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-[#6F766F]">
+                              Product Details
+                            </p>
+
+                            <p className="mt-2 line-clamp-3 min-h-[66px] text-[13px] leading-[1.75] text-[#444B45]">
+                              {product.description}
+                            </p>
+                          </div>
+
+                          <div className="mt-4 flex items-center justify-between gap-4 rounded-[16px] border border-black/[0.06] bg-[#F5F6F1] px-4 py-3">
+                            <div>
+                              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#7A817A]">
+                                Brand
+                              </p>
+
+                              <p className="mt-1 text-[12px] font-bold text-[#303630]">
+                                {product.brand}
+                              </p>
+                            </div>
+
+                            <div className="text-right">
+                              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#7A817A]">
+                                Availability
+                              </p>
+
+                              <p
+                                className={`mt-1 text-[11px] font-bold ${product.stock <= 15
+                                  ? "text-[#B66B19]"
+                                  : "text-[#34733D]"
+                                  }`}
+                              >
+                                {product.stock <= 15
+                                  ? `Only ${product.stock} left`
+                                  : "In Stock"}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Price */}
+
+                          <div className="mt-5 flex items-end justify-between border-t border-black/[0.08] pt-5">
+
+                            <div>
+
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.11em] text-[#626963]">
+                                Starting Price
+                              </p>
+
+                              <div className="mt-1.5 flex items-center gap-2">
+
+                                <span className="text-[22px] font-bold tracking-[-0.03em] text-[#101411]">
+
+                                  AED{" "}
+                                  {
+                                    product.price
+                                  }
+
+                                </span>
+
+                                {product.oldPrice && (
+
+                                  <span className="text-[12px] font-medium text-[#8B918C] line-through">
+
+                                    AED{" "}
+                                    {
+                                      product.oldPrice
+                                    }
+
+                                  </span>
+
+                                )}
+
+                              </div>
+
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                addToCart(
+                                  product
+                                )
+                              }
+                              className={`
+                                inline-flex
+                                h-11
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-full
+                                px-5
+                                text-[11px]
+                                font-bold
+                                transition-all
+                                duration-300
+
+                                ${added
+                                  ? "bg-[#D8FF65] text-[#101411]"
+                                  : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
+                                }
+                              `}
+                            >
+
+                              {added ? (
+                                <>
+                                  <Check className="mr-2 h-3.5 w-3.5" />
+                                  Added
+                                </>
+                              ) : (
+                                "Order"
+                              )}
+
+                            </button>
+
+                          </div>
+
+                          {/* Details */}
+
+                          <Link
+                            href="/product-details"
+                            className="group/details mt-5 flex items-center justify-between border-t border-black/[0.08] pt-4 text-[12px] font-semibold text-[#303630]"
+                          >
+
+                            View Product Details
+
+                            <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/details:-translate-y-0.5 group-hover/details:translate-x-0.5" />
+
+                          </Link>
+
+                        </div>
+
+                      </article>
+
+                    );
+                  }
+                )}
+
+              </div>
+
+            ) : (
+
+              <div className="rounded-[30px] border border-dashed border-black/15 bg-white py-24 text-center">
+
+                <Search className="mx-auto h-10 w-10 text-black/25" />
+
+                <h3 className="mt-5 text-[25px] font-semibold text-[#101411]">
+                  No products found
+                </h3>
+
+                <p className="mt-2 text-[14px] text-[#626963]">
+                  Try adjusting your
+                  search, category or
+                  filters.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={
+                    resetFilters
+                  }
+                  className="mt-6 rounded-full bg-[#101411] px-7 py-3.5 text-[13px] font-semibold text-white"
+                >
+                  Reset Filters
+                </button>
+
+              </div>
+
+            )}
+
+            {/* Pagination */}
+
+            {filteredProducts.length > 0 && (
+
+              <Pagination
+                currentPage={
+                  currentPage
+                }
+                totalPages={
+                  totalPages
+                }
+                onPageChange={
+                  changePage
+                }
+              />
+
+            )}
+
+          </div>
+
+        </section>
+
+        {/* =====================================================
+            PROCUREMENT CTA
+        ===================================================== */}
+
+        <section className="px-5 pb-20 md:px-10 lg:px-14">
+
+          <div className="relative mx-auto max-w-[1450px] overflow-hidden rounded-[38px] bg-[#101411] text-white shadow-[0_30px_100px_rgba(0,0,0,.15)]">
+
+            <div className="pointer-events-none absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#D8FF65]/10 blur-[140px]" />
+
+            <div className="relative grid lg:grid-cols-[1.08fr_.92fr]">
+
+              {/* Left */}
+
+              <div className="flex flex-col justify-between p-8 md:p-12 lg:p-14 xl:p-16">
+
+                <div>
+
+                  <div className="flex items-center gap-3">
+
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#D8FF65]" />
+
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#D8FF65]">
+                      Bulk Procurement
+                    </span>
+
+                  </div>
+
+                  <h2 className="mt-6 max-w-[760px] text-[42px] font-semibold leading-[0.98] tracking-[-0.055em] text-white sm:text-[50px] md:text-[58px] xl:text-[66px]">
+
+                    One request.
+                    <br />
+
+                    <span className="text-white/65">
+                      Multiple products.
+                    </span>
+
+                  </h2>
+
+                  <p className="mt-7 max-w-2xl text-[15px] leading-8 text-white/75 md:text-[16px]">
+
+                    Planning a project or
+                    purchasing in bulk?
+                    Share your required
+                    products, quantities,
+                    preferred brands and
+                    delivery requirements.
+
                   </p>
 
                 </div>
 
+                <div className="mt-10 grid gap-3 sm:grid-cols-3">
 
-                <h2 className="mt-5
-                          max-w-xl
-                          text-[42px]
-                          font-medium
-                          leading-[1.03]
-                          tracking-[-0.05em]
-                          md:text-[56px]
-                          lg:text-[64px]">
+                  <ProcurementFeature
+                    icon={Package}
+                    number="01"
+                    title="Products"
+                    description="Add multiple product requirements."
+                  />
 
-                  From enquiry
-                  <br />
-                  to quotation.
+                  <ProcurementFeature
+                    icon={Truck}
+                    number="02"
+                    title="Delivery"
+                    description="Specify your project delivery location."
+                  />
 
-                  <span className="text-black/25">
-                    Simple.
-                  </span>
+                  <ProcurementFeature
+                    icon={ShieldCheck}
+                    number="03"
+                    title="Brands"
+                    description="Choose preferred or alternative brands."
+                  />
 
-                </h2>
+                </div>
 
+              </div>
 
-                <p className="mt-6
-                          max-w-md
-                          text-base
-                          leading-8
-                          text-black/45">
-                  Select your required materials, provide the
-                  quantities and project details, and our team
-                  will prepare a tailored quotation.
-                </p>
+              {/* Right */}
 
+              <div className="border-t border-white/10 p-5 lg:border-l lg:border-t-0 lg:p-6">
 
-                {/* small info */}
-                <div className="mt-10
-                          flex items-center gap-4
-                          border-t border-black/10
-                          pt-6">
-
-                  <div className="flex h-12 w-12
-                              items-center justify-center
-                              rounded-full
-                              bg-[#D8FF65]">
-
-                    <Clock3 className="h-5 w-5" />
-
-                  </div>
-
+                <div className="flex h-full flex-col justify-between rounded-[30px] border border-white/10 bg-white/[0.07] p-7 backdrop-blur-2xl sm:p-9">
 
                   <div>
 
-                    <p className="text-sm
-                                  font-semibold">
-                      Fast quotation process
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/75">
+                      Request a Quotation
                     </p>
 
-                    <p className="mt-1
-                                  text-xs
-                                  text-black/40">
-                      Simple enquiry to quote workflow
+                    <h3 className="mt-4 text-[30px] font-semibold leading-[1.08] tracking-[-0.035em] text-white md:text-[36px]">
+
+                      Tell us what
+                      <br />
+                      your project needs.
+
+                    </h3>
+
+                    <p className="mt-5 text-[14px] leading-7 text-white/70">
+
+                      Complete one enquiry
+                      with your company,
+                      products, quantities
+                      and delivery details.
+
                     </p>
+
+                    <div className="mt-8 space-y-3">
+
+                      <QuotePreviewRow
+                        title="Company & Contact"
+                        value="Business and contact information"
+                      />
+
+                      <QuotePreviewRow
+                        title="Products & Quantity"
+                        value="Automatically fetched from your cart"
+                      />
+
+                      <QuotePreviewRow
+                        title="Delivery Details"
+                        value="Add your required project location"
+                      />
+
+                    </div>
+
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setQuoteOpen(true)
+                    }
+                    className="group mt-9 flex h-[60px] w-full items-center justify-between rounded-full bg-[#D8FF65] pl-7 pr-2 text-[14px] font-semibold text-black transition hover:bg-white"
+                  >
+
+                    Start Quote Request
+
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#101411] text-white transition-transform duration-300 group-hover:rotate-45">
+
+                      <ArrowUpRight className="h-4 w-4" />
+
+                    </span>
+
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </main>
+
+      {/* =====================================================
+          CART DRAWER
+      ===================================================== */}
+
+      {cartOpen && (
+
+        <div
+          className="fixed inset-0 z-[5000]"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Shopping cart"
+        >
+
+          <button
+            type="button"
+            aria-label="Close cart"
+            onClick={closeCart}
+            className="absolute inset-0 z-0 cursor-default bg-black/55 backdrop-blur-sm"
+          />
+
+          <aside
+            className="absolute right-0 top-0 z-10 flex h-full w-full max-w-[480px] flex-col bg-[#F4F5EF] shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+
+            {/* Header */}
+
+            <div className="flex items-center justify-between border-b border-black/[0.08] p-6">
+
+              <div>
+
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#5B625C]">
+                  Product Enquiry
+                </p>
+
+                <h3 className="mt-1 text-[27px] font-semibold">
+                  Your Cart
+                </h3>
+
+              </div>
+
+              <button
+                type="button"
+                aria-label="Close cart"
+                onClick={closeCart}
+                className="relative z-20 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#101411] shadow-[0_8px_24px_rgba(0,0,0,.08)] transition hover:bg-[#101411] hover:text-white focus:outline-none focus:ring-4 focus:ring-[#D8FF65]/30"
+              >
+
+                <X className="pointer-events-none h-4 w-4" />
+
+              </button>
+
+            </div>
+
+            {/* Items */}
+
+            <div className="flex-1 overflow-y-auto p-6">
+
+              {cart.length === 0 ? (
+
+                <div className="flex h-full flex-col items-center justify-center text-center">
+
+                  <ShoppingBag className="h-10 w-10 text-black/25" />
+
+                  <h4 className="mt-4 text-xl font-semibold">
+                    Your cart is empty
+                  </h4>
+
+                  <p className="mt-2 text-[14px] text-[#626963]">
+                    Add products to
+                    request a quotation.
+                  </p>
+
+                </div>
+
+              ) : (
+
+                <div className="space-y-3">
+
+                  {cart.map(
+                    (item) => (
+
+                      <div
+                        key={item.id}
+                        className="rounded-[22px] border border-black/[0.05] bg-white p-4"
+                      >
+
+                        <div className="flex gap-4">
+
+
+
+                          <div className="min-w-0 flex-1">
+
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#5B625C]">
+                              {item.brand}
+                            </p>
+
+                            <h4 className="mt-1 text-[14px] font-semibold leading-5 text-[#101411]">
+                              {item.name}
+                            </h4>
+
+                            <p className="mt-1 text-[14px] font-bold">
+                              AED {item.price}
+                            </p>
+
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeProduct(
+                                item.id
+                              )
+                            }
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F4F5EF] text-black/50 transition hover:bg-red-50 hover:text-red-500"
+                          >
+
+                            <Trash2 className="h-3.5 w-3.5" />
+
+                          </button>
+
+                        </div>
+
+                        {/* Quantity */}
+
+                        <div className="mt-4 flex items-center justify-between border-t border-black/[0.07] pt-3">
+
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#5B625C]">
+                            Quantity
+                          </span>
+
+                          <div className="flex items-center gap-3 rounded-full bg-[#F4F5EF] p-1">
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateQuantity(
+                                  item.id,
+                                  -1
+                                )
+                              }
+                              className="flex h-8 w-8 items-center justify-center rounded-full bg-white"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+
+                            <span className="min-w-5 text-center text-[12px] font-bold">
+                              {item.quantity}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateQuantity(
+                                  item.id,
+                                  1
+                                )
+                              }
+                              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#101411] text-white"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
+
+                          </div>
+
+                        </div>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              )}
+
+            </div>
+
+            {/* Bottom */}
+
+            {cart.length > 0 && (
+
+              <div className="border-t border-black/[0.08] bg-white p-6">
+
+                <div className="flex items-end justify-between gap-5">
+
+                  <span className="text-[14px] font-medium text-[#5B625C]">
+                    Estimated Total
+                  </span>
+
+                  <span className="text-[25px] font-bold">
+
+                    AED{" "}
+
+                    {cartTotal.toLocaleString(
+                      undefined,
+                      {
+                        minimumFractionDigits:
+                          2,
+                        maximumFractionDigits:
+                          2,
+                      }
+                    )}
+
+                  </span>
+
+                </div>
+
+                <p className="mt-2 text-[11px] leading-5 text-[#6A716B]">
+
+                  Final pricing may
+                  vary based on
+                  quantity, availability
+                  and delivery.
+
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeCart();
+                    setQuoteOpen(true);
+                  }}
+                  className="mt-6 flex h-14 w-full items-center justify-between rounded-full bg-[#101411] pl-6 pr-2 text-[14px] font-semibold text-white"
+                >
+
+                  Request Quotation
+
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D8FF65] text-black">
+
+                    <ArrowRight className="h-4 w-4" />
+
+                  </span>
+
+                </button>
+
+              </div>
+
+            )}
+
+          </aside>
+
+        </div>
+
+      )}
+
+      {/* =====================================================
+          QUOTE MODAL
+      ===================================================== */}
+
+      {quoteOpen && (
+
+        <QuoteModal
+          cart={cart}
+          onClose={closeQuote}
+        />
+
+      )}
+
+    </>
+  );
+}
+
+/* =========================================================
+   FILTER DROPDOWN
+========================================================= */
+
+function FilterDropdown({
+  label,
+  value,
+  options = [],
+  onChange,
+  compact = false,
+}) {
+  const [open, setOpen] =
+    useState(false);
+
+  return (
+    <div className="relative">
+
+      {label && (
+
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#505751]">
+          {label}
+        </p>
+
+      )}
+
+      <button
+        type="button"
+        onClick={() =>
+          setOpen(
+            (prev) => !prev
+          )
+        }
+        className={`
+          flex
+          items-center
+          justify-between
+          gap-4
+          border
+          bg-white
+          text-left
+          transition-all
+          duration-300
+
+          ${open
+            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
+            : "border-black/[0.09] hover:border-black/20"
+          }
+
+          ${compact
+            ? "h-[50px] min-w-[190px] rounded-full px-5"
+            : "h-[54px] w-full rounded-[15px] px-4"
+          }
+        `}
+      >
+
+        <span className="truncate text-[13px] font-semibold text-[#303530]">
+          {value}
+        </span>
+
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 transition-transform ${open
+            ? "rotate-180"
+            : ""
+            }`}
+        />
+
+      </button>
+
+      {open && (
+
+        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-[80] max-h-[300px] overflow-y-auto rounded-[18px] border border-black/[0.08] bg-white p-2 shadow-[0_20px_60px_rgba(0,0,0,.15)]">
+
+          {options.map(
+            (option) => (
+
+              <button
+                type="button"
+                key={option}
+                onClick={() => {
+                  onChange(option);
+                  setOpen(false);
+                }}
+                className={`
+                  flex
+                  w-full
+                  items-center
+                  justify-between
+                  rounded-[12px]
+                  px-4
+                  py-3
+                  text-left
+                  text-[13px]
+                  font-medium
+                  transition
+
+                  ${value ===
+                    option
+                    ? "bg-[#D8FF65] text-[#101411]"
+                    : "text-[#454B46] hover:bg-[#F2F4EE]"
+                  }
+                `}
+              >
+
+                {option}
+
+                {value ===
+                  option && (
+
+                    <Check className="h-3.5 w-3.5" />
+
+                  )}
+
+              </button>
+
+            )
+          )}
+
+        </div>
+
+      )}
+
+    </div>
+  );
+}
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}) {
+  const createPages = () => {
+    if (totalPages <= 7) {
+      return Array.from(
+        {
+          length: totalPages,
+        },
+        (_, index) =>
+          index + 1
+      );
+    }
+
+    if (
+      currentPage <= 4
+    ) {
+      return [
+        1,
+        2,
+        3,
+        4,
+        5,
+        "...",
+        totalPages,
+      ];
+    }
+
+    if (
+      currentPage >=
+      totalPages - 3
+    ) {
+      return [
+        1,
+        "...",
+        totalPages - 4,
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ];
+    }
+
+    return [
+      1,
+      "...",
+      currentPage - 1,
+      currentPage,
+      currentPage + 1,
+      "...",
+      totalPages,
+    ];
+  };
+
+  const pages =
+    createPages();
+
+  return (
+    <div className="mt-12 flex flex-col items-center justify-between gap-5 border-t border-black/[0.08] pt-8 sm:flex-row">
+
+      <p className="text-[13px] font-medium text-[#5D645E]">
+
+        Page{" "}
+
+        <span className="font-bold text-[#101411]">
+          {currentPage}
+        </span>
+
+        {" "}of{" "}
+
+        <span className="font-bold text-[#101411]">
+          {totalPages}
+        </span>
+
+      </p>
+
+      <div className="flex flex-wrap items-center justify-center gap-2">
+
+        <button
+          type="button"
+          disabled={
+            currentPage === 1
+          }
+          onClick={() =>
+            onPageChange(
+              currentPage - 1
+            )
+          }
+          className="flex h-11 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[12px] font-semibold transition hover:bg-[#101411] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+        >
+
+          <ArrowLeft className="h-3.5 w-3.5" />
+
+          <span className="hidden sm:inline">
+            Previous
+          </span>
+
+        </button>
+
+        {pages.map(
+          (page, index) =>
+            page === "..." ? (
+
+              <span
+                key={`ellipsis-${index}`}
+                className="flex h-11 w-8 items-center justify-center text-[13px] text-black/45"
+              >
+                ...
+              </span>
+
+            ) : (
+
+              <button
+                type="button"
+                key={page}
+                onClick={() =>
+                  onPageChange(page)
+                }
+                className={`
+                  flex
+                  h-11
+                  min-w-11
+                  items-center
+                  justify-center
+                  rounded-full
+                  px-3
+                  text-[12px]
+                  font-bold
+                  transition
+
+                  ${currentPage ===
+                    page
+                    ? "bg-[#101411] text-white"
+                    : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
+                  }
+                `}
+              >
+                {page}
+              </button>
+
+            )
+        )}
+
+        <button
+          type="button"
+          disabled={
+            currentPage ===
+            totalPages
+          }
+          onClick={() =>
+            onPageChange(
+              currentPage + 1
+            )
+          }
+          className="flex h-11 items-center gap-2 rounded-full bg-[#D8FF65] px-4 text-[12px] font-bold text-black transition hover:bg-[#101411] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+        >
+
+          <span className="hidden sm:inline">
+            Next
+          </span>
+
+          <ArrowRight className="h-3.5 w-3.5" />
+
+        </button>
+
+      </div>
+
+    </div>
+  );
+}
+
+/* =========================================================
+   PROCUREMENT FEATURE
+========================================================= */
+
+function ProcurementFeature({
+  icon: Icon,
+  number,
+  title,
+  description,
+}) {
+  return (
+    <div className="rounded-[20px] border border-white/10 bg-white/[0.05] p-4">
+
+      <div className="flex items-center justify-between">
+
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#D8FF65] text-black">
+
+          <Icon className="h-4 w-4" />
+
+        </span>
+
+        <span className="text-[10px] font-semibold tracking-[0.14em] text-white/55">
+          {number}
+        </span>
+
+      </div>
+
+      <h4 className="mt-5 text-[15px] font-semibold text-white">
+        {title}
+      </h4>
+
+      <p className="mt-2 text-[12px] leading-5 text-white/70">
+        {description}
+      </p>
+
+    </div>
+  );
+}
+
+/* =========================================================
+   QUOTE PREVIEW
+========================================================= */
+
+function QuotePreviewRow({
+  title,
+  value,
+}) {
+  return (
+    <div className="flex gap-4 rounded-[16px] border border-white/10 bg-black/10 p-4">
+
+      <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#D8FF65]">
+
+        <Check className="h-3 w-3 text-black" />
+
+      </span>
+
+      <div>
+
+        <p className="text-[13px] font-semibold text-white">
+          {title}
+        </p>
+
+        <p className="mt-1 text-[12px] leading-5 text-white/70">
+          {value}
+        </p>
+
+      </div>
+
+    </div>
+  );
+}
+
+/* =========================================================
+   QUOTE MODAL
+========================================================= */
+
+function QuoteModal({
+  cart = [],
+  onClose,
+}) {
+  /* =====================================================
+     AUTOMATIC CART DATA
+  ===================================================== */
+
+  const totalQuantity =
+    cart.reduce(
+      (total, item) =>
+        total +
+        item.quantity,
+      0
+    );
+
+  const selectedProductNames =
+    cart
+      .map(
+        (item) =>
+          item.name
+      )
+      .join(", ");
+
+  const selectedCategories = [
+    ...new Set(
+      cart.map(
+        (item) =>
+          item.category
+      )
+    ),
+  ];
+
+  const selectedBrands = [
+    ...new Set(
+      cart.map(
+        (item) =>
+          item.brand
+      )
+    ),
+  ];
+
+  const autoCategory =
+    selectedCategories.length ===
+      1
+      ? selectedCategories[0]
+      : selectedCategories.length >
+        1
+        ? "Multiple Categories"
+        : "";
+
+  const autoBrand =
+    selectedBrands.length ===
+      1
+      ? selectedBrands[0]
+      : selectedBrands.length >
+        1
+        ? "Multiple Brands"
+        : "";
+
+  const autoDescription =
+    cart.length > 0
+      ? cart
+        .map(
+          (
+            item,
+            index
+          ) => `${index + 1}. ${item.name}
+SKU: ${item.sku}
+Brand: ${item.brand}
+Category: ${item.category}
+Quantity: ${item.quantity}
+Unit Price: AED ${item.price}`
+        )
+        .join("\n\n")
+      : "";
+
+  /* =====================================================
+     FORM STATE
+  ===================================================== */
+
+  const [form, setForm] =
+    useState({
+      company: "",
+      contactName: "",
+      email: "",
+      phone: "",
+
+      products:
+        selectedProductNames,
+
+      category:
+        autoCategory,
+
+      brand:
+        autoBrand,
+
+      quantity:
+        totalQuantity > 0
+          ? String(
+            totalQuantity
+          )
+          : "",
+
+      deliveryLocation: "",
+
+      description:
+        autoDescription,
+    });
+
+  const update = (e) => {
+    const {
+      name,
+      value,
+    } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  /* =====================================================
+     CUSTOM DROPDOWN UPDATE
+  ===================================================== */
+
+  const updateSelect = (
+    name,
+    value
+  ) => {
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  /* =====================================================
+     SUBMIT
+  ===================================================== */
+
+  const submit = (e) => {
+    e.preventDefault();
+
+    const subject =
+      encodeURIComponent(
+        `Quotation Request - ${form.company ||
+        form.contactName ||
+        "Top Range"
+        }`
+      );
+
+    const body =
+      encodeURIComponent(`
+TOP RANGE BUILDING MATERIALS
+PROJECT QUOTATION REQUEST
+
+
+CUSTOMER DETAILS
+
+Company Name:
+${form.company}
+
+Contact Person:
+${form.contactName}
+
+Email:
+${form.email}
+
+Phone:
+${form.phone}
+
+
+PRODUCT DETAILS
+
+Products:
+${form.products}
+
+Category:
+${form.category}
+
+Preferred Brand:
+${form.brand}
+
+Total Quantity:
+${form.quantity}
+
+Delivery Location:
+${form.deliveryLocation}
+
+
+DESCRIPTION / REQUIREMENT
+
+${form.description || "No additional requirements provided."}
+`);
+
+    window.location.href =
+      `mailto:info@toprange.ae?subject=${subject}&body=${body}`;
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[6000] overflow-x-hidden overflow-y-auto bg-[#07100D]/80 p-2 backdrop-blur-md sm:p-4 md:p-6 lg:p-8"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Quotation request"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+
+      <div
+        className="mx-auto flex min-h-full w-full max-w-[1050px] items-start justify-center py-2 sm:py-4 lg:items-center lg:py-6"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            onClose();
+          }
+        }}
+      >
+
+        <div
+          className="relative z-10 w-full min-w-0 overflow-x-clip rounded-[22px] bg-[#F4F5EF] shadow-[0_40px_120px_rgba(0,0,0,.28)] sm:rounded-[30px] lg:rounded-[36px]"
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+
+          {/* Glow */}
+
+          <div className="pointer-events-none absolute -right-24 -top-24 h-[260px] w-[260px] rounded-full bg-[#D8FF65]/10 blur-[90px] sm:-right-40 sm:-top-40 sm:h-[420px] sm:w-[420px] sm:blur-[120px]" />
+
+          <div className="relative p-4 sm:p-6 md:p-8 lg:p-12">
+
+            {/* Header */}
+
+            <div className="flex items-start justify-between gap-3 sm:gap-6">
+
+              <div className="min-w-0 flex-1">
+
+                <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#727972] sm:text-[11px] sm:tracking-[0.22em]">
+                  Project Enquiry
+                </p>
+
+                <h2 className="mt-3 text-[30px] font-semibold leading-none tracking-[-0.05em] text-[#101411] sm:mt-4 sm:text-[38px] md:text-[44px] lg:text-[48px]">
+                  Get a Quote
+                </h2>
+
+                {cart.length >
+                  0 && (
+
+                    <p className="mt-3 max-w-[620px] text-[12px] leading-5 text-[#626963] sm:mt-4 sm:text-[14px] sm:leading-6">
+
+                      {cart.length ===
+                        1
+                        ? "Selected product details have been added automatically."
+                        : `${cart.length} selected products have been added automatically.`}
+
+                    </p>
+
+                  )}
+
+              </div>
+
+              <button
+                type="button"
+                aria-label="Close quotation request"
+                onClick={onClose}
+                className="relative z-30 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#101411] shadow-[0_8px_25px_rgba(0,0,0,.08)] transition hover:bg-[#101411] hover:text-white focus:outline-none focus:ring-4 focus:ring-[#D8FF65]/30 sm:h-12 sm:w-12"
+              >
+
+                <X className="pointer-events-none h-4 w-4" />
+
+              </button>
+
+            </div>
+
+            {/* =================================================
+                SELECTED PRODUCTS
+            ================================================= */}
+
+            {cart.length >
+              0 && (
+
+                <div className="mt-6 min-w-0 rounded-[18px] border border-black/[0.07] bg-white p-3 sm:mt-8 sm:rounded-[22px] sm:p-5">
+
+                  <div className="flex min-w-0 items-start justify-between gap-3 sm:items-center sm:gap-4">
+
+                    <div>
+
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#697069]">
+                        Selected Products
+                      </p>
+
+                      <p className="mt-1 text-[11px] font-medium leading-5 text-[#454B45] sm:text-[13px]">
+                        Automatically added from your cart
+                      </p>
+
+                    </div>
+
+                    <span className="rounded-full bg-[#D8FF65] px-3 py-1.5 text-[11px] font-bold text-[#101411]">
+                      {cart.length}
+                    </span>
+
+                  </div>
+
+                  <div className="mt-4 grid min-w-0 gap-3 md:grid-cols-2">
+
+                    {cart.map(
+                      (item) => (
+
+                        <div
+                          key={
+                            item.id
+                          }
+                          className="flex min-w-0 items-center gap-3 rounded-[14px] bg-[#F4F5EF] p-2.5 sm:rounded-[16px] sm:p-3"
+                        >
+
+
+
+                          <div className="min-w-0 flex-1">
+
+                            <p className="truncate text-[12px] font-semibold text-[#101411] sm:text-[13px]">
+                              {
+                                item.name
+                              }
+                            </p>
+
+                            <p className="mt-1 truncate text-[9px] font-medium text-[#656C66] sm:text-[10px]">
+
+                              {
+                                item.brand
+                              }{" "}
+                              ·{" "}
+                              {
+                                item.sku
+                              }
+
+                            </p>
+
+                          </div>
+
+                          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#101411]">
+
+                            ×{" "}
+                            {
+                              item.quantity
+                            }
+
+                          </span>
+
+                        </div>
+
+                      )
+                    )}
 
                   </div>
 
                 </div>
 
-              </div>
-
-
-
-              {/* =============================================
-                      PROCESS
-                  ============================================== */}
-
-              <div className="relative">
-
-
-                {/* Base line */}
-                <div className="absolute
-                          left-[31px]
-                          top-[34px]
-                          bottom-[34px]
-                          hidden
-                          w-px
-                          overflow-hidden
-                          bg-black/10
-                          sm:block">
-
-                  {/* animated green line */}
-                  <div id="processLine" className="h-full
-                              w-full
-                              origin-top
-                              bg-[#96C11F]"></div>
-
-                </div>
-
-
-
-                <div className="relative space-y-4">
-
-
-                  {/* =====================================
-                              STEP 01
-                          ====================================== */}
-
-                  <article className="quote-process-step group" data-quote-step="">
-
-                    <div className="quote-process-number">
-                      01
-                    </div>
-
-
-                    <div className="flex-1">
-
-                      <div className="flex
-                                      items-start
-                                      justify-between
-                                      gap-5">
-
-                        <div>
-
-                          <span className="text-[10px]
-                                              font-semibold uppercase
-                                              tracking-[0.18em]
-                                              text-black/30">
-                            Step One
-                          </span>
-
-
-                          <h3 className="mt-2
-                                              text-xl
-                                              font-semibold
-                                              tracking-[-0.02em]
-                                              md:text-2xl">
-                            Explore Products
-                          </h3>
-
-                        </div>
-
-
-                        <div className="quote-process-icon">
-
-                          <Search className="h-5 w-5" />
-
-                        </div>
-
-                      </div>
-
-
-                      <p className="mt-3
-                                      max-w-xl
-                                      text-sm
-                                      leading-7
-                                      text-black/45">
-                        Browse our product categories,
-                        available materials and trusted brands.
-                      </p>
-
-                    </div>
-
-                  </article>
-
-
-
-                  {/* =====================================
-                              STEP 02
-                          ====================================== */}
-
-                  <article className="quote-process-step group" data-quote-step="">
-
-                    <div className="quote-process-number">
-                      02
-                    </div>
-
-
-                    <div className="flex-1">
-
-                      <div className="flex
-                                      items-start
-                                      justify-between
-                                      gap-5">
-
-                        <div>
-
-                          <span className="text-[10px]
-                                              font-semibold uppercase
-                                              tracking-[0.18em]
-                                              text-black/30">
-                            Step Two
-                          </span>
-
-
-                          <h3 className="mt-2
-                                              text-xl
-                                              font-semibold
-                                              tracking-[-0.02em]
-                                              md:text-2xl">
-                            Add to Enquiry
-                          </h3>
-
-                        </div>
-
-
-                        <div className="quote-process-icon">
-
-                          <PackagePlus className="h-5 w-5" />
-
-                        </div>
-
-                      </div>
-
-
-                      <p className="mt-3
-                                      max-w-xl
-                                      text-sm
-                                      leading-7
-                                      text-black/45">
-                        Select the required products
-                        and enter your required quantities.
-                      </p>
-
-                    </div>
-
-                  </article>
-
-
-
-                  {/* =====================================
-                              STEP 03
-                          ====================================== */}
-
-                  <article className="quote-process-step group" data-quote-step="">
-
-                    <div className="quote-process-number">
-                      03
-                    </div>
-
-
-                    <div className="flex-1">
-
-                      <div className="flex
-                                      items-start
-                                      justify-between
-                                      gap-5">
-
-                        <div>
-
-                          <span className="text-[10px]
-                                              font-semibold uppercase
-                                              tracking-[0.18em]
-                                              text-black/30">
-                            Step Three
-                          </span>
-
-
-                          <h3 className="mt-2
-                                              text-xl
-                                              font-semibold
-                                              tracking-[-0.02em]
-                                              md:text-2xl">
-                            Submit Requirements
-                          </h3>
-
-                        </div>
-
-
-                        <div className="quote-process-icon">
-
-                          <Send className="h-5 w-5" />
-
-                        </div>
-
-                      </div>
-
-
-                      <p className="mt-3
-                                      max-w-xl
-                                      text-sm
-                                      leading-7
-                                      text-black/45">
-                        Add your company, project,
-                        delivery and contact information.
-                      </p>
-
-                    </div>
-
-                  </article>
-
-
-
-                  {/* =====================================
-                              STEP 04
-                          ====================================== */}
-
-                  <article className="quote-process-step
-                              quote-process-final
-                              group" data-quote-step="">
-
-                    <div className="quote-process-number
-                                  quote-process-number-final">
-                      04
-                    </div>
-
-
-                    <div className="flex-1">
-
-                      <div className="flex
-                                      items-start
-                                      justify-between
-                                      gap-5">
-
-                        <div>
-
-                          <span className="text-[10px]
-                                              font-semibold uppercase
-                                              tracking-[0.18em]
-                                              text-black/40">
-                            Final Step
-                          </span>
-
-
-                          <h3 className="mt-2
-                                              text-xl
-                                              font-semibold
-                                              tracking-[-0.02em]
-                                              md:text-2xl">
-                            Receive Your Quote
-                          </h3>
-
-                        </div>
-
-
-                        <div className="quote-process-icon
-                                          bg-[#101411]
-                                          text-white">
-
-                          <FileCheck2 className="h-5 w-5" />
-
-                        </div>
-
-                      </div>
-
-
-                      <p className="mt-3
-                                      max-w-xl
-                                      text-sm
-                                      leading-7
-                                      text-black/55">
-                        Our team reviews your enquiry
-                        and prepares a tailored quotation
-                        based on your requirements.
-                      </p>
-
-
-                      <a href="/products" className="mt-6
-                                      inline-flex
-                                      items-center gap-3
-                                      rounded-full
-                                      bg-[#101411]
-                                      px-5 py-3
-                                      text-sm
-                                      font-semibold
-                                      text-white
-                                      transition
-                                      hover:bg-white
-                                      hover:text-black">
-
-                        Start Your Enquiry
-
-                        <ArrowUpRight className="h-4 w-4" />
-
-                      </a>
-
-                    </div>
-
-                  </article>
+              )}
+
+            {/* =================================================
+                FORM
+            ================================================= */}
+
+            <form
+              onSubmit={submit}
+              className="mt-7 sm:mt-9"
+            >
+
+              <div className="grid min-w-0 gap-x-5 gap-y-5 lg:grid-cols-2 lg:gap-y-6">
+
+                <QuoteField
+                  label="Company Name"
+                  name="company"
+                  value={
+                    form.company
+                  }
+                  onChange={update}
+                  placeholder="Company name"
+                  required
+                />
+
+                <QuoteField
+                  label="Contact Person"
+                  name="contactName"
+                  value={
+                    form.contactName
+                  }
+                  onChange={update}
+                  placeholder="Full name"
+                  required
+                />
+
+                <QuoteField
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={
+                    form.email
+                  }
+                  onChange={update}
+                  placeholder="name@company.com"
+                  required
+                />
+
+                <QuoteField
+                  label="Phone"
+                  name="phone"
+                  type="tel"
+                  value={
+                    form.phone
+                  }
+                  onChange={update}
+                  placeholder="+971"
+                  required
+                />
+
+                {/* AUTO PRODUCT */}
+
+                <QuoteField
+                  label="Product"
+                  name="products"
+                  value={
+                    form.products
+                  }
+                  onChange={update}
+                  placeholder="Product name"
+                />
+
+                {/* AUTO QUANTITY */}
+
+                <QuoteField
+                  label="Quantity"
+                  name="quantity"
+                  type="number"
+                  value={
+                    form.quantity
+                  }
+                  onChange={update}
+                  placeholder="Required quantity"
+                />
+
+                {/* PREMIUM CATEGORY */}
+
+                <PremiumQuoteDropdown
+                  label="Category"
+                  value={
+                    form.category
+                  }
+                  placeholder="Select category"
+                  options={[
+                    "Power Tools",
+                    "Hand Tools",
+                    "Electrical",
+                    "Plumbing",
+                    "Hardware",
+                    "Fasteners",
+                    "Safety",
+                    "Paint & Adhesives",
+                    "Construction Materials",
+                    "HVAC",
+                    "Multiple Categories",
+                  ]}
+                  onChange={(value) =>
+                    updateSelect(
+                      "category",
+                      value
+                    )
+                  }
+                />
+
+                {/* PREMIUM BRAND */}
+
+                <PremiumQuoteDropdown
+                  label="Preferred Brand"
+                  value={
+                    form.brand
+                  }
+                  placeholder="Select preferred brand"
+                  options={[
+                    "DeWalt",
+                    "Bosch",
+                    "Stanley",
+                    "3M",
+                    "Sika",
+                    "Fischer",
+                    "Hepworth",
+                    "Mueller",
+                    "Dormakaba",
+                    "Fluke",
+                    "No Preference",
+                    "Multiple Brands",
+                  ]}
+                  onChange={(value) =>
+                    updateSelect(
+                      "brand",
+                      value
+                    )
+                  }
+                />
+
+                {/* Delivery */}
+
+                <div className="lg:col-span-2">
+
+                  <QuoteField
+                    label="Delivery Location"
+                    name="deliveryLocation"
+                    value={
+                      form.deliveryLocation
+                    }
+                    onChange={update}
+                    placeholder="Dubai, Ajman, Sharjah, Abu Dhabi..."
+                    required
+                  />
 
                 </div>
 
               </div>
 
-            </div>
+              {/* Description */}
 
-          </div>
+              <div className="mt-5 sm:mt-6">
 
-        </section>
+                <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+                  Description / Requirement
+                </label>
 
+                <textarea
+                  rows={7}
+                  name="description"
+                  value={
+                    form.description
+                  }
+                  onChange={update}
+                  placeholder="Product specifications and requirements..."
+                  className="min-h-[150px] w-full min-w-0 resize-y rounded-[16px] border border-black/[0.10] bg-white p-4 text-[14px] leading-6 text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:min-h-[170px] sm:rounded-[18px] sm:p-5 sm:leading-7"
+                />
 
-        {/* =================================================
-                  CTA
-              ================================================== */}
+              </div>
 
-        <section className="bg-white
-                  px-3 pb-3
-                  md:px-5 md:pb-5">
+              {/* Footer */}
 
-          <div data-image-reveal="" className="relative mx-auto
-                      min-h-[560px]
-                      max-w-[1600px]
-                      overflow-hidden
-                      rounded-[36px]">
+              <div className="mt-7 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
 
-            <img loading="lazy" data-parallax="" src="/Assets/Hero.jpg" alt="Construction site" className="absolute inset-0
-                          h-[115%] w-full object-cover" />
+                <p className="max-w-md text-[11px] leading-5 text-[#737A74]">
 
-            <div className="absolute inset-0
-                          bg-gradient-to-r
-                          from-black/90
-                          via-black/60
-                          to-black/20"></div>
+                  Product information
+                  is automatically
+                  fetched from your
+                  cart. You can edit
+                  the details before
+                  submitting.
 
-
-            <div className="relative z-10 mx-auto
-                          flex min-h-[560px]
-                          max-w-[1450px]
-                          items-center
-                          px-7 md:px-10 lg:px-14">
-
-              <div data-reveal="" className="max-w-3xl">
-
-                <p className="eyebrow text-white/50">
-                  Start Your Project
                 </p>
 
-                <h2 className="mt-5
-                                  text-[44px]
-                                  font-medium
-                                  leading-[1]
-                                  tracking-[-0.05em]
-                                  text-white
-                                  md:text-[64px]
-                                  lg:text-[74px]">
-                  Ready to source
-                  the right materials?
-                </h2>
+                <button
+                  type="submit"
+                  className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white transition hover:bg-[#1B211D] sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
+                >
 
-                <p className="mt-6 max-w-xl
-                                  text-base leading-7
-                                  text-white/60">
-                  Send us your requirements and let our team
-                  prepare a tailored quotation for your project.
-                </p>
+                  Submit Quote
 
-
-                <div className="mt-8 flex flex-wrap gap-3">
-
-                  <a href="/contact" data-magnetic="" className="inline-flex
-                                      items-center gap-3
-                                      rounded-full
-                                      bg-[#D8FF65]
-                                      px-7 py-4
-                                      text-sm font-semibold
-                                      text-black">
-
-                    Get in Touch
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
 
                     <ArrowUpRight className="h-4 w-4" />
 
-                  </a>
+                  </span>
 
-                </div>
+                </button>
 
               </div>
 
-            </div>
+            </form>
 
           </div>
 
-        </section>
-        {/* =====================================================
-              FOOTER
-          ====================================================== */}
-        {/* =========================================================
-          PREMIUM FOOTER V3
-      ========================================================= */}
-      </main>
-    </>
+        </div>
+
+      </div>
+
+    </div>
+  );
+}
+
+/* =========================================================
+   QUOTE FIELD
+========================================================= */
+
+function QuoteField({
+  label,
+  name,
+  value,
+  onChange,
+  placeholder = "",
+  type = "text",
+  required = false,
+}) {
+  return (
+    <div className="min-w-0">
+
+      <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+
+        {label}
+
+        {required && (
+          <span className="ml-1 text-red-500">
+            *
+          </span>
+        )}
+
+      </label>
+
+      <input
+        required={required}
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="h-[54px] w-full min-w-0 rounded-[14px] border border-black/[0.10] bg-white px-4 text-[14px] font-medium text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:h-[58px] sm:rounded-[16px]"
+      />
+
+    </div>
+  );
+}
+
+/* =========================================================
+   PREMIUM QUOTE DROPDOWN
+========================================================= */
+
+function PremiumQuoteDropdown({
+  label,
+  value,
+  placeholder,
+  options = [],
+  onChange,
+}) {
+  const [open, setOpen] =
+    useState(false);
+
+  return (
+    <div className="relative z-[60] min-w-0">
+
+      {/* Label */}
+
+      <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+        {label}
+      </label>
+
+      {/* Button */}
+
+      <button
+        type="button"
+        onClick={() =>
+          setOpen(
+            (prev) => !prev
+          )
+        }
+        className={`
+          group
+          flex
+          h-[54px]
+          w-full
+          min-w-0
+          items-center
+          justify-between
+          gap-4
+          rounded-[14px]
+          border
+          sm:h-[58px]
+          sm:rounded-[16px]
+          bg-white
+          pl-4
+          pr-2.5
+          text-left
+          transition-all
+          duration-300
+
+          ${open
+            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
+            : "border-black/[0.10] hover:border-black/20"
+          }
+        `}
+      >
+
+        <span
+          className={`
+            min-w-0
+            flex-1
+            truncate
+            text-[14px]
+            font-medium
+
+            ${value
+              ? "text-[#202521]"
+              : "text-black/35"
+            }
+          `}
+        >
+
+          {value ||
+            placeholder}
+
+        </span>
+
+        <span
+          className={`
+            flex
+            h-9
+            w-9
+            shrink-0
+            items-center
+            justify-center
+            rounded-full
+            transition-all
+            duration-300
+
+            ${open
+              ? "rotate-180 bg-[#D8FF65] text-[#101411]"
+              : "bg-[#F1F3ED] text-[#535A54]"
+            }
+          `}
+        >
+
+          <ChevronDown className="h-4 w-4" />
+
+        </span>
+
+      </button>
+
+      {/* Menu */}
+
+      {open && (
+
+        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-[500] min-w-0 overflow-hidden rounded-[16px] border border-black/[0.08] bg-white p-2 shadow-[0_25px_70px_rgba(0,0,0,.16)] sm:top-[calc(100%+10px)] sm:rounded-[20px]">
+
+          <div className="border-b border-black/[0.06] px-3 pb-2 pt-1">
+
+            <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/40">
+
+              Choose {label}
+
+            </p>
+
+          </div>
+
+          <div className="mt-2 max-h-[190px] space-y-1 overflow-y-auto overscroll-contain sm:max-h-[220px] lg:max-h-[250px]">
+
+            {options.map(
+              (option) => {
+
+                const selected =
+                  value ===
+                  option;
+
+                return (
+
+                  <button
+                    type="button"
+                    key={option}
+                    onClick={() => {
+                      onChange(
+                        option
+                      );
+
+                      setOpen(
+                        false
+                      );
+                    }}
+                    className={`
+                      flex
+                      w-full
+                      items-center
+                      justify-between
+                      gap-4
+                      rounded-[13px]
+                      px-3.5
+                      py-3
+                      text-left
+                      transition-all
+                      duration-200
+
+                      ${selected
+                        ? "bg-[#D8FF65] text-[#101411]"
+                        : "text-[#454B46] hover:bg-[#F1F3ED]"
+                      }
+                    `}
+                  >
+
+                    <span className="text-[13px] font-semibold">
+                      {option}
+                    </span>
+
+                    {selected && (
+
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#101411] text-white">
+
+                        <Check className="h-3 w-3" />
+
+                      </span>
+
+                    )}
+
+                  </button>
+
+                );
+              }
+            )}
+
+          </div>
+
+        </div>
+
+      )}
+
+    </div>
   );
 }

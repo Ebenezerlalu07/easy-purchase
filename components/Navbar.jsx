@@ -74,34 +74,14 @@ const languages = [
 
 
 const navItems = [
-    /*
     {
-        name: "Home",
-        href: "/",
-    },
-    {
-        name: "About",
-        href: "/about",
-    },
-    */
-
-
-    {
-
         name: "Products",
-
         href: "/products",
-
     },
-
     {
-
         name: "Contact",
-
         href: "/contact",
-
     },
-
 ];
 
 
@@ -421,23 +401,11 @@ export default function Navbar() {
 
 
     const isActive = (href) => {
-
-        if (href === "/") {
-
-            return pathname === "/";
-
-        }
-
-
-
         return (
-
             pathname === href ||
-
-            pathname.startsWith(`${href}/`)
-
+            pathname.startsWith(`${href}/`) ||
+            (href === "/products" && pathname === "/")
         );
-
     };
 
 
@@ -997,9 +965,9 @@ export default function Navbar() {
 
                     <Link
 
-                        href="/"
+                        href="/products"
 
-                        aria-label="Top Range home"
+                        aria-label="Top Range products"
 
                         onClick={() => {
 
@@ -2076,8 +2044,8 @@ export default function Navbar() {
                                     size={15}
                                     strokeWidth={2}
                                     className={`transition-transform duration-300 ${languageOpen
-                                            ? "rotate-180"
-                                            : ""
+                                        ? "rotate-180"
+                                        : ""
                                         }`}
                                 />
                             </button>
@@ -2853,8 +2821,8 @@ export default function Navbar() {
 
                             <ChevronDown
                                 className={`h-4 w-4 shrink-0 transition-transform duration-300 ${languageOpen
-                                        ? "rotate-180"
-                                        : ""
+                                    ? "rotate-180"
+                                    : ""
                                     }`}
                             />
                         </button>
@@ -2903,8 +2871,8 @@ export default function Navbar() {
 
                                                 <p
                                                     className={`mt-0.5 truncate text-[10px] ${active
-                                                            ? "text-[#596159]"
-                                                            : "text-white/55"
+                                                        ? "text-[#596159]"
+                                                        : "text-white/55"
                                                         }`}
                                                 >
                                                     {language.native}

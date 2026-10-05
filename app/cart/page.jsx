@@ -1339,19 +1339,7 @@ ${form.description || "No additional requirements provided."}
                                                     className="flex min-w-0 items-center gap-3 rounded-[16px] bg-[#F4F5EF] p-3"
                                                 >
 
-                                                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-[12px] bg-[#E8EBE4]">
 
-                                                        <img
-                                                            src={
-                                                                item.image
-                                                            }
-                                                            alt={
-                                                                item.name
-                                                            }
-                                                            className="h-full w-full object-cover"
-                                                        />
-
-                                                    </div>
 
                                                     <div className="min-w-0 flex-1">
 
@@ -1892,50 +1880,8 @@ function CartProduct({
           min-w-0
           flex-col
           gap-5
-          md:flex-row
-          md:items-center
         "
             >
-                {/* =================================================
-            IMAGE
-        ================================================== */}
-
-                <div
-                    className="
-            h-[180px]
-            w-full
-            shrink-0
-            overflow-hidden
-            rounded-[20px]
-            bg-[#EFF1EB]
-            sm:h-[220px]
-            md:h-[130px]
-            md:w-[130px]
-          "
-                >
-                    <img
-                        src={
-                            item.image ||
-                            "/Assets/Logo 1.png"
-                        }
-                        alt={item.name || "Product"}
-                        onError={(event) => {
-                            event.currentTarget.onerror = null;
-
-                            event.currentTarget.src =
-                                "/Assets/Logo 1.png";
-                        }}
-                        className="
-              h-full
-              w-full
-              object-cover
-              transition-transform
-              duration-700
-              group-hover:scale-105
-            "
-                    />
-                </div>
-
                 {/* =================================================
             PRODUCT INFO
         ================================================== */}
@@ -1944,6 +1890,10 @@ function CartProduct({
                     className="
             min-w-0
             flex-1
+            rounded-[20px]
+            bg-[#F8F9F5]
+            p-4
+            sm:p-5
           "
                 >
                     <div
