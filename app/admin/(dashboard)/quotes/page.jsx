@@ -1544,7 +1544,7 @@ function QuotationDetails({
                     text-[#747A72]
                   "
                                 >
-                                    Delivery Location
+                                    Location
                                 </p>
 
                                 <p
