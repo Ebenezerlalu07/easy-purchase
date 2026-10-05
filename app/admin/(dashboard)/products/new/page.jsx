@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import {
     ArrowRight,
     Boxes,
@@ -8,7 +8,6 @@ import {
     ChevronDown,
     CircleDollarSign,
     Edit3,
-    ImagePlus,
     Package,
     PackagePlus,
     Plus,
@@ -16,7 +15,6 @@ import {
     Sparkles,
     Tag,
     Trash2,
-    Upload,
     X,
 } from "lucide-react";
 
@@ -68,7 +66,6 @@ const initialProducts = [
         stock: 28,
         status: "Active",
         featured: true,
-        image: "/Assets/Products/product1.jpg",
         shortDescription:
             "Professional cordless hammer drill for demanding construction applications.",
         description:
@@ -85,7 +82,6 @@ const initialProducts = [
         stock: 18,
         status: "Active",
         featured: true,
-        image: "/Assets/Products/product3.jpg",
         shortDescription:
             "High-performance angle grinder for professional cutting and finishing.",
         description:
@@ -102,7 +98,6 @@ const initialProducts = [
         stock: 64,
         status: "Active",
         featured: false,
-        image: "/Assets/Products/product4.jpg",
         shortDescription:
             "Durable professional combination pliers for maintenance applications.",
         description:
@@ -119,7 +114,6 @@ const initialProducts = [
         stock: 9,
         status: "Active",
         featured: false,
-        image: "/Assets/Products/angle grinder.jpg",
         shortDescription:
             "Professional digital electrical testing meter for maintenance teams.",
         description:
@@ -136,7 +130,6 @@ const initialProducts = [
         stock: 120,
         status: "Active",
         featured: false,
-        image: "/Assets/Products/Steel Bars.jpg",
         shortDescription:
             "Reliable construction material suitable for commercial projects.",
         description:
@@ -153,7 +146,6 @@ const initialProducts = [
         stock: 22,
         status: "Active",
         featured: false,
-        image: "/Assets/Products/Circular saw.jpg",
         shortDescription:
             "Professional circular saw for accurate and efficient cutting.",
         description:
@@ -170,7 +162,6 @@ const initialProducts = [
         stock: 14,
         status: "Draft",
         featured: false,
-        image: "/Assets/Products/chain saw.jpg",
         shortDescription:
             "Heavy-duty chainsaw for demanding professional applications.",
         description:
@@ -187,7 +178,6 @@ const initialProducts = [
         stock: 31,
         status: "Active",
         featured: true,
-        image: "/Assets/Products/wrench.jpg",
         shortDescription:
             "High-torque cordless impact wrench for construction and maintenance.",
         description:
@@ -214,8 +204,6 @@ const defaultForm = {
 ========================================================= */
 
 export default function ProductsPage() {
-    const fileInputRef = useRef(null);
-
     const [products, setProducts] = useState(initialProducts);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
@@ -224,8 +212,6 @@ export default function ProductsPage() {
     const [formOpen, setFormOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [form, setForm] = useState(defaultForm);
-    const [imagePreview, setImagePreview] = useState("");
-    const [imageFile, setImageFile] = useState(null);
     const [error, setError] = useState("");
     const [saved, setSaved] = useState(false);
 
@@ -287,42 +273,9 @@ export default function ProductsPage() {
         setSaved(false);
     };
 
-    const handleImage = (event) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith("image/")) {
-            setError("Please choose a valid image file.");
-            return;
-        }
-
-        if (imagePreview && imagePreview.startsWith("blob:")) {
-            URL.revokeObjectURL(imagePreview);
-        }
-
-        const previewUrl = URL.createObjectURL(file);
-        setImageFile(file);
-        setImagePreview(previewUrl);
-        setError("");
-    };
-
-    const removeImage = () => {
-        if (imagePreview && imagePreview.startsWith("blob:")) {
-            URL.revokeObjectURL(imagePreview);
-        }
-
-        setImagePreview("");
-        setImageFile(null);
-
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
-    };
-
     const openAddProduct = () => {
         setEditingProduct(null);
         setForm(defaultForm);
-        removeImage();
         setError("");
         setSaved(false);
         setFormOpen(true);
@@ -343,8 +296,6 @@ export default function ProductsPage() {
             description: product.description || "",
             featured: Boolean(product.featured),
         });
-        setImagePreview(product.image || "");
-        setImageFile(null);
         setError("");
         setSaved(false);
         setFormOpen(true);
@@ -366,7 +317,6 @@ export default function ProductsPage() {
         }
 
         setForm(defaultForm);
-        removeImage();
         setError("");
         setSaved(false);
     };
@@ -411,7 +361,6 @@ export default function ProductsPage() {
             shortDescription: form.shortDescription,
             description: form.description,
             featured: form.featured,
-            image: imagePreview || "/Assets/Products/product1.jpg",
         };
 
         if (editingProduct) {
@@ -556,8 +505,8 @@ export default function ProductsPage() {
                                                 type="button"
                                                 onClick={() => setStatusFilter(item)}
                                                 className={`rounded-full px-4 py-2.5 text-[10px] font-bold transition ${statusFilter === item
-                                                        ? "bg-[#151814] text-white"
-                                                        : "bg-[#F0F1EC] text-[#626862] hover:bg-[#D8FF65] hover:text-[#151814]"
+                                                    ? "bg-[#151814] text-white"
+                                                    : "bg-[#F0F1EC] text-[#626862] hover:bg-[#D8FF65] hover:text-[#151814]"
                                                     }`}
                                             >
                                                 {item}
@@ -601,37 +550,22 @@ export default function ProductsPage() {
                                         className="border-b border-black/[0.055] transition hover:bg-[#FAFAF7] last:border-b-0"
                                     >
                                         <td className="px-6 py-5">
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-[14px] bg-[#EEF1E8]">
-                                                    <img
-                                                        src={product.image}
-                                                        alt={product.name}
-                                                        className="h-full w-full object-cover"
-                                                        onError={(event) => {
-                                                            event.currentTarget.onerror = null;
-                                                            event.currentTarget.src =
-                                                                "https://placehold.co/400x400/EEF0E8/101411?text=Product";
-                                                        }}
-                                                    />
-                                                </div>
-
-                                                <div className="min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="max-w-[260px] truncate text-[12px] font-bold text-[#202420]">
-                                                            {product.name}
-                                                        </p>
-
-                                                        {product.featured && (
-                                                            <span className="rounded-full bg-[#EFF5D7] px-2 py-1 text-[8px] font-bold text-[#60751E]">
-                                                                Featured
-                                                            </span>
-                                                        )}
-                                                    </div>
-
-                                                    <p className="mt-1 text-[9px] font-semibold text-[#858B85]">
-                                                        {product.brand} · {product.sku}
+                                            <div className="min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <p className="max-w-[320px] truncate text-[12px] font-bold text-[#202420]">
+                                                        {product.name}
                                                     </p>
+
+                                                    {product.featured && (
+                                                        <span className="rounded-full bg-[#EFF5D7] px-2 py-1 text-[8px] font-bold text-[#60751E]">
+                                                            Featured
+                                                        </span>
+                                                    )}
                                                 </div>
+
+                                                <p className="mt-1 text-[9px] font-semibold text-[#858B85]">
+                                                    {product.brand} · {product.sku}
+                                                </p>
                                             </div>
                                         </td>
 
@@ -696,26 +630,18 @@ export default function ProductsPage() {
                                 key={product.id}
                                 className="overflow-hidden rounded-[20px] border border-black/[0.07] bg-white shadow-sm"
                             >
-                                <div className="relative h-[190px] bg-[#EEF1E8]">
-                                    <img
-                                        src={product.image}
-                                        alt={product.name}
-                                        className="h-full w-full object-cover"
-                                        onError={(event) => {
-                                            event.currentTarget.onerror = null;
-                                            event.currentTarget.src =
-                                                "https://placehold.co/600x400/EEF0E8/101411?text=Product";
-                                        }}
-                                    />
-
-                                    <div className="absolute left-3 top-3">
+                                <div className="border-b border-black/[0.06] bg-[#151814] px-4 py-3 sm:px-5">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/60">
+                                            {product.sku}
+                                        </span>
                                         <StatusBadge status={product.status} />
                                     </div>
                                 </div>
 
                                 <div className="p-4 sm:p-5">
                                     <p className="text-[9px] font-bold uppercase tracking-[0.13em] text-[#707770]">
-                                        {product.brand} · {product.sku}
+                                        {product.brand}
                                     </p>
 
                                     <h3 className="mt-2 text-[17px] font-bold leading-5 text-[#202420]">
@@ -996,78 +922,6 @@ export default function ProductsPage() {
                                     </div>
 
                                     <aside className="space-y-5 xl:sticky xl:top-6">
-                                        <div className="overflow-hidden rounded-[20px] border border-[#DADCD5] bg-white">
-                                            <div className="border-b border-black/[0.07] p-5">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="flex h-9 w-9 items-center justify-center rounded-[11px] bg-[#EEF1E7]">
-                                                        <ImagePlus className="h-4 w-4" />
-                                                    </span>
-                                                    <div>
-                                                        <h3 className="text-[12px] font-bold text-[#202420]">
-                                                            Product Image
-                                                        </h3>
-                                                        <p className="mt-0.5 text-[10px] font-medium text-[#777E77]">
-                                                            Upload catalogue image
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="p-5">
-                                                {imagePreview ? (
-                                                    <div className="relative overflow-hidden rounded-[16px] bg-[#EEF1E9]">
-                                                        <img
-                                                            src={imagePreview}
-                                                            alt="Product preview"
-                                                            className="aspect-[4/3] w-full object-cover"
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={removeImage}
-                                                            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-[#151814]/90 text-white transition hover:bg-red-500"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => fileInputRef.current?.click()}
-                                                        className="group flex aspect-[4/3] w-full flex-col items-center justify-center rounded-[16px] border border-dashed border-black/15 bg-[#F5F5F0] p-6 text-center transition hover:border-[#94BE26]"
-                                                    >
-                                                        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm transition group-hover:bg-[#D8FF65]">
-                                                            <Upload className="h-5 w-5" />
-                                                        </span>
-                                                        <p className="mt-4 text-[12px] font-bold text-[#303630]">
-                                                            Upload product image
-                                                        </p>
-                                                        <p className="mt-1.5 text-[10px] text-[#7A817A]">
-                                                            PNG, JPG or WebP
-                                                        </p>
-                                                    </button>
-                                                )}
-
-                                                <input
-                                                    ref={fileInputRef}
-                                                    type="file"
-                                                    accept="image/png,image/jpeg,image/webp"
-                                                    onChange={handleImage}
-                                                    className="hidden"
-                                                />
-
-                                                {imagePreview && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => fileInputRef.current?.click()}
-                                                        className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/[0.08] text-[10px] font-bold text-[#444A44]"
-                                                    >
-                                                        <Upload className="h-3.5 w-3.5" />
-                                                        Change Image
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-
                                         <div className="rounded-[20px] border border-[#DADCD5] bg-white p-5">
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="flex gap-3">
@@ -1097,8 +951,8 @@ export default function ProductsPage() {
                                                 >
                                                     <span
                                                         className={`absolute top-1 h-5 w-5 rounded-full transition-all duration-300 ${form.featured
-                                                                ? "left-6 bg-[#D8FF65]"
-                                                                : "left-1 bg-white"
+                                                            ? "left-6 bg-[#D8FF65]"
+                                                            : "left-1 bg-white"
                                                             }`}
                                                     />
                                                 </button>
@@ -1171,8 +1025,8 @@ function StatCard({ title, value, description, icon: Icon, dark = false }) {
     return (
         <div
             className={`rounded-[22px] border p-5 shadow-[0_10px_35px_rgba(20,24,20,.04)] sm:p-6 ${dark
-                    ? "border-[#151814] bg-[#151814] text-white"
-                    : "border-[#DADCD5] bg-white text-[#202420]"
+                ? "border-[#151814] bg-[#151814] text-white"
+                : "border-[#DADCD5] bg-white text-[#202420]"
                 }`}
         >
             <div className="flex items-start justify-between gap-4">
@@ -1190,8 +1044,8 @@ function StatCard({ title, value, description, icon: Icon, dark = false }) {
 
                 <span
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[13px] ${dark
-                            ? "bg-[#D8FF65] text-[#151814]"
-                            : "bg-[#EEF1E7] text-[#4F574F]"
+                        ? "bg-[#D8FF65] text-[#151814]"
+                        : "bg-[#EEF1E7] text-[#4F574F]"
                         }`}
                 >
                     <Icon className="h-4 w-4" />
@@ -1304,8 +1158,8 @@ function FilterSelect({ value, options, onChange }) {
                 <span className="flex min-w-0 items-center gap-2.5">
                     <span
                         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${open
-                                ? "bg-[#D8FF65] text-[#151814]"
-                                : "bg-white text-[#555C55]"
+                            ? "bg-[#D8FF65] text-[#151814]"
+                            : "bg-white text-[#555C55]"
                             }`}
                     >
                         <Boxes className="h-3.5 w-3.5" />
@@ -1318,8 +1172,8 @@ function FilterSelect({ value, options, onChange }) {
 
                 <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-all duration-200 ${open
-                            ? "rotate-180 bg-white/10 text-white"
-                            : "bg-white text-[#555C55]"
+                        ? "rotate-180 bg-white/10 text-white"
+                        : "bg-white text-[#555C55]"
                         }`}
                 >
                     <ChevronDown className="h-3.5 w-3.5" />
@@ -1448,8 +1302,8 @@ function AdminDropdown({
                 type="button"
                 onClick={() => setOpen((prev) => !prev)}
                 className={`flex h-[54px] w-full min-w-0 items-center justify-between gap-3 rounded-[14px] border bg-[#F7F7F3] pl-4 pr-2 text-left transition-all ${open
-                        ? "border-[#94BE26] bg-white ring-4 ring-[#D8FF65]/15"
-                        : "border-black/[0.08] hover:border-black/15"
+                    ? "border-[#94BE26] bg-white ring-4 ring-[#D8FF65]/15"
+                    : "border-black/[0.08] hover:border-black/15"
                     }`}
             >
                 <span
@@ -1482,8 +1336,8 @@ function AdminDropdown({
                                         setOpen(false);
                                     }}
                                     className={`flex w-full items-center justify-between rounded-[11px] px-3.5 py-3 text-left text-[11px] font-bold transition ${selected
-                                            ? "bg-[#D8FF65] text-[#151814]"
-                                            : "text-[#4E554E] hover:bg-[#F1F2ED]"
+                                        ? "bg-[#D8FF65] text-[#151814]"
+                                        : "text-[#4E554E] hover:bg-[#F1F2ED]"
                                         }`}
                                 >
                                     {option}

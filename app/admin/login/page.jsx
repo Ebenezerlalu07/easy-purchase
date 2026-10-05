@@ -522,7 +522,7 @@ export default function AdminLoginPage() {
                                 {/* Submit */}
 
                                 <Link
-                                    href="/admin/dashboard"
+                                    href="/admin/quotes"
                                     className="
     group
     flex

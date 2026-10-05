@@ -29,20 +29,11 @@ const navigation = [
         title: "MAIN",
         links: [
             {
-                name: "Dashboard",
-                href: "/admin/dashboard",
-                icon: LayoutDashboard,
-            },
-            {
                 name: "Quotations",
                 href: "/admin/quotes",
                 icon: BriefcaseBusiness,
             },
-            {
-                name: "Customers",
-                href: "/admin/customers",
-                icon: Users,
-            },
+
         ],
     },
 
