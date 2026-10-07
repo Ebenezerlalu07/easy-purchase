@@ -1127,6 +1127,8 @@ Unit Price: AED ${item.price}`
                     )
                     : "",
 
+            refNumber: "",
+
             deliveryLocation: "",
 
             description:
@@ -1208,6 +1210,9 @@ ${form.brand}
 
 Total Quantity:
 ${form.quantity}
+
+Ref Number:
+${form.refNumber}
 
 Delivery Location:
 ${form.deliveryLocation}
@@ -1522,6 +1527,18 @@ ${form.description || "No additional requirements provided."}
                                             value
                                         )
                                     }
+                                />
+
+                                {/* Reference Number */}
+
+                                <QuoteField
+                                    label="Ref Number"
+                                    name="refNumber"
+                                    value={
+                                        form.refNumber
+                                    }
+                                    onChange={update}
+                                    placeholder="Enter reference number"
                                 />
 
                                 {/* Delivery */}

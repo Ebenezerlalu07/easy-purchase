@@ -1127,8 +1127,8 @@ export default function ProductsPage() {
 
                                                             <p
                                                                 className={`mt-1 text-[11px] font-bold ${product.stock <= 15
-                                                                        ? "text-[#B66B19]"
-                                                                        : "text-[#34733D]"
+                                                                    ? "text-[#B66B19]"
+                                                                    : "text-[#34733D]"
                                                                     }`}
                                                             >
                                                                 {product.stock <= 15
@@ -2195,6 +2195,8 @@ Unit Price: AED ${item.price}`
                     )
                     : "",
 
+            refNumber: "",
+
             deliveryLocation: "",
 
             description:
@@ -2276,6 +2278,9 @@ ${form.brand}
 
 Total Quantity:
 ${form.quantity}
+
+Ref Number:
+${form.refNumber}
 
 Delivery Location:
 ${form.deliveryLocation}
@@ -2590,6 +2595,18 @@ ${form.description || "No additional requirements provided."}
                                             value
                                         )
                                     }
+                                />
+
+                                {/* Reference Number */}
+
+                                <QuoteField
+                                    label="Ref Number"
+                                    name="refNumber"
+                                    value={
+                                        form.refNumber
+                                    }
+                                    onChange={update}
+                                    placeholder="Enter reference number"
                                 />
 
                                 {/* Delivery */}
