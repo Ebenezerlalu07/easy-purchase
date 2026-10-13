@@ -16,13 +16,14 @@ import {
 
 export default function AdminLoginPage() {
     const router = useRouter();
-
     const [showPassword, setShowPassword] = useState(false);
 
     const [form, setForm] = useState({
         email: "",
         password: "",
     });
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const updateForm = (event) => {
         const { name, value } = event.target;
@@ -33,13 +34,34 @@ export default function AdminLoginPage() {
         }));
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
+        setError("");
+        setLoading(true);
 
-        // UI ONLY
-        // Connect backend authentication later.
+        try {
+            const response = await fetch("/api/admin/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
+            });
 
-        router.push("/admin/dashboard");
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.message || "Unable to sign in.");
+                return;
+            }
+
+            const next = new URLSearchParams(window.location.search).get("next");
+            const destination = next && next.startsWith("/admin/") ? next : "/admin/quotes";
+            router.replace(destination);
+            router.refresh();
+        } catch {
+            setError("Unable to connect to the authentication server.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -519,10 +541,19 @@ export default function AdminLoginPage() {
                                     </button>
                                 </div>
 
+                                {/* Error */}
+
+                                {error && (
+                                    <div className="rounded-[16px] border border-red-200 bg-red-50 px-4 py-3 text-[10px] font-semibold text-red-700">
+                                        {error}
+                                    </div>
+                                )}
+
                                 {/* Submit */}
 
-                                <Link
-                                    href="/admin/quotes"
+                                <button
+                                    type="submit"
+                                    disabled={loading}
                                     className="
     group
     flex
@@ -545,7 +576,7 @@ export default function AdminLoginPage() {
   "
                                 >
                                     <span>
-                                        Enter Dashboard
+                                        {loading ? "Signing in..." : "Enter Dashboard"}
                                     </span>
 
                                     <span
@@ -565,7 +596,7 @@ export default function AdminLoginPage() {
                                     >
                                         <ArrowRight className="h-4 w-4" />
                                     </span>
-                                </Link>
+                                </button>
                             </form>
 
                             {/* Security */}

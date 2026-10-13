@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
     ArrowUpRight,
@@ -21,141 +21,6 @@ import {
    QUOTATION DATA
 ========================================================= */
 
-const quotations = [
-    {
-        id: "QT-1048",
-        company: "Al Noor Contracting LLC",
-        contactName: "Ahmed Kareem",
-        email: "ahmed@alnoorcontracting.ae",
-        phone: "+971 50 245 7821",
-        date: "24 Sep 2026",
-        products: 6,
-        amount: "AED 8,450",
-        status: "New",
-        category: "Power Tools",
-        brand: "DeWalt",
-        quantity: "12 Units",
-        deliveryLocation: "Dubai, UAE",
-        productList: [
-            "Cordless Hammer Drill",
-            "Cordless Impact Wrench",
-            "Circular Saw",
-        ],
-        description:
-            "Please provide your best quotation including delivery charges and expected delivery time.",
-    },
-    {
-        id: "QT-1047",
-        company: "Blue Arc Technical Services",
-        contactName: "Joseph Mathew",
-        email: "joseph@bluearc.ae",
-        phone: "+971 55 642 3190",
-        date: "23 Sep 2026",
-        products: 3,
-        amount: "AED 4,280",
-        status: "Reviewing",
-        category: "Electrical",
-        brand: "Fluke",
-        quantity: "8 Units",
-        deliveryLocation: "Sharjah, UAE",
-        productList: [
-            "Digital Clamp Meter",
-            "Electrical Accessories",
-        ],
-        description:
-            "Quotation required for our upcoming maintenance project.",
-    },
-    {
-        id: "QT-1046",
-        company: "Prime Build Interiors",
-        contactName: "Nadia Ali",
-        email: "nadia@primebuild.ae",
-        phone: "+971 52 781 4632",
-        date: "23 Sep 2026",
-        products: 8,
-        amount: "AED 12,900",
-        status: "Quoted",
-        category: "Building Materials",
-        brand: "Multiple Brands",
-        quantity: "Bulk Order",
-        deliveryLocation: "Abu Dhabi, UAE",
-        productList: [
-            "Steel Bars",
-            "Hand Tools",
-            "Power Tools",
-            "Construction Accessories",
-        ],
-        description:
-            "Bulk requirement for a commercial interior fit-out project.",
-    },
-    {
-        id: "QT-1045",
-        company: "Gulf Horizon Maintenance",
-        contactName: "Saeed Rahman",
-        email: "saeed@gulfhorizon.ae",
-        phone: "+971 50 331 9204",
-        date: "22 Sep 2026",
-        products: 4,
-        amount: "AED 6,750",
-        status: "Approved",
-        category: "Power Tools",
-        brand: "Bosch",
-        quantity: "10 Units",
-        deliveryLocation: "Ajman, UAE",
-        productList: [
-            "Professional Angle Grinder",
-            "Circular Saw",
-            "Combination Pliers",
-        ],
-        description:
-            "Approved quotation. Customer requested delivery within three working days.",
-    },
-    {
-        id: "QT-1044",
-        company: "Vertex Building Solutions",
-        contactName: "Mohammed Ali",
-        email: "mohammed@vertexbuild.ae",
-        phone: "+971 56 410 8291",
-        date: "21 Sep 2026",
-        products: 5,
-        amount: "AED 9,200",
-        status: "Completed",
-        category: "Construction Materials",
-        brand: "Multiple Brands",
-        quantity: "25 Units",
-        deliveryLocation: "Dubai, UAE",
-        productList: [
-            "Steel Bars",
-            "Power Tools",
-            "Hand Tools",
-        ],
-        description:
-            "Order completed and delivered successfully.",
-    },
-    {
-        id: "QT-1043",
-        company: "Royal Star Technical Works",
-        contactName: "Faisal Khan",
-        email: "faisal@royalstar.ae",
-        phone: "+971 54 221 0673",
-        date: "20 Sep 2026",
-        products: 7,
-        amount: "AED 11,480",
-        status: "Reviewing",
-        category: "Tools & Equipment",
-        brand: "DeWalt",
-        quantity: "18 Units",
-        deliveryLocation: "Dubai, UAE",
-        productList: [
-            "Cordless Hammer Drill",
-            "Chainsaw",
-            "Impact Wrench",
-        ],
-        description:
-            "Please include product warranty details in the quotation.",
-    },
-];
-
 const statusFilters = [
     "All",
     "New",
@@ -173,6 +38,23 @@ export default function QuotationsPage() {
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("All");
     const [selectedQuote, setSelectedQuote] = useState(null);
+    const [quotations, setQuotations] = useState([]);
+
+    const loadQuotations = async () => {
+        try {
+            const response = await fetch("/api/quotations", { cache: "no-store" });
+            if (!response.ok) throw new Error("Failed to load quotations");
+            const data = await response.json();
+            setQuotations(data.quotations || []);
+        } catch (error) {
+            console.error(error);
+            setQuotations([]);
+        }
+    };
+
+    useEffect(() => {
+        loadQuotations();
+    }, []);
 
     const filteredQuotes = useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -191,7 +73,7 @@ export default function QuotationsPage() {
 
             return matchesStatus && matchesSearch;
         });
-    }, [search, status]);
+    }, [quotations, search, status]);
 
     return (
         <div className="pb-12">
@@ -1078,6 +960,14 @@ export default function QuotationsPage() {
                     onClose={() =>
                         setSelectedQuote(null)
                     }
+                    onUpdated={(updatedQuote) => {
+                        setSelectedQuote(updatedQuote);
+                        setQuotations((items) =>
+                            items.map((item) =>
+                                item.id === updatedQuote.id ? updatedQuote : item
+                            )
+                        );
+                    }}
                 />
             )}
         </div>
@@ -1091,6 +981,7 @@ export default function QuotationsPage() {
 function QuotationDetails({
     quote,
     onClose,
+    onUpdated,
 }) {
     return (
         <div className="fixed inset-0 z-[200]">
@@ -1624,6 +1515,23 @@ function QuotationDetails({
 
                         <button
                             type="button"
+                            onClick={async () => {
+                                const nextStatus = {
+                                    New: "Reviewing",
+                                    Reviewing: "Quoted",
+                                    Quoted: "Approved",
+                                    Approved: "Completed",
+                                }[quote.status];
+                                if (!nextStatus) return;
+                                const response = await fetch("/api/quotations", {
+                                    method: "PATCH",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ id: quote.id, status: nextStatus }),
+                                });
+                                if (!response.ok) return;
+                                const data = await response.json();
+                                onUpdated?.(data.quotation);
+                            }}
                             className="
                 flex
                 h-11

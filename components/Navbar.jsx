@@ -118,6 +118,37 @@ export default function Navbar() {
     const [selectedLanguage, setSelectedLanguage] =
         useState(languages[0]);
 
+    // Load the saved company logo from public site settings.
+    const [logoUrl, setLogoUrl] = useState("");
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadPublicSettings() {
+            try {
+                const response = await fetch("/api/settings?public=1", {
+                    cache: "no-store",
+                });
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+
+                if (!cancelled && typeof data?.settings?.logoUrl === "string") {
+                    setLogoUrl(data.settings.logoUrl);
+                }
+            } catch (error) {
+                console.error("Unable to load navbar logo:", error);
+            }
+        }
+
+        loadPublicSettings();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
 
 
     /* =========================================================
@@ -1001,7 +1032,7 @@ export default function Navbar() {
 
                             <img
 
-                                src="/Assets/Logo.png"
+                                src={logoUrl || "/Assets/Logo 1.png"}
 
                                 alt="Top Range Building Materials"
 

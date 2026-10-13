@@ -2,7 +2,7 @@
 
 
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
 
@@ -46,58 +46,6 @@ import {
 
 
 
-const categories = [
-
-    "Power Tools",
-
-    "Hand Tools",
-
-    "Electrical",
-
-    "Plumbing",
-
-    "Hardware",
-
-    "Fasteners",
-
-    "Safety",
-
-    "Paint & Adhesives",
-
-    "Construction Materials",
-
-    "HVAC",
-
-];
-
-
-
-const brands = [
-
-    "DeWalt",
-
-    "Bosch",
-
-    "Stanley",
-
-    "3M",
-
-    "Sika",
-
-    "Fischer",
-
-    "Hepworth",
-
-    "Mueller",
-
-    "Dormakaba",
-
-    "Fluke",
-
-];
-
-
-
 const productStatuses = ["Active", "Draft", "Inactive"];
 
 
@@ -110,273 +58,7 @@ const productStatuses = ["Active", "Draft", "Inactive"];
 
 
 
-const initialProducts = [
-
-    {
-
-        id: 1,
-
-        name: "Cordless Hammer Drill",
-
-        sku: "TR-PT-001",
-        productLink: "/product-details?id=1",
-
-        category: "Power Tools",
-
-        brand: "DeWalt",
-
-        price: 699,
-
-        oldPrice: 749,
-
-        stock: 28,
-
-        status: "Active",
-
-        featured: true,
-
-        shortDescription:
-
-            "Professional cordless hammer drill for demanding construction applications.",
-
-        description:
-
-            "Professional cordless hammer drill for concrete, steel, timber and demanding construction applications.",
-
-    },
-
-    {
-
-        id: 2,
-
-        name: "Professional Angle Grinder",
-
-        sku: "TR-PT-002",
-        productLink: "/product-details?id=2",
-
-        category: "Power Tools",
-
-        brand: "Bosch",
-
-        price: 419,
-
-        oldPrice: "",
-
-        stock: 18,
-
-        status: "Active",
-
-        featured: true,
-
-        shortDescription:
-
-            "High-performance angle grinder for professional cutting and finishing.",
-
-        description:
-
-            "High-performance angle grinder for professional cutting, grinding and finishing work.",
-
-    },
-
-    {
-
-        id: 3,
-
-        name: "Heavy Duty Combination Pliers",
-
-        sku: "TR-HT-001",
-        productLink: "/product-details?id=3",
-
-        category: "Hand Tools",
-
-        brand: "Stanley",
-
-        price: 69,
-
-        oldPrice: 79,
-
-        stock: 64,
-
-        status: "Active",
-
-        featured: false,
-
-        shortDescription:
-
-            "Durable professional combination pliers for maintenance applications.",
-
-        description:
-
-            "Durable professional combination pliers for gripping, cutting and maintenance applications.",
-
-    },
-
-    {
-
-        id: 4,
-
-        name: "Digital Clamp Meter",
-
-        sku: "TR-EL-001",
-        productLink: "/product-details?id=4",
-
-        category: "Electrical",
-
-        brand: "Fluke",
-
-        price: 289,
-
-        oldPrice: "",
-
-        stock: 9,
-
-        status: "Active",
-
-        featured: false,
-
-        shortDescription:
-
-            "Professional digital electrical testing meter for maintenance teams.",
-
-        description:
-
-            "Digital electrical testing meter designed for professional maintenance and diagnostics.",
-
-    },
-
-    {
-
-        id: 5,
-
-        name: "Steel Bars",
-
-        sku: "TR-CM-001",
-        productLink: "/product-details?id=5",
-
-        category: "Construction Materials",
-
-        brand: "Hepworth",
-
-        price: 42,
-
-        oldPrice: "",
-
-        stock: 120,
-
-        status: "Active",
-
-        featured: false,
-
-        shortDescription:
-
-            "Reliable construction material suitable for commercial projects.",
-
-        description:
-
-            "High-quality construction material for residential, commercial and industrial projects.",
-
-    },
-
-    {
-
-        id: 6,
-
-        name: "Circular Saw",
-
-        sku: "TR-PT-003",
-        productLink: "/product-details?id=6",
-
-        category: "Power Tools",
-
-        brand: "Bosch",
-
-        price: 549,
-
-        oldPrice: 599,
-
-        stock: 22,
-
-        status: "Active",
-
-        featured: false,
-
-        shortDescription:
-
-            "Professional circular saw for accurate and efficient cutting.",
-
-        description:
-
-            "Professional circular saw for timber, panels and general construction cutting applications.",
-
-    },
-
-    {
-
-        id: 7,
-
-        name: "Chainsaw",
-
-        sku: "TR-PT-004",
-        productLink: "/product-details?id=7",
-
-        category: "Power Tools",
-
-        brand: "DeWalt",
-
-        price: 629,
-
-        oldPrice: "",
-
-        stock: 14,
-
-        status: "Draft",
-
-        featured: false,
-
-        shortDescription:
-
-            "Heavy-duty chainsaw for demanding professional applications.",
-
-        description:
-
-            "Heavy-duty chainsaw designed for reliable cutting performance in professional applications.",
-
-    },
-
-    {
-
-        id: 8,
-
-        name: "Cordless Impact Wrench",
-
-        sku: "TR-PT-005",
-        productLink: "/product-details?id=8",
-
-        category: "Power Tools",
-
-        brand: "DeWalt",
-
-        price: 589,
-
-        oldPrice: 649,
-
-        stock: 31,
-
-        status: "Active",
-
-        featured: true,
-
-        shortDescription:
-
-            "High-torque cordless impact wrench for construction and maintenance.",
-
-        description:
-
-            "High-torque cordless impact wrench for fastening, automotive and construction applications.",
-
-    },
-
-];
+const initialProducts = [];
 
 
 
@@ -420,6 +102,33 @@ const defaultForm = {
 export default function ProductsPage() {
 
     const [products, setProducts] = useState(initialProducts);
+    const [categories, setCategories] = useState([]);
+    const [brands, setBrands] = useState([]);
+    useEffect(() => {
+        let active = true;
+        const load = async () => {
+            try {
+                const [productsResponse, categoriesResponse, brandsResponse] = await Promise.all([
+                    fetch("/api/products", { cache: "no-store" }),
+                    fetch("/api/categories", { cache: "no-store" }),
+                    fetch("/api/brands", { cache: "no-store" }),
+                ]);
+                const [productsData, categoriesData, brandsData] = await Promise.all([
+                    productsResponse.json(), categoriesResponse.json(), brandsResponse.json(),
+                ]);
+                if (!productsResponse.ok) throw new Error(productsData.error || "Could not load products");
+                if (!categoriesResponse.ok) throw new Error(categoriesData.error || "Could not load categories");
+                if (!brandsResponse.ok) throw new Error(brandsData.error || "Could not load brands");
+                if (active) {
+                    setProducts(productsData.products || []);
+                    setCategories((categoriesData.categories || []).filter((item) => item.status === "Active").map((item) => item.name));
+                    setBrands((brandsData.brands || []).filter((item) => item.status === "Active").map((item) => item.name));
+                }
+            } catch (err) { if (active) setError(err.message || "Could not load product form data"); }
+        };
+        load();
+        return () => { active = false; };
+    }, []);
 
     const [search, setSearch] = useState("");
 
@@ -655,7 +364,7 @@ export default function ProductsPage() {
 
 
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
 
         event.preventDefault();
 
@@ -746,41 +455,18 @@ export default function ProductsPage() {
 
 
 
-        if (editingProduct) {
-
-            setProducts((current) =>
-
-                current.map((product) =>
-
-                    product.id === editingProduct.id
-
-                        ? { ...product, ...productData }
-
-                        : product
-
-                )
-
-            );
-
-        } else {
-
-            setProducts((current) => [
-
-                {
-
-                    id: Date.now(),
-
-                    ...productData,
-
-                },
-
-                ...current,
-
-            ]);
-
-        }
-
-
+        try {
+            const response = await fetch("/api/products" + (editingProduct ? `/${editingProduct.id}` : ""), {
+                method: editingProduct ? "PATCH" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(productData),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not save product");
+            setProducts((current) => editingProduct
+                ? current.map((item) => item.id === editingProduct.id ? data.product : item)
+                : [data.product, ...current]);
+        } catch (err) { setError(err.message); return; }
 
         setSaved(true);
 
@@ -798,17 +484,15 @@ export default function ProductsPage() {
 
 
 
-    const deleteProduct = (id) => {
-
-        setProducts((current) =>
-
-            current.filter((product) => product.id !== id)
-
-        );
-
+    const deleteProduct = async (id) => {
+        if (!window.confirm("Delete this product?")) return;
+        try {
+            const response = await fetch(`/api/products/${id}`, { method: "DELETE" });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not delete product");
+            setProducts((current) => current.filter((product) => product.id !== id));
+        } catch (err) { setError(err.message); }
     };
-
-
 
     return (
 

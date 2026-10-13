@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useAdmin } from "@/components/admin/AdminProvider";
 
 import {
     Boxes,
@@ -83,16 +84,22 @@ export default function AdminLayout({ children }) {
     const pathname = usePathname();
 
     const [mobileOpen, setMobileOpen] = useState(false);
+    const { admin } = useAdmin();
 
     /* =====================================================
-       TEMP LOGGED USER
+       LOGGED USER
        Replace later with Firebase/API authenticated user
     ====================================================== */
 
     const loggedAdmin = {
-        name: "Global Admin",
-        role: "Super Administrator",
-        initials: "GA",
+        name: admin?.name || "Administrator",
+        role: admin?.role || "Administrator",
+        initials: (admin?.name || "A")
+            .split(" ")
+            .map((part) => part[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase(),
     };
 
     return (
@@ -331,17 +338,10 @@ function Sidebar({
        LOGOUT
     ====================================================== */
 
-    const handleLogout = () => {
-        /*
-          UI only now.
-    
-          Later:
-          - Firebase signOut()
-          - clear token/session
-          - then redirect
-        */
+    const { logout } = useAdmin();
 
-        router.push("/admin/login");
+    const handleLogout = async () => {
+        await logout();
     };
 
     return (

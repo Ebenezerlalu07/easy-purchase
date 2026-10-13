@@ -4,6 +4,7 @@ import "./globals.css";
 import "./top-range.css";
 
 import SiteChrome from "@/components/SiteChrome";
+import { AdminProvider } from "@/components/admin/AdminProvider";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -30,9 +31,11 @@ export default function RootLayout({ children }) {
         id="top"
         className={`${dmSans.variable} ${manrope.variable} bg-[#F5F5F0] text-[#101411] antialiased`}
       >
-        <SiteChrome>
-          {children}
-        </SiteChrome>
+        <AdminProvider>
+          <SiteChrome>
+            {children}
+          </SiteChrome>
+        </AdminProvider>
       </body>
     </html>
   );

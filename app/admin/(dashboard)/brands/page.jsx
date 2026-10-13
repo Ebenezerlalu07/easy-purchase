@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
     BadgeCheck,
@@ -22,118 +22,7 @@ import {
    DEMO BRAND DATA
 ========================================================= */
 
-const initialBrands = [
-    {
-        id: 1,
-        name: "DeWalt",
-        slug: "dewalt",
-        logo: "",
-        website: "https://www.dewalt.com",
-        description:
-            "Professional power tools and accessories for construction and industrial applications.",
-        products: 18,
-        status: "Active",
-    },
-    {
-        id: 2,
-        name: "Bosch",
-        slug: "bosch",
-        logo: "",
-        website: "https://www.bosch.com",
-        description:
-            "Power tools, accessories and professional equipment for trade and industry.",
-        products: 16,
-        status: "Active",
-    },
-    {
-        id: 3,
-        name: "Stanley",
-        slug: "stanley",
-        logo: "",
-        website: "https://www.stanleytools.com",
-        description:
-            "Professional hand tools, storage solutions and construction equipment.",
-        products: 14,
-        status: "Active",
-    },
-    {
-        id: 4,
-        name: "3M",
-        slug: "3m",
-        logo: "",
-        website: "https://www.3m.com",
-        description:
-            "Industrial safety, adhesives and construction solutions.",
-        products: 11,
-        status: "Active",
-    },
-    {
-        id: 5,
-        name: "Sika",
-        slug: "sika",
-        logo: "",
-        website: "https://www.sika.com",
-        description:
-            "Construction chemicals, sealants, bonding and waterproofing solutions.",
-        products: 9,
-        status: "Active",
-    },
-    {
-        id: 6,
-        name: "Fischer",
-        slug: "fischer",
-        logo: "",
-        website: "https://www.fischer.group",
-        description:
-            "Professional fixing systems, anchors and construction fastening solutions.",
-        products: 8,
-        status: "Active",
-    },
-    {
-        id: 7,
-        name: "Hepworth",
-        slug: "hepworth",
-        logo: "",
-        website: "",
-        description:
-            "Piping and plumbing system solutions for construction projects.",
-        products: 12,
-        status: "Active",
-    },
-    {
-        id: 8,
-        name: "Mueller",
-        slug: "mueller",
-        logo: "",
-        website: "",
-        description:
-            "Industrial piping, valves and infrastructure products.",
-        products: 7,
-        status: "Inactive",
-    },
-    {
-        id: 9,
-        name: "Dormakaba",
-        slug: "dormakaba",
-        logo: "",
-        website: "https://www.dormakaba.com",
-        description:
-            "Premium access, door hardware and security solutions.",
-        products: 10,
-        status: "Active",
-    },
-    {
-        id: 10,
-        name: "Fluke",
-        slug: "fluke",
-        logo: "",
-        website: "https://www.fluke.com",
-        description:
-            "Professional electrical testing and measurement equipment.",
-        products: 6,
-        status: "Active",
-    },
-];
+const initialBrands = [];
 
 const emptyForm = {
     name: "",
@@ -151,6 +40,16 @@ const emptyForm = {
 export default function BrandsPage() {
     const [brands, setBrands] = useState(initialBrands);
     const [search, setSearch] = useState("");
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let active = true;
+        fetch("/api/brands", { cache: "no-store" })
+            .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Could not load brands"); return data; })
+            .then((data) => { if (active) setBrands(data.brands || []); })
+            .catch((err) => { if (active) setError(err.message); });
+        return () => { active = false; };
+    }, []);
 
     const [modalOpen, setModalOpen] = useState(false);
     const [editingBrand, setEditingBrand] = useState(null);
@@ -185,7 +84,7 @@ export default function BrandsPage() {
     ).length;
 
     const totalProducts = brands.reduce(
-        (total, brand) => total + brand.products,
+        (total, brand) => total + Number(brand.products || 0),
         0
     );
 
@@ -253,49 +152,43 @@ export default function BrandsPage() {
        SAVE
     ========================================================= */
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-
-        if (!form.name.trim()) return;
-
-        if (editingBrand) {
-            setBrands((current) =>
-                current.map((brand) =>
-                    brand.id === editingBrand.id
-                        ? {
-                            ...brand,
-                            ...form,
-                        }
-                        : brand
-                )
-            );
-        } else {
-            setBrands((current) => [
-                {
-                    id: Date.now(),
-                    ...form,
-                    products: 0,
-                },
-                ...current,
-            ]);
-        }
-
-        closeModal();
+        setError("");
+        if (!form.name.trim()) { setError("Please enter a brand name."); return; }
+        try {
+            const response = await fetch(editingBrand ? `/api/brands/${editingBrand.id}` : "/api/brands", {
+                method: editingBrand ? "PATCH" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not save brand");
+            const saved = data.brand;
+            setBrands((current) => editingBrand ? current.map((item) => item.id === saved.id ? saved : item) : [saved, ...current]);
+            closeModal();
+        } catch (err) { setError(err.message); }
     };
 
     /* =========================================================
        DELETE
     ========================================================= */
 
-    const deleteBrand = (id) => {
-        setBrands((current) =>
-            current.filter((brand) => brand.id !== id)
-        );
+    const deleteBrand = async (id) => {
+        if (!window.confirm("Delete this brand?")) return;
+        setError("");
+        try {
+            const response = await fetch(`/api/brands/${id}`, { method: "DELETE" });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not delete brand");
+            setBrands((current) => current.filter((brand) => brand.id !== id));
+        } catch (err) { setError(err.message); }
     };
 
     return (
         <>
             <div className="w-full">
+                {error && <p role="alert" className="mb-4 text-sm text-red-600">{error}</p>}
                 {/* =====================================================
             HEADER
         ====================================================== */}

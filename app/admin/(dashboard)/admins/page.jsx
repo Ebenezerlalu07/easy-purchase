@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
     Check,
@@ -22,58 +22,7 @@ import {
    DEMO ADMIN DATA
 ========================================================= */
 
-const initialAdmins = [
-    {
-        id: 1,
-        name: "Global Admin",
-        email: "admin@easypurchase.ae",
-        role: "Super Administrator",
-        status: "Active",
-        lastLogin: "26 Sep 2026, 10:14 AM",
-        created: "01 Sep 2026",
-        initials: "GA",
-    },
-    {
-        id: 2,
-        name: "Akhil Mathew",
-        email: "akhil@easypurchase.ae",
-        role: "Administrator",
-        status: "Active",
-        lastLogin: "25 Sep 2026, 06:42 PM",
-        created: "05 Sep 2026",
-        initials: "AM",
-    },
-    {
-        id: 3,
-        name: "Nadia Ali",
-        email: "nadia@easypurchase.ae",
-        role: "Sales Manager",
-        status: "Active",
-        lastLogin: "25 Sep 2026, 03:20 PM",
-        created: "08 Sep 2026",
-        initials: "NA",
-    },
-    {
-        id: 4,
-        name: "Joseph Mathew",
-        email: "joseph@easypurchase.ae",
-        role: "Catalogue Manager",
-        status: "Active",
-        lastLogin: "24 Sep 2026, 11:08 AM",
-        created: "10 Sep 2026",
-        initials: "JM",
-    },
-    {
-        id: 5,
-        name: "Faisal Rahman",
-        email: "faisal@easypurchase.ae",
-        role: "Sales Manager",
-        status: "Inactive",
-        lastLogin: "19 Sep 2026, 02:45 PM",
-        created: "12 Sep 2026",
-        initials: "FR",
-    },
-];
+const initialAdmins = [];
 
 const roles = [
     "Super Administrator",
@@ -98,6 +47,24 @@ const emptyForm = {
 
 export default function AdminUsersPage() {
     const [admins, setAdmins] = useState(initialAdmins);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(true);
+
+    const loadAdmins = async () => {
+        setError("");
+        try {
+            const response = await fetch("/api/admin-users", { cache: "no-store" });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not load admin users");
+            setAdmins(data.admins || []);
+        } catch (err) {
+            setError(err.message || "Could not load admin users");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => { loadAdmins(); }, []);
 
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("All");
@@ -197,80 +164,72 @@ export default function AdminUsersPage() {
        SAVE
     ========================================================= */
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-
+        setError("");
         if (!form.name.trim() || !form.email.trim()) {
+            setError("Please enter a name and email address.");
             return;
         }
-
-        if (editingAdmin) {
-            setAdmins((current) =>
-                current.map((admin) =>
-                    admin.id === editingAdmin.id
-                        ? {
-                            ...admin,
-                            name: form.name,
-                            email: form.email,
-                            role: form.role,
-                            status: form.status,
-                            initials: generateInitials(form.name),
-                        }
-                        : admin
-                )
-            );
-        } else {
-            setAdmins((current) => [
-                {
-                    id: Date.now(),
-                    name: form.name,
-                    email: form.email,
-                    role: form.role,
-                    status: form.status,
-                    lastLogin: "Never",
-                    created: "26 Sep 2026",
-                    initials: generateInitials(form.name),
-                },
-                ...current,
-            ]);
+        if (!editingAdmin && !form.password) {
+            setError("Please set a password for the new admin.");
+            return;
         }
-
-        closeModal();
+        try {
+            const response = await fetch(editingAdmin ? `/api/admin-users/${editingAdmin.id}` : "/api/admin-users", {
+                method: editingAdmin ? "PATCH" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not save admin user");
+            await loadAdmins();
+            closeModal();
+        } catch (err) {
+            setError(err.message || "Could not save admin user");
+        }
     };
 
     /* =========================================================
        DELETE
     ========================================================= */
 
-    const deleteAdmin = (id) => {
-        setAdmins((current) =>
-            current.filter((admin) => admin.id !== id)
-        );
+    const deleteAdmin = async (id) => {
+        if (!window.confirm("Delete this admin user?")) return;
+        setError("");
+        try {
+            const response = await fetch(`/api/admin-users/${id}`, { method: "DELETE" });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not delete admin user");
+            await loadAdmins();
+        } catch (err) {
+            setError(err.message || "Could not delete admin user");
+        }
     };
 
-    /* =========================================================
-       TOGGLE STATUS
-    ========================================================= */
-
-    const toggleAdminStatus = (id) => {
-        setAdmins((current) =>
-            current.map((admin) =>
-                admin.id === id
-                    ? {
-                        ...admin,
-                        status:
-                            admin.status === "Active"
-                                ? "Inactive"
-                                : "Active",
-                    }
-                    : admin
-            )
-        );
+    const toggleAdminStatus = async (id) => {
+        const target = admins.find((item) => item.id === id);
+        if (!target) return;
+        setError("");
+        try {
+            const response = await fetch(`/api/admin-users/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: target.status === "Active" ? "Inactive" : "Active" }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not update admin status");
+            await loadAdmins();
+        } catch (err) {
+            setError(err.message || "Could not update admin status");
+        }
     };
 
     return (
         <>
             <div className="w-full">
+                {error && <p role="alert" className="mb-4 text-sm text-red-600">{error}</p>}
+                {loading && <p className="mb-4 text-sm text-[#686F68]">Loading admin users...</p>}
 
                 {/* =====================================================
             HEADER

@@ -30,29 +30,66 @@ export default function CartPage() {
     ========================================================= */
 
     useEffect(() => {
-        try {
-            const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+        let cancelled = false;
 
-            if (!savedCart) {
-                setCart([]);
-                setLoaded(true);
+        async function loadAndValidateCart() {
+            let savedItems = [];
+            try {
+                const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+                const parsedCart = savedCart ? JSON.parse(savedCart) : [];
+                savedItems = Array.isArray(parsedCart) ? parsedCart : [];
+            } catch (error) {
+                console.error("Unable to load cart:", error);
+            }
+
+            if (!savedItems.length) {
+                if (!cancelled) {
+                    setCart([]);
+                    setLoaded(true);
+                }
                 return;
             }
 
-            const parsedCart = JSON.parse(savedCart);
-
-            if (Array.isArray(parsedCart)) {
-                setCart(parsedCart);
-            } else {
-                setCart([]);
+            // Refresh cart item details from the live catalogue so old browser
+            // data cannot override the current price, status, or stock quantity.
+            try {
+                const response = await fetch("/api/store/products", {
+                    method: "GET",
+                    cache: "no-store",
+                });
+                if (!response.ok) throw new Error("Could not validate cart products.");
+                const payload = await response.json();
+                const liveProducts = Array.isArray(payload.products) ? payload.products : [];
+                const byId = new Map(liveProducts.map((product) => [String(product.id ?? product._id), product]));
+                const validated = savedItems.flatMap((item) => {
+                    const live = byId.get(String(item.id ?? item._id));
+                    if (!live || Number(live.stock || 0) <= 0) return [];
+                    return [{
+                        ...item,
+                        ...live,
+                        id: String(live.id ?? live._id),
+                        price: Number(live.price || 0),
+                        stock: Number(live.stock || 0),
+                        quantity: Math.min(Math.max(1, Number(item.quantity || 1)), Number(live.stock || 0)),
+                    }];
+                });
+                if (!cancelled) {
+                    setCart(validated);
+                    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(validated));
+                    window.dispatchEvent(new Event("toprange-cart-updated"));
+                }
+            } catch (error) {
+                // Keep the saved cart usable during a temporary network outage;
+                // quantity controls still use the last known stock value.
+                console.error("Unable to validate cart against the catalogue:", error);
+                if (!cancelled) setCart(savedItems);
+            } finally {
+                if (!cancelled) setLoaded(true);
             }
-        } catch (error) {
-            console.error("Unable to load cart:", error);
-
-            setCart([]);
-        } finally {
-            setLoaded(true);
         }
+
+        loadAndValidateCart();
+        return () => { cancelled = true; };
     }, []);
 
     /* =========================================================
@@ -87,7 +124,7 @@ export default function CartPage() {
 
             return {
                 ...item,
-                quantity: Number(item.quantity || 1) + 1,
+                quantity: Math.min(Number(item.stock || 0), Number(item.quantity || 1) + 1),
             };
         });
 
@@ -1135,6 +1172,10 @@ Unit Price: AED ${item.price}`
                 autoDescription,
         });
 
+    const [submitting, setSubmitting] = useState(false);
+    const [submitMessage, setSubmitMessage] = useState("");
+    const [submitError, setSubmitError] = useState("");
+
     const update = (e) => {
         const {
             name,
@@ -1165,66 +1206,44 @@ Unit Price: AED ${item.price}`
        SUBMIT
     ===================================================== */
 
-    const submit = (e) => {
+    const submit = async (e) => {
         e.preventDefault();
-
-        const subject =
-            encodeURIComponent(
-                `Quotation Request - ${form.company ||
-                form.contactName ||
-                "Top Range"
-                }`
-            );
-
-        const body =
-            encodeURIComponent(`
-TOP RANGE BUILDING MATERIALS
-PROJECT QUOTATION REQUEST
-
-
-CUSTOMER DETAILS
-
-Company Name:
-${form.company}
-
-Contact Person:
-${form.contactName}
-
-Email:
-${form.email}
-
-Phone:
-${form.phone}
-
-
-PRODUCT DETAILS
-
-Products:
-${form.products}
-
-Category:
-${form.category}
-
-Preferred Brand:
-${form.brand}
-
-Total Quantity:
-${form.quantity}
-
-Ref Number:
-${form.refNumber}
-
-Delivery Location:
-${form.deliveryLocation}
-
-
-DESCRIPTION / REQUIREMENT
-
-${form.description || "No additional requirements provided."}
-`);
-
-        window.location.href =
-            `mailto:info@toprange.ae?subject=${subject}&body=${body}`;
+        setSubmitting(true);
+        setSubmitMessage("");
+        setSubmitError("");
+        try {
+            const response = await fetch("/api/quotations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...form,
+                    productList: cart.map((item) => ({
+                        id: String(item.id ?? item._id ?? ""),
+                        name: item.name || "Material",
+                        sku: item.sku || "",
+                        category: item.category || "",
+                        brand: item.brand || "",
+                        unit: item.unit || "Unit",
+                        quantity: Number(item.quantity || 1),
+                        price: Number(item.price || 0),
+                    })),
+                    amount: `AED ${cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0).toFixed(2)}`,
+                }),
+            });
+            const payload = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(payload.error || "Could not submit quotation request.");
+            if (payload.warning) {
+                setSubmitError(`${payload.warning} Your request reference is ${payload.quotation?.id || "saved"}.`);
+                return;
+            }
+            setSubmitMessage(`Request ${payload.quotation?.id || ""} submitted. Your estimate has been emailed to you, and the admin has been notified.`);
+            localStorage.removeItem(CART_STORAGE_KEY);
+            window.dispatchEvent(new Event("toprange-cart-updated"));
+        } catch (error) {
+            setSubmitError(error.message || "Something went wrong. Please try again.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -1392,7 +1411,10 @@ ${form.description || "No additional requirements provided."}
                 FORM
             ================================================= */}
 
-                        <form
+                        {submitMessage && <div role="status" className="mb-5 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-900">{submitMessage}</div>}
+                {submitError && <div role="alert" className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{submitError}</div>}
+
+                <form
                             onSubmit={submit}
                             className="mt-9"
                         >
@@ -1598,10 +1620,11 @@ ${form.description || "No additional requirements provided."}
 
                                 <button
                                     type="submit"
+                                    disabled={submitting || Boolean(submitMessage)}
                                     className="group flex h-[58px] w-full items-center justify-between gap-7 rounded-full bg-[#101411] pl-7 pr-2 text-[14px] font-semibold text-white transition hover:bg-[#1B211D] lg:w-auto lg:min-w-[200px]"
                                 >
 
-                                    Submit Quote
+                                    {submitting ? "Submitting..." : submitMessage ? "Submitted" : "Submit Quote"}
 
                                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
 

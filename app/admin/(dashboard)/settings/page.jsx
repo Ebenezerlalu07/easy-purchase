@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
     Bell,
@@ -28,9 +28,9 @@ import {
 
 const defaultSettings = {
     companyName: "Top Range Building Materials",
-    email: "info@toprange.ae",
-    phone: "+971 00 000 0000",
-    whatsapp: "+971 50 123 4567",
+    // email: "info@toprange.ae",
+    // phone: "+971 00 000 0000",
+    // whatsapp: "+971 50 123 4567",
     address: "Ajman, United Arab Emirates",
 
     websiteName: "Easy Purchase",
@@ -64,6 +64,35 @@ export default function SettingsPage() {
     const [currencyOpen, setCurrencyOpen] = useState(false);
 
     const [saved, setSaved] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [loadError, setLoadError] = useState("");
+    const [saveError, setSaveError] = useState("");
+
+    useEffect(() => {
+        let active = true;
+
+        const loadSettings = async () => {
+            try {
+                const response = await fetch("/api/settings", {
+                    method: "GET",
+                    cache: "no-store",
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "Unable to load settings.");
+                }
+                if (!active) return;
+                setSettings((previous) => ({ ...previous, ...data.settings }));
+                setLogo(data.settings?.logoUrl || "");
+                setLoadError("");
+            } catch (error) {
+                if (active) setLoadError(error.message || "Unable to load settings.");
+            }
+        };
+
+        loadSettings();
+        return () => { active = false; };
+    }, []);
 
     /* =========================================================
        UPDATE
@@ -147,24 +176,41 @@ export default function SettingsPage() {
        SAVE
     ========================================================= */
 
-    const saveSettings = (event) => {
+    const saveSettings = async (event) => {
         event.preventDefault();
+        setSaving(true);
+        setSaved(false);
+        setSaveError("");
 
-        /*
-          Connect your API / Firebase / database here later.
-    
-          const data = {
-            ...settings,
-            logo: logoFile,
-          };
-        */
+        try {
+            const formData = new FormData();
+            formData.append("settings", JSON.stringify({
+                ...settings,
+                // Keep the existing permanent URL unless a new logo is selected.
+                logoUrl: logoFile ? "" : (logo || ""),
+            }));
+            if (logoFile) formData.append("logo", logoFile);
 
-        setSaved(true);
+            const response = await fetch("/api/settings", {
+                method: "PUT",
+                body: formData,
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || "Unable to save settings.");
+            }
 
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth",
-        });
+            setSettings((previous) => ({ ...previous, ...data.settings }));
+            setLogo(data.settings?.logoUrl || "");
+            setLogoFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            setSaved(true);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (error) {
+            setSaveError(error.message || "Unable to save settings.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
@@ -222,6 +268,7 @@ export default function SettingsPage() {
                     <button
                         type="submit"
                         form="settings-form"
+                        disabled={saving}
                         className="
               group
               inline-flex
@@ -239,7 +286,7 @@ export default function SettingsPage() {
               hover:bg-[#292F2A]
             "
                     >
-                        Save Settings
+                        {saving ? "Saving..." : "Save Settings"}
 
                         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#D8FF65] text-[#151814]">
                             <Save className="h-3.5 w-3.5" />
@@ -251,6 +298,18 @@ export default function SettingsPage() {
             {/* =====================================================
           SUCCESS
       ====================================================== */}
+
+            {loadError && (
+                <div role="alert" className="mt-6 rounded-[16px] border border-amber-200 bg-amber-50 px-5 py-4 text-[12px] font-medium text-amber-800">
+                    Could not load saved settings: {loadError}
+                </div>
+            )}
+
+            {saveError && (
+                <div role="alert" className="mt-6 rounded-[16px] border border-red-200 bg-red-50 px-5 py-4 text-[12px] font-medium text-red-700">
+                    {saveError}
+                </div>
+            )}
 
             {saved && (
                 <div className="mt-6 flex items-center justify-between gap-4 rounded-[16px] border border-green-100 bg-green-50 px-5 py-4">
@@ -265,7 +324,7 @@ export default function SettingsPage() {
                             </p>
 
                             <p className="mt-0.5 text-[10px] font-medium text-green-600">
-                                Your configuration has been updated in the UI.
+                                Your configuration has been saved successfully.
                             </p>
                         </div>
                     </div>
@@ -370,7 +429,7 @@ export default function SettingsPage() {
                                         <input
                                             type="text"
                                             name="address"
-                                            value={settings.address}
+                                            value={defaultSettings.address}
                                             onChange={updateSetting}
                                             className={`${inputClass} pl-11`}
                                         />

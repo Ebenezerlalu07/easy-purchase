@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
     Boxes,
@@ -19,98 +19,7 @@ import {
    DEMO CATEGORY DATA
 ========================================================= */
 
-const initialCategories = [
-    {
-        id: 1,
-        name: "Power Tools",
-        slug: "power-tools",
-        description:
-            "Professional power tools for construction, maintenance and industrial applications.",
-        products: 24,
-        status: "Active",
-    },
-    {
-        id: 2,
-        name: "Hand Tools",
-        slug: "hand-tools",
-        description:
-            "Reliable hand tools for installation, repair and everyday professional use.",
-        products: 18,
-        status: "Active",
-    },
-    {
-        id: 3,
-        name: "Electrical",
-        slug: "electrical",
-        description:
-            "Electrical testing tools, accessories and installation products.",
-        products: 13,
-        status: "Active",
-    },
-    {
-        id: 4,
-        name: "Plumbing",
-        slug: "plumbing",
-        description:
-            "Pipes, fittings, accessories and plumbing system components.",
-        products: 16,
-        status: "Active",
-    },
-    {
-        id: 5,
-        name: "Hardware",
-        slug: "hardware",
-        description:
-            "General building hardware for residential and commercial applications.",
-        products: 21,
-        status: "Active",
-    },
-    {
-        id: 6,
-        name: "Fasteners",
-        slug: "fasteners",
-        description:
-            "Anchors, screws, bolts and industrial fastening solutions.",
-        products: 14,
-        status: "Active",
-    },
-    {
-        id: 7,
-        name: "Safety",
-        slug: "safety",
-        description:
-            "Personal protective equipment and construction site safety products.",
-        products: 9,
-        status: "Active",
-    },
-    {
-        id: 8,
-        name: "Paint & Adhesives",
-        slug: "paint-adhesives",
-        description:
-            "Paints, sealants, bonding products and professional adhesives.",
-        products: 11,
-        status: "Inactive",
-    },
-    {
-        id: 9,
-        name: "Construction Materials",
-        slug: "construction-materials",
-        description:
-            "Core building and construction materials for projects of all sizes.",
-        products: 32,
-        status: "Active",
-    },
-    {
-        id: 10,
-        name: "HVAC",
-        slug: "hvac",
-        description:
-            "Heating, ventilation and air-conditioning products and accessories.",
-        products: 8,
-        status: "Active",
-    },
-];
+const initialCategories = [];
 
 const emptyForm = {
     name: "",
@@ -126,6 +35,16 @@ const emptyForm = {
 export default function CategoriesPage() {
     const [categories, setCategories] = useState(initialCategories);
     const [search, setSearch] = useState("");
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        let active = true;
+        fetch("/api/categories", { cache: "no-store" })
+            .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "Could not load categories"); return data; })
+            .then((data) => { if (active) setCategories(data.categories || []); })
+            .catch((err) => { if (active) setError(err.message); });
+        return () => { active = false; };
+    }, []);
 
     const [modalOpen, setModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
@@ -159,7 +78,7 @@ export default function CategoriesPage() {
     ).length;
 
     const totalProducts = categories.reduce(
-        (total, item) => total + item.products,
+        (total, item) => total + Number(item.products || 0),
         0
     );
 
@@ -217,49 +136,43 @@ export default function CategoriesPage() {
         }
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-
-        if (!form.name.trim()) return;
-
-        if (editingCategory) {
-            setCategories((current) =>
-                current.map((category) =>
-                    category.id === editingCategory.id
-                        ? {
-                            ...category,
-                            ...form,
-                        }
-                        : category
-                )
-            );
-        } else {
-            setCategories((current) => [
-                {
-                    id: Date.now(),
-                    ...form,
-                    products: 0,
-                },
-                ...current,
-            ]);
-        }
-
-        closeModal();
+        setError("");
+        if (!form.name.trim()) { setError("Please enter a category name."); return; }
+        try {
+            const response = await fetch(editingCategory ? `/api/categories/${editingCategory.id}` : "/api/categories", {
+                method: editingCategory ? "PATCH" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not save category");
+            const saved = data.category;
+            setCategories((current) => editingCategory ? current.map((item) => item.id === saved.id ? saved : item) : [saved, ...current]);
+            closeModal();
+        } catch (err) { setError(err.message); }
     };
 
     /* =========================================================
        DELETE
     ========================================================= */
 
-    const deleteCategory = (id) => {
-        setCategories((current) =>
-            current.filter((category) => category.id !== id)
-        );
+    const deleteCategory = async (id) => {
+        if (!window.confirm("Delete this category?")) return;
+        setError("");
+        try {
+            const response = await fetch(`/api/categories/${id}`, { method: "DELETE" });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Could not delete category");
+            setCategories((current) => current.filter((category) => category.id !== id));
+        } catch (err) { setError(err.message); }
     };
 
     return (
         <>
             <div className="w-full">
+                {error && <p role="alert" className="mb-4 text-sm text-red-600">{error}</p>}
                 {/* =====================================================
             HEADER
         ====================================================== */}

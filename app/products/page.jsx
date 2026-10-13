@@ -28,140 +28,8 @@ import {
 const PRODUCTS_PER_PAGE = 12; // 3 rows × 4 products on desktop
 
 /* =========================================================
-   PRODUCT DATA
-========================================================= */
-
-const products = [
-    {
-        id: 1,
-        name: "Cordless Hammer Drill",
-        category: "Power Tools",
-        brand: "DeWalt",
-        sku: "TR-PT-001",
-        price: 699,
-        oldPrice: 749,
-        stock: 28,
-        description:
-            "Professional cordless hammer drill for concrete, steel, timber and demanding construction applications.",
-    },
-    {
-        id: 2,
-        name: "Professional Angle Grinder",
-        category: "Power Tools",
-        brand: "Bosch",
-        sku: "TR-PT-002",
-        price: 419,
-        oldPrice: null,
-        stock: 18,
-        description:
-            "High-performance angle grinder for professional cutting, grinding and finishing work.",
-    },
-    {
-        id: 3,
-        name: "Heavy Duty Combination Pliers",
-        category: "Hand Tools",
-        brand: "Stanley",
-        sku: "TR-HT-001",
-        price: 69,
-        oldPrice: 79,
-        stock: 64,
-        description:
-            "Durable professional combination pliers for gripping, cutting and maintenance applications.",
-    },
-    {
-        id: 4,
-        name: "Digital Clamp Meter",
-        category: "Electrical",
-        brand: "Fluke",
-        sku: "TR-EL-001",
-        price: 289,
-        oldPrice: null,
-        stock: 9,
-        description:
-            "Digital electrical testing meter designed for professional maintenance and diagnostics.",
-    },
-    {
-        id: 5,
-        name: "Steel Bars",
-        category: "Plumbing",
-        brand: "Hepworth",
-        sku: "TR-PL-001",
-        price: 42,
-        oldPrice: null,
-        stock: 120,
-        description:
-            "High-quality PVC pressure pipe for residential, commercial and industrial plumbing systems.",
-    },
-    {
-        id: 6,
-        name: "Circular Saw",
-        category: "Hardware",
-        brand: "Dormakaba",
-        sku: "TR-HW-001",
-        price: 34,
-        oldPrice: 39,
-        stock: 85,
-        description:
-            "Premium stainless steel hinge for commercial and residential door installations.",
-    },
-    {
-        id: 7,
-        name: "Chainsaw",
-        category: "Fasteners",
-        brand: "Fischer",
-        sku: "TR-FA-001",
-        price: 4.5,
-        oldPrice: null,
-        stock: 400,
-        description:
-            "Heavy-duty anchor solution for concrete, structural fixing and professional construction.",
-    },
-    {
-        id: 8,
-        name: "Cordless Impact Wrench",
-        category: "Safety",
-        brand: "3M",
-        sku: "TR-SF-001",
-        price: 58,
-        oldPrice: null,
-        stock: 44,
-        description:
-            "Professional industrial head protection for construction and engineering environments.",
-    },
-
-];
-
-/* =========================================================
    FILTER DATA
 ========================================================= */
-
-const productCategories = [
-    "All Products",
-    "Power Tools",
-    "Hand Tools",
-    "Electrical",
-    "Plumbing",
-    "Hardware",
-    "Fasteners",
-    "Safety",
-    "Paint & Adhesives",
-    "Construction Materials",
-    "HVAC",
-];
-
-const productBrands = [
-    "All Brands",
-    "3M",
-    "Bosch",
-    "DeWalt",
-    "Dormakaba",
-    "Fischer",
-    "Fluke",
-    "Hepworth",
-    "Mueller",
-    "Sika",
-    "Stanley",
-];
 
 const availabilityOptions = [
     "All Availability",
@@ -193,6 +61,19 @@ function getCategoryCardStyle() {
 ========================================================= */
 
 export default function ProductsPage() {
+    const [products, setProducts] = useState([]);
+    const [productsLoading, setProductsLoading] = useState(true);
+    const [productsError, setProductsError] = useState("");
+
+    const productCategories = useMemo(() => [
+        "All Products",
+        ...new Set(products.map((product) => product.category).filter(Boolean).sort((a, b) => a.localeCompare(b))),
+    ], [products]);
+
+    const productBrands = useMemo(() => [
+        "All Brands",
+        ...new Set(products.map((product) => product.brand).filter(Boolean).sort((a, b) => a.localeCompare(b))),
+    ], [products]);
     const [search, setSearch] = useState("");
 
     const [category, setCategory] =
@@ -218,6 +99,45 @@ export default function ProductsPage() {
 
     const [cartLoaded, setCartLoaded] =
         useState(false);
+
+    useEffect(() => {
+        const controller = new AbortController();
+
+        async function loadProducts() {
+            setProductsLoading(true);
+            setProductsError("");
+            try {
+                const response = await fetch("/api/store/products", {
+                    method: "GET",
+                    cache: "no-store",
+                    signal: controller.signal,
+                });
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(payload.error || "Unable to load products.");
+                }
+                const records = Array.isArray(payload.products) ? payload.products : [];
+                setProducts(records.map((product) => ({
+                    ...product,
+                    id: String(product.id ?? product._id ?? ""),
+                    price: Number(product.price || 0),
+                    oldPrice: product.oldPrice === "" || product.oldPrice == null ? null : Number(product.oldPrice),
+                    stock: Number(product.stock || 0),
+                    description: product.description || product.shortDescription || "Product details will be available soon.",
+                })).filter((product) => product.id));
+            } catch (error) {
+                if (error.name !== "AbortError") {
+                    console.error("Unable to load storefront products:", error);
+                    setProductsError(error.message || "Unable to load products. Please try again.");
+                }
+            } finally {
+                if (!controller.signal.aborted) setProductsLoading(false);
+            }
+        }
+
+        loadProducts();
+        return () => controller.abort();
+    }, []);
 
     const [cartOpen, setCartOpen] =
         useState(false);
@@ -336,7 +256,7 @@ export default function ProductsPage() {
         ) {
             result = result.filter(
                 (product) =>
-                    product.stock > 15
+                    product.stock > 0
             );
         }
 
@@ -384,6 +304,7 @@ export default function ProductsPage() {
 
         return result;
     }, [
+        products,
         search,
         category,
         brand,
@@ -525,38 +446,18 @@ export default function ProductsPage() {
     ========================================================= */
 
     const addToCart = (product) => {
+        if (!product?.id || Number(product.stock || 0) <= 0) return;
+
         setCart((current) => {
-            const existing =
-                current.find(
-                    (item) =>
-                        item.id ===
-                        product.id
-                );
-
+            const existing = current.find((item) => String(item.id) === String(product.id));
             if (existing) {
-                return current.map(
-                    (item) =>
-                        item.id ===
-                            product.id
-                            ? {
-                                ...item,
-                                quantity:
-                                    item.quantity +
-                                    1,
-                            }
-                            : item
-                );
+                if (Number(existing.quantity || 1) >= Number(product.stock || 0)) return current;
+                return current.map((item) => String(item.id) === String(product.id)
+                    ? { ...item, ...product, quantity: Math.min(Number(product.stock), Number(item.quantity || 1) + 1) }
+                    : item);
             }
-
-            return [
-                ...current,
-                {
-                    ...product,
-                    quantity: 1,
-                },
-            ];
+            return [...current, { ...product, quantity: 1 }];
         });
-
         setCartOpen(true);
     };
 
@@ -570,12 +471,10 @@ export default function ProductsPage() {
                     item.id === id
                         ? {
                             ...item,
-                            quantity:
-                                Math.max(
-                                    0,
-                                    item.quantity +
-                                    amount
-                                ),
+                            quantity: Math.min(
+                                Number(item.stock || 0),
+                                Math.max(0, Number(item.quantity || 1) + amount)
+                            ),
                         }
                         : item
                 )
@@ -809,9 +708,19 @@ export default function ProductsPage() {
                                     <button
                                         type="button"
                                         key={item}
-                                        onClick={() =>
-                                            setCategory(item)
-                                        }
+                                        onClick={() => {
+                                            setCategory(item);
+                                            // Selecting All Products should clear any other
+                                            // active filters so the full catalogue is visible.
+                                            if (item === "All Products") {
+                                                setSearch("");
+                                                setBrand("All Brands");
+                                                setAvailability("All Availability");
+                                                setCurrentPage(1);
+                                            } else {
+                                                setCurrentPage(1);
+                                            }
+                                        }}
                                         className={`
                       rounded-full
                       px-5
@@ -929,12 +838,7 @@ export default function ProductsPage() {
                                 </h2>
 
                                 <p className="mt-2 text-[14px] font-medium text-[#626963]">
-
-                                    {
-                                        filteredProducts.length
-                                    }{" "}
-                                    products found
-
+                                    {productsLoading ? "Loading catalogue…" : productsError ? "Catalogue unavailable" : `${filteredProducts.length} products found`}
                                 </p>
 
                             </div>
@@ -980,7 +884,7 @@ export default function ProductsPage() {
 
                         {/* Results Info */}
 
-                        {filteredProducts.length >
+                        {!productsLoading && !productsError && filteredProducts.length >
                             0 && (
 
                                 <div className="mb-5 flex items-center justify-between">
@@ -1041,8 +945,18 @@ export default function ProductsPage() {
                 PRODUCT GRID
             ================================================= */}
 
-                        {paginatedProducts.length >
-                            0 ? (
+                        {productsLoading ? (
+                            <div className="rounded-[30px] border border-black/[0.08] bg-white py-20 text-center" role="status" aria-live="polite">
+                                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-black/15 border-t-[#101411]" />
+                                <p className="mt-4 text-[14px] font-medium text-[#626963]">Loading products…</p>
+                            </div>
+                        ) : productsError ? (
+                            <div className="rounded-[30px] border border-red-200 bg-white px-6 py-16 text-center" role="alert">
+                                <h3 className="text-[22px] font-semibold text-[#101411]">Products could not be loaded</h3>
+                                <p className="mx-auto mt-3 max-w-xl text-[14px] text-[#626963]">{productsError}</p>
+                                <button type="button" onClick={() => window.location.reload()} className="mt-6 rounded-full bg-[#101411] px-7 py-3.5 text-[13px] font-semibold text-white">Try Again</button>
+                            </div>
+                        ) : paginatedProducts.length > 0 ? (
 
                             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
@@ -1131,9 +1045,11 @@ export default function ProductsPage() {
                                                                     : "text-[#34733D]"
                                                                     }`}
                                                             >
-                                                                {product.stock <= 15
-                                                                    ? `Only ${product.stock} left`
-                                                                    : "In Stock"}
+                                                                {product.stock <= 0
+                                                                    ? "Out of Stock"
+                                                                    : product.stock <= 15
+                                                                        ? `Only ${product.stock} left`
+                                                                        : "In Stock"}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -1178,6 +1094,7 @@ export default function ProductsPage() {
 
                                                         <button
                                                             type="button"
+                                                            disabled={product.stock <= 0}
                                                             onClick={() =>
                                                                 addToCart(
                                                                     product
@@ -1196,14 +1113,16 @@ export default function ProductsPage() {
                                 transition-all
                                 duration-300
 
-                                ${added
-                                                                    ? "bg-[#D8FF65] text-[#101411]"
-                                                                    : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
+                                ${product.stock <= 0
+                                                                    ? "cursor-not-allowed bg-black/10 text-black/40"
+                                                                    : added
+                                                                        ? "bg-[#D8FF65] text-[#101411]"
+                                                                        : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
                                                                 }
                               `}
                                                         >
 
-                                                            {added ? (
+                                                            {product.stock <= 0 ? "Out of Stock" : added ? (
                                                                 <>
                                                                     <Check className="mr-2 h-3.5 w-3.5" />
                                                                     Added
@@ -1218,8 +1137,8 @@ export default function ProductsPage() {
 
                                                     {/* Details */}
 
-                                                    <Link
-                                                        href="/product-details"
+                                                    <a
+                                                        href={product.productLink}
                                                         className="group/details mt-5 flex items-center justify-between border-t border-black/[0.08] pt-4 text-[12px] font-semibold text-[#303630]"
                                                     >
 
@@ -1227,7 +1146,7 @@ export default function ProductsPage() {
 
                                                         <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/details:-translate-y-0.5 group-hover/details:translate-x-0.5" />
 
-                                                    </Link>
+                                                    </a>
 
                                                 </div>
 
@@ -2233,66 +2152,34 @@ Unit Price: AED ${item.price}`
        SUBMIT
     ===================================================== */
 
-    const submit = (e) => {
+    const submit = async (e) => {
         e.preventDefault();
 
-        const subject =
-            encodeURIComponent(
-                `Quotation Request - ${form.company ||
-                form.contactName ||
-                "Top Range"
-                }`
-            );
+        const productList = String(form.products || "")
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean);
 
-        const body =
-            encodeURIComponent(`
-TOP RANGE BUILDING MATERIALS
-PROJECT QUOTATION REQUEST
+        try {
+            const response = await fetch("/api/quotations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...form,
+                    productList,
+                }),
+            });
 
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.error || "Unable to submit quotation request.");
+            }
 
-CUSTOMER DETAILS
-
-Company Name:
-${form.company}
-
-Contact Person:
-${form.contactName}
-
-Email:
-${form.email}
-
-Phone:
-${form.phone}
-
-
-PRODUCT DETAILS
-
-Products:
-${form.products}
-
-Category:
-${form.category}
-
-Preferred Brand:
-${form.brand}
-
-Total Quantity:
-${form.quantity}
-
-Ref Number:
-${form.refNumber}
-
-Delivery Location:
-${form.deliveryLocation}
-
-
-DESCRIPTION / REQUIREMENT
-
-${form.description || "No additional requirements provided."}
-`);
-
-        window.location.href =
-            `mailto:info@toprange.ae?subject=${subject}&body=${body}`;
+            window.location.href = `mailto:info@toprange.ae?subject=${encodeURIComponent(`Quotation Request - ${form.company || form.contactName || "Top Range"}`)}&body=${encodeURIComponent("Quotation request received by Easy Purchase. Reference: " + data.quotation.id)}`;
+        } catch (error) {
+            console.error("Quotation submission failed:", error);
+            alert(error.message || "Unable to submit quotation request.");
+        }
     };
 
     return (

@@ -34,3 +34,38 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+## Admin Authentication
+
+The admin area now uses a server-side JWT session stored in an HttpOnly cookie. Protected `/admin/*` routes are rejected by middleware unless a valid session exists.
+
+1. Copy `.env.example` to `.env.local`.
+2. Set a random `JWT_SECRET` with at least 32 characters.
+3. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` to the administrator credentials you want to use.
+4. Start the app with `npm run dev`.
+5. Open `/admin/login`.
+
+The included development credentials in the prepared local environment are `admin@easypurchase.ae` / `Admin@12345`. Change them before production deployment.
+
+Authentication endpoints:
+- `POST /api/admin/auth/login`
+- `POST /api/admin/auth/logout`
+- `GET /api/admin/auth/me`
+
+The session defaults to 8 hours and is automatically rejected after expiry.
+
+
+## Automatic quotation email setup
+
+Install dependencies with `npm install` after pulling the updated project. Configure these variables in `.env.local` (never commit real credentials):
+
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: SMTP credentials for the sender mailbox.
+- `SMTP_FROM`: verified sender display name/address (optional; defaults to `SMTP_USER`).
+- `QUOTATION_ADMIN_EMAIL`: defaults to `aswinptoffical@gmail.com`.
+- `QUOTATION_VAT_RATE`: VAT percentage used for the automatic estimate; defaults to `0`. Set the correct rate before production.
+- `QUOTATION_PAYMENT_TERMS`, `QUOTATION_DELIVERY_TERMS`, `QUOTATION_VALIDITY`: estimate template terms.
+
+When a customer submits a cart quotation request, the API saves the request to MongoDB, generates a PDF estimate in the Top Range Building Materials style, emails the estimate to the customer, and sends the admin a notification with the same PDF attached. If SMTP delivery fails, the request remains saved and the API returns a warning instead of pretending the emails were sent.
+
+For Gmail SMTP, use an app password with 2-Step Verification enabled; do not use your normal account password.
