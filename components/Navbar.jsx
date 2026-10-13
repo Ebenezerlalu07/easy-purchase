@@ -1032,7 +1032,7 @@ export default function Navbar() {
 
                             <img
 
-                                src={logoUrl || "/Assets/Logo 1.png"}
+                                src={logoUrl || "/Assets/Logo.png"}
 
                                 alt="Top Range Building Materials"
 

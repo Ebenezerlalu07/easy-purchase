@@ -49,7 +49,7 @@ export default function Footer() {
   const email = settings.email || fallback.email;
   const phone = settings.phone || fallback.phone;
   const companyName = settings.companyName || fallback.companyName;
-  const logoSrc = settings.logoUrl || "/Assets/Logo 1.png";
+  const logoSrc = settings.logoUrl || "/Assets/Logo.png";
   const location = fallback.address || fallback.address;
 
   return (
