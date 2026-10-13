@@ -1003,11 +1003,11 @@ export default function ProductsPage() {
                                                     </div>
 
                                                     <Link
-                                                        href="/product-details"
+                                                        href={product.productLink}
                                                         className="block"
                                                     >
                                                         <h3 className="mt-4 text-[25px] font-bold leading-[1.13] tracking-[-0.038em] text-[#101411] transition-colors hover:text-[#52651A] md:text-[28px]">
-                                                            {product.productLink}
+                                                            {product.name}
                                                         </h3>
                                                     </Link>
 
