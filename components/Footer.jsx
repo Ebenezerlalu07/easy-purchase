@@ -9,7 +9,7 @@ const fallback = {
 //   email: "info@toprange.ae",
 //   phone: "+971 00 000 0000",
 //   whatsapp: "+971 50 123 4567",
-  address: "United Arab Emirates",
+  address: "Maliha Road, sharjah",
   logoUrl: "",
   showWhatsApp: true,
 };
