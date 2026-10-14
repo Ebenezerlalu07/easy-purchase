@@ -62,7 +62,7 @@ Install dependencies with `npm install` after pulling the updated project. Confi
 
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: SMTP credentials for the sender mailbox.
 - `SMTP_FROM`: verified sender display name/address (optional; defaults to `SMTP_USER`).
-- `QUOTATION_ADMIN_EMAIL`: defaults to `aswinptoffical@gmail.com`.
+- `QUOTATION_ADMIN_EMAIL`: defaults to `easypurchaseadmin@gmail.com`.
 - `QUOTATION_VAT_RATE`: VAT percentage used for the automatic estimate; defaults to `0`. Set the correct rate before production.
 - `QUOTATION_PAYMENT_TERMS`, `QUOTATION_DELIVERY_TERMS`, `QUOTATION_VALIDITY`: estimate template terms.
 
