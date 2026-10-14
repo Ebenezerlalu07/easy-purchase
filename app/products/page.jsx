@@ -2156,48 +2156,107 @@ Unit Price: AED ${item.price}`
        SUBMIT
     ===================================================== */
 
-    const submit = async (e) => {
-        e.preventDefault();
+   
+const submit = async (e) => {
+    e.preventDefault();
 
-        const productList = String(form.products || "")
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean);
+    if (submitting) return;
 
-        if (submitting) return;
-        setSubmitting(true);
-        setSubmitError("");
+    if (!Array.isArray(cart) || cart.length === 0) {
+        setSubmitError("Please add at least one product to your cart.");
+        return;
+    }
 
-        try {
-            const response = await fetch("/api/quotations", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...form,
-                    productList,
-                }),
-            });
+    // Send complete product objects, not comma-separated product names.
+    const productList = cart.map((item) => ({
+        id: String(item.id ?? item._id ?? ""),
+        name: String(item.name ?? item.productName ?? item.title ?? "").trim(),
+        sku: String(item.sku ?? item.productSku ?? ""),
+        brand: String(item.brand ?? ""),
+        category: String(item.category ?? ""),
+        unit: String(item.unit ?? item.unitName ?? "Unit"),
+        quantity: Number(item.quantity ?? item.qty ?? 1),
+        price: Number(
+            item.price ??
+            item.unitPrice ??
+            item.sellingPrice ??
+            0
+        ),
+        remarks: String(item.remarks ?? ""),
+    }));
 
-            const data = await response.json().catch(() => ({}));
-            if (!response.ok) {
-                throw new Error(data.error || "Unable to submit quotation request.");
-            }
+    const invalidProduct = productList.find(
+        (item) =>
+            !item.name ||
+            !Number.isFinite(item.price) ||
+            item.price < 0 ||
+            !Number.isFinite(item.quantity) ||
+            item.quantity <= 0
+    );
 
-            const reference =
-                data?.quotation?.reference ||
-                data?.quotation?.id ||
-                data?.reference ||
-                data?.quotationId ||
-                "";
-            setQuotationReference(String(reference));
-            setSubmitted(true);
-        } catch (error) {
-            console.error("Quotation submission failed:", error);
-            setSubmitError(error.message || "Unable to submit quotation request.");
-        } finally {
-            setSubmitting(false);
+    if (invalidProduct) {
+        setSubmitError(
+            "A cart product is missing its name, price or valid quantity. Please remove it and add the product again."
+        );
+        return;
+    }
+
+    setSubmitting(true);
+    setSubmitError("");
+
+    try {
+        const response = await fetch("/api/quotations", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                ...form,
+                productList,
+                products: productList.length,
+                quantity: String(
+                    productList.reduce(
+                        (sum, item) => sum + item.quantity,
+                        0
+                    )
+                ),
+            }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || "Unable to submit quotation request."
+            );
         }
-    };
+
+        const reference =
+            data?.quotation?.reference ||
+            data?.quotation?.id ||
+            data?.reference ||
+            data?.quotationId ||
+            "";
+
+        setQuotationReference(String(reference));
+
+        if (data.warning) {
+            setSubmitError(data.warning);
+            return;
+        }
+
+        setSubmitted(true);
+    } catch (error) {
+        console.error("Quotation submission failed:", error);
+
+        setSubmitError(
+            error.message || "Unable to submit quotation request."
+        );
+    } finally {
+        setSubmitting(false);
+    }
+};
+
 
     return (
         <div
