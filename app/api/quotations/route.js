@@ -510,7 +510,7 @@ export async function POST(request) {
 
     const pdf = await createQuotationPdf(quotation);
 
-    const adminEmail = process.env.QUOTATION_ADMIN_EMAIL || "aswinptoffical@gmail.com";
+    const adminEmail = process.env.QUOTATION_ADMIN_EMAIL || "easypurchaseadmin@gmail.com";
 
     await mailer.sendMail({
 
