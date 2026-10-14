@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { MongoClient } from "mongodb";
 import { createHash } from "node:crypto";
-import { COOKIE_NAME, verifySessionToken } from "@/lib/auth/session";
 
 export const runtime = "nodejs";
 const SETTINGS_ID = "site-settings";
 const COLLECTION = "settings";
 
 async function requireAdmin() {
+  // Load session/auth code only for protected requests. Public footer settings
+  // must remain available even if admin-session configuration is broken.
+  const [{ cookies }, { COOKIE_NAME, verifySessionToken }] = await Promise.all([
+    import("next/headers"),
+    import("@/lib/auth/session"),
+  ]);
   const token = (await cookies()).get(COOKIE_NAME)?.value;
   return verifySessionToken(token);
 }
@@ -64,14 +68,35 @@ async function uploadLogoToCloudinary(file) {
   return result.secure_url;
 }
 
-export async function GET() {
-  if (!(await requireAdmin())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export async function GET(request) {
+  // The footer only needs these public fields; keep admin-only settings private.
+  const isPublicRequest = new URL(request.url).searchParams.get("public") === "1";
+  if (!isPublicRequest && !(await requireAdmin())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let client;
   try {
     const connection = await getCollection();
     client = connection.client;
     const stored = await connection.collection.findOne({ _id: SETTINGS_ID });
-    return NextResponse.json({ settings: normalizeSettings(stored || {}) });
+    const settings = normalizeSettings(stored || {});
+
+    if (isPublicRequest) {
+      return NextResponse.json({
+        settings: {
+          companyName: settings.companyName,
+          email: settings.email,
+          phone: settings.phone,
+          whatsapp: settings.whatsapp,
+          address: settings.address,
+          logoUrl: settings.logoUrl,
+          showWhatsApp: settings.showWhatsApp,
+        },
+      }, { headers: { "Cache-Control": "no-store" } });
+    }
+
+    return NextResponse.json({ settings });
   } catch (error) {
     console.error("GET /api/settings failed:", error);
     return NextResponse.json({ error: "Unable to load settings" }, { status: 500 });

@@ -2121,6 +2121,10 @@ Unit Price: AED ${item.price}`
             description:
                 autoDescription,
         });
+    const [submitted, setSubmitted] = useState(false);
+    const [quotationReference, setQuotationReference] = useState("");
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
 
     const update = (e) => {
         const {
@@ -2160,6 +2164,10 @@ Unit Price: AED ${item.price}`
             .map((item) => item.trim())
             .filter(Boolean);
 
+        if (submitting) return;
+        setSubmitting(true);
+        setSubmitError("");
+
         try {
             const response = await fetch("/api/quotations", {
                 method: "POST",
@@ -2175,10 +2183,19 @@ Unit Price: AED ${item.price}`
                 throw new Error(data.error || "Unable to submit quotation request.");
             }
 
-            window.location.href = `mailto:info@toprange.ae?subject=${encodeURIComponent(`Quotation Request - ${form.company || form.contactName || "Top Range"}`)}&body=${encodeURIComponent("Quotation request received by Easy Purchase. Reference: " + data.quotation.id)}`;
+            const reference =
+                data?.quotation?.reference ||
+                data?.quotation?.id ||
+                data?.reference ||
+                data?.quotationId ||
+                "";
+            setQuotationReference(String(reference));
+            setSubmitted(true);
         } catch (error) {
             console.error("Quotation submission failed:", error);
-            alert(error.message || "Unable to submit quotation request.");
+            setSubmitError(error.message || "Unable to submit quotation request.");
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -2347,6 +2364,34 @@ Unit Price: AED ${item.price}`
                 FORM
             ================================================= */}
 
+                        {submitted ? (
+                            <div className="mt-8 rounded-[24px] border border-[#D8FF65]/60 bg-white p-6 text-center sm:p-10" role="status" aria-live="polite">
+                                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411]">
+                                    <Check className="h-7 w-7" />
+                                </div>
+                                <h3 className="mt-5 text-[25px] font-semibold tracking-tight text-[#101411] sm:text-[30px]">
+                                    Quotation Request Submitted
+                                </h3>
+                                <p className="mx-auto mt-3 max-w-xl text-[14px] leading-7 text-[#626963]">
+                                    Thank you. Your quotation request has been submitted successfully. Our team will review your requirements.
+                                </p>
+                                {quotationReference && (
+                                    <p className="mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-[#F4F5EF] px-5 py-3 text-[13px] text-[#303630]">
+                                        <span className="font-medium">Reference:</span>
+                                        <strong>{quotationReference}</strong>
+                                    </p>
+                                )}
+                                <div>
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        className="mt-7 rounded-full bg-[#101411] px-8 py-3.5 text-[13px] font-semibold text-white transition hover:bg-[#1B211D]"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
                         <form
                             onSubmit={submit}
                             className="mt-7 sm:mt-9"
@@ -2551,12 +2596,19 @@ Unit Price: AED ${item.price}`
 
                                 </p>
 
+                                <div className="w-full lg:w-auto">
+                                    {submitError && (
+                                        <p className="mb-3 text-sm text-red-600" role="alert">
+                                            {submitError}
+                                        </p>
+                                    )}
                                 <button
                                     type="submit"
-                                    className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white transition hover:bg-[#1B211D] sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
+                                    disabled={submitting}
+                                    className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white transition hover:bg-[#1B211D] disabled:cursor-wait disabled:opacity-60 sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
                                 >
 
-                                    Submit Quote
+                                    {submitting ? "Submitting…" : "Submit Quote"}
 
                                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
 
@@ -2565,10 +2617,12 @@ Unit Price: AED ${item.price}`
                                     </span>
 
                                 </button>
+                                </div>
 
                             </div>
 
                         </form>
+                        )}
 
                     </div>
 
