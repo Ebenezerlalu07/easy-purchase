@@ -308,8 +308,8 @@ function createQuotationPdf(quotation) {
       .font("Helvetica-Bold")
       .fontSize(7.8);
 
-    text("Company Name:", 42, 190, 25);
-    text("Customer Name:", 330, 190, 52);
+    text("Company Name:", 42, 190, 85);
+    text("Customer Name:", 330, 190, 90);
     text("Project:", 42, 216, 40);
     text("Phone:", 330, 216, 38);
 
