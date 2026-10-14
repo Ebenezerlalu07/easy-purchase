@@ -4,249 +4,252 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import {
-    ArrowLeft,
-    ArrowRight,
-    ArrowUpRight,
-    Check,
-    ChevronDown,
-    ChevronRight,
-    Minus,
-    PackageCheck,
-    Plus,
-    ShoppingBag,
-    Trash2,
-    X,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Minus,
+  PackageCheck,
+  Plus,
+  ShoppingBag,
+  Trash2,
+  X,
 } from "lucide-react";
 
 const CART_STORAGE_KEY = "toprange_cart";
 
 export default function CartPage() {
-    const [cart, setCart] = useState([]);
-    const [loaded, setLoaded] = useState(false);
-    const [quoteOpen, setQuoteOpen] = useState(false);
+  const [cart, setCart] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [quoteOpen, setQuoteOpen] = useState(false);
 
-    /* =========================================================
+  /* =========================================================
        LOAD CART
     ========================================================= */
 
-    useEffect(() => {
-        let cancelled = false;
+  useEffect(() => {
+    let cancelled = false;
 
-        async function loadAndValidateCart() {
-            let savedItems = [];
-            try {
-                const savedCart = localStorage.getItem(CART_STORAGE_KEY);
-                const parsedCart = savedCart ? JSON.parse(savedCart) : [];
-                savedItems = Array.isArray(parsedCart) ? parsedCart : [];
-            } catch (error) {
-                console.error("Unable to load cart:", error);
-            }
+    async function loadAndValidateCart() {
+      let savedItems = [];
+      try {
+        const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+        const parsedCart = savedCart ? JSON.parse(savedCart) : [];
+        savedItems = Array.isArray(parsedCart) ? parsedCart : [];
+      } catch (error) {
+        console.error("Unable to load cart:", error);
+      }
 
-            if (!savedItems.length) {
-                if (!cancelled) {
-                    setCart([]);
-                    setLoaded(true);
-                }
-                return;
-            }
-
-            // Refresh cart item details from the live catalogue so old browser
-            // data cannot override the current price, status, or stock quantity.
-            try {
-                const response = await fetch("/api/store/products", {
-                    method: "GET",
-                    cache: "no-store",
-                });
-                if (!response.ok) throw new Error("Could not validate cart products.");
-                const payload = await response.json();
-                const liveProducts = Array.isArray(payload.products) ? payload.products : [];
-                const byId = new Map(liveProducts.map((product) => [String(product.id ?? product._id), product]));
-                const validated = savedItems.flatMap((item) => {
-                    const live = byId.get(String(item.id ?? item._id));
-                    if (!live || Number(live.stock || 0) <= 0) return [];
-                    return [{
-                        ...item,
-                        ...live,
-                        id: String(live.id ?? live._id),
-                        price: Number(live.price || 0),
-                        stock: Number(live.stock || 0),
-                        quantity: Math.min(Math.max(1, Number(item.quantity || 1)), Number(live.stock || 0)),
-                    }];
-                });
-                if (!cancelled) {
-                    setCart(validated);
-                    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(validated));
-                    window.dispatchEvent(new Event("toprange-cart-updated"));
-                }
-            } catch (error) {
-                // Keep the saved cart usable during a temporary network outage;
-                // quantity controls still use the last known stock value.
-                console.error("Unable to validate cart against the catalogue:", error);
-                if (!cancelled) setCart(savedItems);
-            } finally {
-                if (!cancelled) setLoaded(true);
-            }
+      if (!savedItems.length) {
+        if (!cancelled) {
+          setCart([]);
+          setLoaded(true);
         }
+        return;
+      }
 
-        loadAndValidateCart();
-        return () => { cancelled = true; };
-    }, []);
+      // Refresh cart item details from the live catalogue so old browser
+      // data cannot override the current price, status, or stock quantity.
+      try {
+        const response = await fetch("/api/store/products", {
+          method: "GET",
+          cache: "no-store",
+        });
+        if (!response.ok) throw new Error("Could not validate cart products.");
+        const payload = await response.json();
+        const liveProducts = Array.isArray(payload.products)
+          ? payload.products
+          : [];
+        const byId = new Map(
+          liveProducts.map((product) => [
+            String(product.id ?? product._id),
+            product,
+          ]),
+        );
+        const validated = savedItems.flatMap((item) => {
+          const live = byId.get(String(item.id ?? item._id));
+          if (!live || Number(live.stock || 0) <= 0) return [];
+          return [
+            {
+              ...item,
+              ...live,
+              id: String(live.id ?? live._id),
+              price: Number(live.price || 0),
+              stock: Number(live.stock || 0),
+              quantity: Math.min(
+                Math.max(1, Number(item.quantity || 1)),
+                Number(live.stock || 0),
+              ),
+            },
+          ];
+        });
+        if (!cancelled) {
+          setCart(validated);
+          localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(validated));
+          window.dispatchEvent(new Event("toprange-cart-updated"));
+        }
+      } catch (error) {
+        // Keep the saved cart usable during a temporary network outage;
+        // quantity controls still use the last known stock value.
+        console.error("Unable to validate cart against the catalogue:", error);
+        if (!cancelled) setCart(savedItems);
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    }
 
-    /* =========================================================
+    loadAndValidateCart();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /* =========================================================
        SAVE CART
     ========================================================= */
 
-    const saveCart = (updatedCart) => {
-        setCart(updatedCart);
+  const saveCart = (updatedCart) => {
+    setCart(updatedCart);
 
-        localStorage.setItem(
-            CART_STORAGE_KEY,
-            JSON.stringify(updatedCart)
-        );
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(updatedCart));
 
-        /*
-         * Updates navbar cart count immediately.
-         */
-        window.dispatchEvent(
-            new Event("toprange-cart-updated")
-        );
-    };
+    /*
+     * Updates navbar cart count immediately.
+     */
+    window.dispatchEvent(new Event("toprange-cart-updated"));
+  };
 
-    /* =========================================================
+  /* =========================================================
        INCREASE QUANTITY
     ========================================================= */
 
-    const increaseQuantity = (id) => {
-        const updatedCart = cart.map((item) => {
-            if (item.id !== id) {
-                return item;
-            }
+  const increaseQuantity = (id) => {
+    const updatedCart = cart.map((item) => {
+      if (item.id !== id) {
+        return item;
+      }
 
-            return {
-                ...item,
-                quantity: Math.min(Number(item.stock || 0), Number(item.quantity || 1) + 1),
-            };
-        });
+      return {
+        ...item,
+        quantity: Math.min(
+          Number(item.stock || 0),
+          Number(item.quantity || 1) + 1,
+        ),
+      };
+    });
 
-        saveCart(updatedCart);
-    };
+    saveCart(updatedCart);
+  };
 
-    /* =========================================================
+  /* =========================================================
        DECREASE QUANTITY
     ========================================================= */
 
-    const decreaseQuantity = (id) => {
-        const updatedCart = cart.map((item) => {
-            if (item.id !== id) {
-                return item;
-            }
+  const decreaseQuantity = (id) => {
+    const updatedCart = cart.map((item) => {
+      if (item.id !== id) {
+        return item;
+      }
 
-            return {
-                ...item,
-                quantity: Math.max(
-                    1,
-                    Number(item.quantity || 1) - 1
-                ),
-            };
-        });
+      return {
+        ...item,
+        quantity: Math.max(1, Number(item.quantity || 1) - 1),
+      };
+    });
 
-        saveCart(updatedCart);
-    };
+    saveCart(updatedCart);
+  };
 
-    /* =========================================================
+  /* =========================================================
        REMOVE PRODUCT
     ========================================================= */
 
-    const removeProduct = (id) => {
-        const updatedCart = cart.filter(
-            (item) => item.id !== id
-        );
+  const removeProduct = (id) => {
+    const updatedCart = cart.filter((item) => item.id !== id);
 
-        saveCart(updatedCart);
-    };
+    saveCart(updatedCart);
+  };
 
-    /* =========================================================
+  /* =========================================================
        CLEAR CART
     ========================================================= */
 
-    const clearCart = () => {
-        saveCart([]);
-    };
+  const clearCart = () => {
+    saveCart([]);
+  };
 
-    /* =========================================================
+  /* =========================================================
        TOTAL COUNT
     ========================================================= */
 
-    const cartCount = useMemo(() => {
-        return cart.reduce(
-            (total, item) =>
-                total + Number(item.quantity || 1),
-            0
-        );
-    }, [cart]);
+  const cartCount = useMemo(() => {
+    return cart.reduce((total, item) => total + Number(item.quantity || 1), 0);
+  }, [cart]);
 
-    /* =========================================================
+  /* =========================================================
        TOTAL PRICE
     ========================================================= */
 
-    const cartTotal = useMemo(() => {
-        return cart.reduce((total, item) => {
-            const price = Number(item.price || 0);
-            const quantity = Number(item.quantity || 1);
+  const cartTotal = useMemo(() => {
+    return cart.reduce((total, item) => {
+      const price = Number(item.price || 0);
+      const quantity = Number(item.quantity || 1);
 
-            return total + price * quantity;
-        }, 0);
-    }, [cart]);
+      return total + price * quantity;
+    }, 0);
+  }, [cart]);
 
-    /* =========================================================
+  /* =========================================================
        LOADING
     ========================================================= */
 
-    if (!loaded) {
-        return (
-            <main
-                className="
+  if (!loaded) {
+    return (
+      <main
+        className="
           min-h-screen
           bg-[#F4F5EF]
           pt-32
         "
-            >
-                <div
-                    className="
+      >
+        <div
+          className="
             mx-auto
             max-w-[1450px]
             px-5
             md:px-10
             lg:px-14
           "
-                >
-                    <div className="animate-pulse">
-                        <div className="h-5 w-28 rounded-full bg-black/10" />
+        >
+          <div className="animate-pulse">
+            <div className="h-5 w-28 rounded-full bg-black/10" />
 
-                        <div className="mt-5 h-16 max-w-xl rounded-2xl bg-black/10" />
+            <div className="mt-5 h-16 max-w-xl rounded-2xl bg-black/10" />
 
-                        <div
-                            className="
+            <div
+              className="
                 mt-12
                 grid
                 gap-5
                 xl:grid-cols-[minmax(0,1fr)_390px]
               "
-                        >
-                            <div className="h-[400px] rounded-[28px] bg-black/10" />
+            >
+              <div className="h-[400px] rounded-[28px] bg-black/10" />
 
-                            <div className="h-[400px] rounded-[28px] bg-black/10" />
-                        </div>
-                    </div>
-                </div>
-            </main>
-        );
-    }
+              <div className="h-[400px] rounded-[28px] bg-black/10" />
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
-    return (
-        <>
-            <main
-                className="
+  return (
+    <>
+      <main
+        className="
         min-h-screen
         overflow-x-hidden
         bg-[#F4F5EF]
@@ -254,25 +257,25 @@ export default function CartPage() {
         pt-28
         md:pt-32
       "
-            >
-                {/* =====================================================
+      >
+        {/* =====================================================
           HERO / PAGE HEADER
       ====================================================== */}
 
-                <section>
-                    <div
-                        className="
+        <section>
+          <div
+            className="
             mx-auto
             max-w-[1450px]
             px-5
             md:px-10
             lg:px-14
           "
-                    >
-                        {/* Breadcrumb */}
+          >
+            {/* Breadcrumb */}
 
-                        <div
-                            className="
+            <div
+              className="
               flex
               items-center
               gap-2
@@ -282,28 +285,26 @@ export default function CartPage() {
               tracking-[0.16em]
               text-black/35
             "
-                        >
-                            <Link
-                                href="/"
-                                className="
+            >
+              <Link
+                href="/"
+                className="
                 transition
                 hover:text-black
               "
-                            >
-                                Home
-                            </Link>
+              >
+                Home
+              </Link>
 
-                            <ChevronRight className="h-3 w-3" />
+              <ChevronRight className="h-3 w-3" />
 
-                            <span className="text-black/65">
-                                Cart
-                            </span>
-                        </div>
+              <span className="text-black/65">Cart</span>
+            </div>
 
-                        {/* Header */}
+            {/* Header */}
 
-                        <div
-                            className="
+            <div
+              className="
               mt-7
               flex
               flex-col
@@ -315,11 +316,11 @@ export default function CartPage() {
               lg:items-end
               lg:justify-between
             "
-                        >
-                            <div>
-                                <div className="flex items-center gap-3">
-                                    <span
-                                        className="
+            >
+              <div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className="
                     flex
                     h-9
                     w-9
@@ -328,25 +329,25 @@ export default function CartPage() {
                     rounded-full
                     bg-[#D8FF65]
                   "
-                                    >
-                                        <ShoppingBag className="h-4 w-4" />
-                                    </span>
+                  >
+                    <ShoppingBag className="h-4 w-4" />
+                  </span>
 
-                                    <span
-                                        className="
+                  <span
+                    className="
                     text-[11px]
                     font-semibold
                     uppercase
                     tracking-[0.18em]
                     text-black/40
                   "
-                                    >
-                                        Product Enquiry
-                                    </span>
-                                </div>
+                  >
+                    Product Enquiry
+                  </span>
+                </div>
 
-                                <h1
-                                    className="
+                <h1
+                  className="
                   mt-5
                   font-display
                   text-[40px]
@@ -359,30 +360,27 @@ export default function CartPage() {
                   md:text-[70px]
                   lg:text-[78px]
                 "
-                                >
-                                    Your product
-                                    <br />
+                >
+                  Your product
+                  <br />
+                  <span className="text-black/30">selection.</span>
+                </h1>
+              </div>
 
-                                    <span className="text-black/30">
-                                        selection.
-                                    </span>
-                                </h1>
-                            </div>
-
-                            <div className="max-w-md">
-                                <p
-                                    className="
+              <div className="max-w-md">
+                <p
+                  className="
                   text-sm
                   leading-7
                   text-black/45
                 "
-                                >
-                                    Review your selected products, adjust quantities and
-                                    send your requirements to our team for a quotation.
-                                </p>
+                >
+                  Review your selected products, adjust quantities and send your
+                  requirements to our team for a quotation.
+                </p>
 
-                                <div
-                                    className="
+                <div
+                  className="
                   mt-4
                   flex
                   items-center
@@ -391,27 +389,23 @@ export default function CartPage() {
                   font-medium
                   text-black/60
                 "
-                                >
-                                    <span className="h-2 w-2 rounded-full bg-[#94BE26]" />
+                >
+                  <span className="h-2 w-2 rounded-full bg-[#94BE26]" />
+                  {cartCount} {cartCount === 1 ? "product" : "products"}{" "}
+                  selected
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-                                    {cartCount}{" "}
-                                    {cartCount === 1
-                                        ? "product"
-                                        : "products"}{" "}
-                                    selected
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* =====================================================
+        {/* =====================================================
           EMPTY CART
       ====================================================== */}
 
-                {cart.length === 0 ? (
-                    <section
-                        className="
+        {cart.length === 0 ? (
+          <section
+            className="
             mx-auto
             max-w-[1450px]
             px-5
@@ -420,9 +414,9 @@ export default function CartPage() {
             md:py-20
             lg:px-14
           "
-                    >
-                        <div
-                            className="
+          >
+            <div
+              className="
               relative
               overflow-hidden
               rounded-[32px]
@@ -434,11 +428,11 @@ export default function CartPage() {
               md:px-12
               md:py-24
             "
-                        >
-                            {/* Glow */}
+            >
+              {/* Glow */}
 
-                            <div
-                                className="
+              <div
+                className="
                 pointer-events-none
                 absolute
                 -right-28
@@ -449,10 +443,10 @@ export default function CartPage() {
                 bg-[#D8FF65]/10
                 blur-[120px]
               "
-                            />
+              />
 
-                            <div
-                                className="
+              <div
+                className="
                 pointer-events-none
                 absolute
                 -bottom-32
@@ -463,11 +457,11 @@ export default function CartPage() {
                 bg-[#C47A36]/10
                 blur-[110px]
               "
-                            />
+              />
 
-                            <div className="relative z-10">
-                                <span
-                                    className="
+              <div className="relative z-10">
+                <span
+                  className="
                   mx-auto
                   flex
                   h-20
@@ -479,12 +473,12 @@ export default function CartPage() {
                   border-white/10
                   bg-white/[0.06]
                 "
-                                >
-                                    <ShoppingBag className="h-7 w-7 text-[#D8FF65]" />
-                                </span>
+                >
+                  <ShoppingBag className="h-7 w-7 text-[#D8FF65]" />
+                </span>
 
-                                <p
-                                    className="
+                <p
+                  className="
                   mt-7
                   text-[10px]
                   font-semibold
@@ -492,12 +486,12 @@ export default function CartPage() {
                   tracking-[0.2em]
                   text-white/35
                 "
-                                >
-                                    Your Selection
-                                </p>
+                >
+                  Your Selection
+                </p>
 
-                                <h2
-                                    className="
+                <h2
+                  className="
                   mx-auto
                   mt-4
                   max-w-2xl
@@ -507,15 +501,13 @@ export default function CartPage() {
                   tracking-[-0.04em]
                   md:text-[52px]
                 "
-                                >
-                                    Your cart is
-                                    <span className="text-[#D8FF65]">
-                                        {" "}empty.
-                                    </span>
-                                </h2>
+                >
+                  Your cart is
+                  <span className="text-[#D8FF65]"> empty.</span>
+                </h2>
 
-                                <p
-                                    className="
+                <p
+                  className="
                   mx-auto
                   mt-5
                   max-w-md
@@ -523,14 +515,14 @@ export default function CartPage() {
                   leading-7
                   text-white/40
                 "
-                                >
-                                    Browse our product catalogue and add the materials you
-                                    need for your project.
-                                </p>
+                >
+                  Browse our product catalogue and add the materials you need
+                  for your project.
+                </p>
 
-                                <Link
-                                    href="/products"
-                                    className="
+                <Link
+                  href="/products"
+                  className="
                   group
                   mt-8
                   inline-flex
@@ -548,11 +540,10 @@ export default function CartPage() {
                   duration-300
                   hover:bg-white
                 "
-                                >
-                                    Explore Products
-
-                                    <span
-                                        className="
+                >
+                  Explore Products
+                  <span
+                    className="
                     flex
                     h-11
                     w-11
@@ -562,29 +553,29 @@ export default function CartPage() {
                     bg-[#101411]
                     text-white
                   "
-                                    >
-                                        <ArrowUpRight
-                                            className="
+                  >
+                    <ArrowUpRight
+                      className="
                       h-4
                       w-4
                       transition-transform
                       duration-300
                       group-hover:rotate-45
                     "
-                                        />
-                                    </span>
-                                </Link>
-                            </div>
-                        </div>
-                    </section>
-                ) : (
-                    /* =====================================================
+                    />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </section>
+        ) : (
+          /* =====================================================
                        CART CONTENT
                     ====================================================== */
 
-                    <section className="py-10 md:py-12">
-                        <div
-                            className="
+          <section className="py-10 md:py-12">
+            <div
+              className="
               mx-auto
               grid
               w-full
@@ -598,37 +589,37 @@ export default function CartPage() {
               xl:items-start
               xl:px-14
             "
-                        >
-                            {/* =================================================
+            >
+              {/* =================================================
                 LEFT - PRODUCTS
             ================================================== */}
 
-                            <div>
-                                {/* Top actions */}
+              <div>
+                {/* Top actions */}
 
-                                <div
-                                    className="
+                <div
+                  className="
                   mb-4
                   flex
                   items-center
                   justify-between
                   gap-4
                 "
-                                >
-                                    <p
-                                        className="
+                >
+                  <p
+                    className="
                     text-sm
                     font-semibold
                     text-[#101411]
                   "
-                                    >
-                                        Selected Products
-                                    </p>
+                  >
+                    Selected Products
+                  </p>
 
-                                    <button
-                                        type="button"
-                                        onClick={clearCart}
-                                        className="
+                  <button
+                    type="button"
+                    onClick={clearCart}
+                    className="
                     group
                     flex
                     items-center
@@ -639,32 +630,31 @@ export default function CartPage() {
                     transition
                     hover:text-red-500
                   "
-                                    >
-                                        <Trash2 className="h-3.5 w-3.5" />
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Clear Cart
+                  </button>
+                </div>
 
-                                        Clear Cart
-                                    </button>
-                                </div>
+                {/* Products */}
 
-                                {/* Products */}
+                <div className="space-y-3">
+                  {cart.map((item) => (
+                    <CartProduct
+                      key={item.id}
+                      item={item}
+                      increaseQuantity={increaseQuantity}
+                      decreaseQuantity={decreaseQuantity}
+                      removeProduct={removeProduct}
+                    />
+                  ))}
+                </div>
 
-                                <div className="space-y-3">
-                                    {cart.map((item) => (
-                                        <CartProduct
-                                            key={item.id}
-                                            item={item}
-                                            increaseQuantity={increaseQuantity}
-                                            decreaseQuantity={decreaseQuantity}
-                                            removeProduct={removeProduct}
-                                        />
-                                    ))}
-                                </div>
+                {/* Continue */}
 
-                                {/* Continue */}
-
-                                <Link
-                                    href="/products"
-                                    className="
+                <Link
+                  href="/products"
+                  className="
                   group
                   mt-6
                   inline-flex
@@ -674,9 +664,9 @@ export default function CartPage() {
                   font-semibold
                   text-[#101411]
                 "
-                                >
-                                    <span
-                                        className="
+                >
+                  <span
+                    className="
                     flex
                     h-10
                     w-10
@@ -690,28 +680,27 @@ export default function CartPage() {
                     group-hover:bg-[#101411]
                     group-hover:text-white
                   "
-                                    >
-                                        <ArrowLeft className="h-4 w-4" />
-                                    </span>
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </span>
+                  Continue Shopping
+                </Link>
+              </div>
 
-                                    Continue Shopping
-                                </Link>
-                            </div>
-
-                            {/* =================================================
+              {/* =================================================
                 RIGHT - SUMMARY
             ================================================== */}
 
-                            <aside
-                                className="
+              <aside
+                className="
                 w-full
                 min-w-0
                 xl:sticky
                 xl:top-28
               "
-                            >
-                                <div
-                                    className="
+              >
+                <div
+                  className="
                   relative
                   isolate
                   overflow-hidden
@@ -724,11 +713,11 @@ export default function CartPage() {
                   shadow-[0_30px_90px_rgba(0,0,0,.14)]
                   md:p-7
                 "
-                                >
-                                    {/* Glows */}
+                >
+                  {/* Glows */}
 
-                                    <div
-                                        className="
+                  <div
+                    className="
                     pointer-events-none
                     absolute
                     -right-20
@@ -739,10 +728,10 @@ export default function CartPage() {
                     bg-[#D8FF65]/10
                     blur-[80px]
                   "
-                                    />
+                  />
 
-                                    <div
-                                        className="
+                  <div
+                    className="
                     pointer-events-none
                     absolute
                     -bottom-24
@@ -753,39 +742,39 @@ export default function CartPage() {
                     bg-[#C47A36]/10
                     blur-[80px]
                   "
-                                    />
+                  />
 
-                                    <div className="relative z-10">
-                                        {/* Header */}
+                  <div className="relative z-10">
+                    {/* Header */}
 
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <p
-                                                    className="
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p
+                          className="
                           text-[10px]
                           font-semibold
                           uppercase
                           tracking-[0.19em]
                           text-white/35
                         "
-                                                >
-                                                    Enquiry Summary
-                                                </p>
+                        >
+                          Enquiry Summary
+                        </p>
 
-                                                <h2
-                                                    className="
+                        <h2
+                          className="
                           mt-2
                           text-[26px]
                           font-medium
                           tracking-[-0.03em]
                         "
-                                                >
-                                                    Your selection
-                                                </h2>
-                                            </div>
+                        >
+                          Your selection
+                        </h2>
+                      </div>
 
-                                            <span
-                                                className="
+                      <span
+                        className="
                         flex
                         h-11
                         w-11
@@ -795,128 +784,123 @@ export default function CartPage() {
                         bg-[#D8FF65]
                         text-[#101411]
                       "
-                                            >
-                                                <ShoppingBag className="h-4 w-4" />
-                                            </span>
-                                        </div>
+                      >
+                        <ShoppingBag className="h-4 w-4" />
+                      </span>
+                    </div>
 
-                                        {/* Summary rows */}
+                    {/* Summary rows */}
 
-                                        <div
-                                            className="
+                    <div
+                      className="
                       mt-8
                       space-y-4
                       border-y
                       border-white/10
                       py-6
                     "
-                                        >
-                                            <div
-                                                className="
+                    >
+                      <div
+                        className="
                         flex
                         items-center
                         justify-between
                         gap-5
                       "
-                                            >
-                                                <span className="text-sm text-white/40">
-                                                    Products
-                                                </span>
+                      >
+                        <span className="text-sm text-white/40">Products</span>
 
-                                                <span className="text-sm font-semibold">
-                                                    {cart.length}
-                                                </span>
-                                            </div>
+                        <span className="text-sm font-semibold">
+                          {cart.length}
+                        </span>
+                      </div>
 
-                                            <div
-                                                className="
+                      <div
+                        className="
                         flex
                         items-center
                         justify-between
                         gap-5
                       "
-                                            >
-                                                <span className="text-sm text-white/40">
-                                                    Total Quantity
-                                                </span>
+                      >
+                        <span className="text-sm text-white/40">
+                          Total Quantity
+                        </span>
 
-                                                <span className="text-sm font-semibold">
-                                                    {cartCount}
-                                                </span>
-                                            </div>
-                                        </div>
+                        <span className="text-sm font-semibold">
+                          {cartCount}
+                        </span>
+                      </div>
+                    </div>
 
-                                        {/* Estimated Total */}
+                    {/* Estimated Total */}
 
-                                        <div className="py-6">
-                                            <p
-                                                className="
+                    <div className="py-6">
+                      <p
+                        className="
                         text-[10px]
                         font-semibold
                         uppercase
                         tracking-[0.16em]
                         text-white/30
                       "
-                                            >
-                                                Estimated Total
-                                            </p>
+                      >
+                        Estimated Total
+                      </p>
 
-                                            <div
-                                                className="
+                      <div
+                        className="
                         mt-2
                         flex
                         items-end
                         gap-2
                       "
-                                            >
-                                                <span
-                                                    className="
+                      >
+                        <span
+                          className="
                           pb-1
                           text-sm
                           font-semibold
                           text-[#D8FF65]
                         "
-                                                >
-                                                    AED
-                                                </span>
+                        >
+                          AED
+                        </span>
 
-                                                <span
-                                                    className="
+                        <span
+                          className="
                           text-[38px]
                           font-semibold
                           leading-none
                           tracking-[-0.045em]
                         "
-                                                >
-                                                    {cartTotal.toLocaleString(
-                                                        undefined,
-                                                        {
-                                                            minimumFractionDigits: 2,
-                                                            maximumFractionDigits: 2,
-                                                        }
-                                                    )}
-                                                </span>
-                                            </div>
+                        >
+                          {cartTotal.toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
 
-                                            <p
-                                                className="
+                      <p
+                        className="
                         mt-3
                         text-[11px]
                         leading-5
                         text-white/30
                       "
-                                            >
-                                                Final pricing, availability and delivery charges
-                                                can be confirmed by our sales team.
-                                            </p>
-                                        </div>
+                      >
+                        Final pricing, availability and delivery charges can be
+                        confirmed by our sales team.
+                      </p>
+                    </div>
 
-                                        {/* Quote CTA */}
+                    {/* Quote CTA */}
 
-                                        <button
-                                            type="button"
-                                            onClick={() => setQuoteOpen(true)}
-                                            className="
+                    <button
+                      type="button"
+                      onClick={() => setQuoteOpen(true)}
+                      className="
                       group
                       flex
                       h-[58px]
@@ -934,11 +918,10 @@ export default function CartPage() {
                       duration-300
                       hover:bg-white
                     "
-                                        >
-                                            Request Quotation
-
-                                            <span
-                                                className="
+                    >
+                      Request Quotation
+                      <span
+                        className="
                         flex
                         h-11
                         w-11
@@ -948,49 +931,49 @@ export default function CartPage() {
                         bg-[#101411]
                         text-white
                       "
-                                            >
-                                                <ArrowRight
-                                                    className="
+                      >
+                        <ArrowRight
+                          className="
                           h-4
                           w-4
                           transition-transform
                           duration-300
                           group-hover:translate-x-1
                         "
-                                                />
-                                            </span>
-                                        </button>
+                        />
+                      </span>
+                    </button>
 
-                                        {/* Benefits */}
+                    {/* Benefits */}
 
-                                        <div
-                                            className="
+                    <div
+                      className="
                       mt-6
                       space-y-3
                       border-t
                       border-white/10
                       pt-6
                     "
-                                        >
-                                            <SummaryFeature>
-                                                Product availability confirmation
-                                            </SummaryFeature>
+                    >
+                      <SummaryFeature>
+                        Product availability confirmation
+                      </SummaryFeature>
 
-                                            <SummaryFeature>
-                                                Competitive project pricing
-                                            </SummaryFeature>
+                      <SummaryFeature>
+                        Competitive project pricing
+                      </SummaryFeature>
 
-                                            <SummaryFeature>
-                                                Material sourcing assistance
-                                            </SummaryFeature>
-                                        </div>
-                                    </div>
-                                </div>
+                      <SummaryFeature>
+                        Material sourcing assistance
+                      </SummaryFeature>
+                    </div>
+                  </div>
+                </div>
 
-                                {/* Support card */}
+                {/* Support card */}
 
-                                <div
-                                    className="
+                <div
+                  className="
                   mt-3
                   rounded-[24px]
                   border
@@ -998,10 +981,10 @@ export default function CartPage() {
                   bg-white
                   p-5
                 "
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <span
-                                            className="
+                >
+                  <div className="flex items-center gap-4">
+                    <span
+                      className="
                       flex
                       h-11
                       w-11
@@ -1011,641 +994,525 @@ export default function CartPage() {
                       rounded-full
                       bg-[#EEF2E5]
                     "
-                                        >
-                                            <PackageCheck className="h-5 w-5" />
-                                        </span>
+                    >
+                      <PackageCheck className="h-5 w-5" />
+                    </span>
 
-                                        <div>
-                                            <p
-                                                className="
+                    <div>
+                      <p
+                        className="
                         text-sm
                         font-semibold
                         text-[#101411]
                       "
-                                            >
-                                                Need assistance?
-                                            </p>
+                      >
+                        Need assistance?
+                      </p>
 
-                                            <p
-                                                className="
+                      <p
+                        className="
                         mt-1
                         text-xs
                         leading-5
                         text-black/40
                       "
-                                            >
-                                                Our team can help identify the right materials
-                                                for your project.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </aside>
-                        </div>
-                    </section>
-                )}
-            </main>
+                      >
+                        Our team can help identify the right materials for your
+                        project.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </section>
+        )}
+      </main>
 
-            {quoteOpen && (
-                <QuoteModal
-                    cart={cart}
-                    onClose={() => setQuoteOpen(false)}
-                />
-            )}
-        </>
-    );
+      {quoteOpen && (
+        <QuoteModal cart={cart} onClose={() => setQuoteOpen(false)} />
+      )}
+    </>
+  );
 }
 
 /* =========================================================
    QUOTE MODAL
 ========================================================= */
 
-function QuoteModal({
-    cart = [],
-    onClose,
-}) {
-    /* =====================================================
+function QuoteModal({ cart = [], onClose }) {
+  /* =====================================================
        AUTOMATIC CART DATA
     ===================================================== */
 
-    const totalQuantity =
-        cart.reduce(
-            (total, item) =>
-                total +
-                item.quantity,
-            0
-        );
+  const totalQuantity = cart.reduce((total, item) => total + item.quantity, 0);
 
-    const selectedProductNames =
-        cart
-            .map(
-                (item) =>
-                    item.name
-            )
-            .join(", ");
+  const selectedProductNames = cart.map((item) => item.name).join(", ");
 
-    const selectedCategories = [
-        ...new Set(
-            cart.map(
-                (item) =>
-                    item.category
-            )
-        ),
-    ];
+  const selectedCategories = [...new Set(cart.map((item) => item.category))];
 
-    const selectedBrands = [
-        ...new Set(
-            cart.map(
-                (item) =>
-                    item.brand
-            )
-        ),
-    ];
+  const selectedBrands = [...new Set(cart.map((item) => item.brand))];
 
-    const autoCategory =
-        selectedCategories.length ===
-            1
-            ? selectedCategories[0]
-            : selectedCategories.length >
-                1
-                ? "Multiple Categories"
-                : "";
+  const autoCategory =
+    selectedCategories.length === 1
+      ? selectedCategories[0]
+      : selectedCategories.length > 1
+        ? "Multiple Categories"
+        : "";
 
-    const autoBrand =
-        selectedBrands.length ===
-            1
-            ? selectedBrands[0]
-            : selectedBrands.length >
-                1
-                ? "Multiple Brands"
-                : "";
+  const autoBrand =
+    selectedBrands.length === 1
+      ? selectedBrands[0]
+      : selectedBrands.length > 1
+        ? "Multiple Brands"
+        : "";
 
-    const autoDescription =
-        cart.length > 0
-            ? cart
-                .map(
-                    (
-                        item,
-                        index
-                    ) => `${index + 1}. ${item.name}
+  const autoDescription =
+    cart.length > 0
+      ? cart
+          .map(
+            (item, index) => `${index + 1}. ${item.name}
 SKU: ${item.sku}
 Brand: ${item.brand}
 Category: ${item.category}
 Quantity: ${item.quantity}
-Unit Price: AED ${item.price}`
-                )
-                .join("\n\n")
-            : "";
+Unit Price: AED ${item.price}`,
+          )
+          .join("\n\n")
+      : "";
 
-    /* =====================================================
+  /* =====================================================
        FORM STATE
     ===================================================== */
 
-    const [form, setForm] =
-        useState({
-            company: "",
-            contactName: "",
-            email: "",
-            phone: "",
+  const [form, setForm] = useState({
+    company: "",
+    contactName: "",
+    email: "",
+    phone: "",
 
-            products:
-                selectedProductNames,
+    products: selectedProductNames,
 
-            category:
-                autoCategory,
+    category: autoCategory,
 
-            brand:
-                autoBrand,
+    brand: autoBrand,
 
-            quantity:
-                totalQuantity > 0
-                    ? String(
-                        totalQuantity
-                    )
-                    : "",
+    quantity: totalQuantity > 0 ? String(totalQuantity) : "",
 
-            refNumber: "",
+    refNumber: "",
 
-            deliveryLocation: "",
+    deliveryLocation: "",
 
-            description:
-                autoDescription,
-        });
+    description: autoDescription,
+  });
 
-    const [submitting, setSubmitting] = useState(false);
-    const [submitMessage, setSubmitMessage] = useState("");
-    const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
-    const update = (e) => {
-        const {
-            name,
-            value,
-        } = e.target;
+  const update = (e) => {
+    const { name, value } = e.target;
 
-        setForm((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
-    /* =====================================================
+  /* =====================================================
        CUSTOM DROPDOWN UPDATE
     ===================================================== */
 
-    const updateSelect = (
-        name,
-        value
-    ) => {
-        setForm((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
-    };
+  const updateSelect = (name, value) => {
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
-    /* =====================================================
+  /* =====================================================
        SUBMIT
     ===================================================== */
 
-    const submit = async (e) => {
-        e.preventDefault();
-        setSubmitting(true);
-        setSubmitMessage("");
-        setSubmitError("");
-        try {
-            const response = await fetch("/api/quotations", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    ...form,
-                    productList: cart.map((item) => ({
-                        id: String(item.id ?? item._id ?? ""),
-                        name: item.name || "Material",
-                        sku: item.sku || "",
-                        category: item.category || "",
-                        brand: item.brand || "",
-                        unit: item.unit || "Unit",
-                        quantity: Number(item.quantity || 1),
-                        price: Number(item.price || 0),
-                    })),
-                    amount: `AED ${cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0).toFixed(2)}`,
-                }),
-            });
-            const payload = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(payload.error || "Could not submit quotation request.");
-            if (payload.warning) {
-                setSubmitError(`${payload.warning} Your request reference is ${payload.quotation?.id || "saved"}.`);
-                return;
-            }
-            setSubmitMessage(`Request ${payload.quotation?.id || ""} submitted. Your estimate has been emailed to you, and the admin has been notified.`);
-            localStorage.removeItem(CART_STORAGE_KEY);
-            window.dispatchEvent(new Event("toprange-cart-updated"));
-        } catch (error) {
-            setSubmitError(error.message || "Something went wrong. Please try again.");
-        } finally {
-            setSubmitting(false);
+  const submit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitMessage("");
+    setSubmitError("");
+    try {
+      const response = await fetch("/api/quotations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          productList: cart.map((item) => ({
+            id: String(item.id ?? item._id ?? ""),
+            name: item.name || "Material",
+            sku: item.sku || "",
+            category: item.category || "",
+            brand: item.brand || "",
+            unit: item.unit || "Unit",
+            quantity: Number(item.quantity || 1),
+            price: Number(item.price || 0),
+          })),
+          amount: `AED ${cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0).toFixed(2)}`,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok)
+        throw new Error(payload.error || "Could not submit quotation request.");
+      if (payload.warning) {
+        setSubmitError(
+          `${payload.warning} Your request reference is ${payload.quotation?.id || "saved"}.`,
+        );
+        return;
+      }
+      setSubmitMessage(
+        `Request ${payload.quotation?.id || ""} submitted. Your estimate has been emailed to you, and the admin has been notified.`,
+      );
+
+      // Clear cart from localStorage
+      localStorage.removeItem(CART_STORAGE_KEY);
+
+      // Update cart UI immediately
+      window.dispatchEvent(new Event("toprange-cart-updated"));
+    } catch (error) {
+      setSubmitError(
+        error.message || "Something went wrong. Please try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[6000] overflow-x-hidden overflow-y-auto bg-[#07100D]/80 p-2 backdrop-blur-md sm:p-4 md:p-6 lg:p-8"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Quotation request"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
         }
-    };
-
-    return (
+      }}
+    >
+      <div
+        className="mx-auto flex min-h-full w-full max-w-[1050px] items-start justify-center py-2 sm:py-4 lg:items-center lg:py-6"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            onClose();
+          }
+        }}
+      >
         <div
-            className="fixed inset-0 z-[6000] overflow-x-hidden overflow-y-auto bg-[#07100D]/80 p-2 backdrop-blur-md sm:p-4 md:p-6 lg:p-8"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Quotation request"
-            onMouseDown={(event) => {
-                if (event.target === event.currentTarget) {
-                    onClose();
-                }
-            }}
+          className="relative z-10 w-full min-w-0 rounded-[22px] bg-[#F4F5EF] shadow-[0_40px_120px_rgba(0,0,0,.28)] sm:rounded-[30px] lg:rounded-[36px]"
+          onMouseDown={(event) => event.stopPropagation()}
         >
+          {/* Glow */}
 
-            <div
-                className="mx-auto flex min-h-full w-full max-w-[1050px] items-start justify-center py-2 sm:py-4 lg:items-center lg:py-6"
-                onMouseDown={(event) => {
-                    if (event.target === event.currentTarget) {
-                        onClose();
-                    }
-                }}
-            >
+          <div className="pointer-events-none absolute -right-24 -top-24 h-[260px] w-[260px] rounded-full bg-[#D8FF65]/10 blur-[100px] sm:-right-40 sm:-top-40 sm:h-[420px] sm:w-[420px] sm:blur-[120px]" />
 
-                <div
-                    className="relative z-10 w-full min-w-0 rounded-[22px] bg-[#F4F5EF] shadow-[0_40px_120px_rgba(0,0,0,.28)] sm:rounded-[30px] lg:rounded-[36px]"
-                    onMouseDown={(event) => event.stopPropagation()}
-                >
+          <div className="relative p-4 sm:p-6 md:p-8 lg:p-12">
+            {/* Header */}
 
-                    {/* Glow */}
+            <div className="flex items-start justify-between gap-3 sm:gap-6">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#727972] sm:text-[11px]">
+                  Project Enquiry
+                </p>
 
-                    <div className="pointer-events-none absolute -right-24 -top-24 h-[260px] w-[260px] rounded-full bg-[#D8FF65]/10 blur-[100px] sm:-right-40 sm:-top-40 sm:h-[420px] sm:w-[420px] sm:blur-[120px]" />
+                <h2 className="mt-3 text-[30px] font-semibold leading-none tracking-[-0.05em] text-[#101411] sm:mt-4 sm:text-[38px] md:text-[44px] lg:text-[48px]">
+                  Get a Quote
+                </h2>
 
-                    <div className="relative p-4 sm:p-6 md:p-8 lg:p-12">
+                {cart.length > 0 && (
+                  <p className="mt-4 text-[14px] leading-6 text-[#626963]">
+                    {cart.length === 1
+                      ? "Selected product details have been added automatically."
+                      : `${cart.length} selected products have been added automatically.`}
+                  </p>
+                )}
+              </div>
 
-                        {/* Header */}
+              <button
+                type="button"
+                aria-label="Close quotation request"
+                onClick={onClose}
+                className="relative z-30 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#101411] shadow-[0_8px_25px_rgba(0,0,0,.08)] transition hover:bg-[#101411] hover:text-white focus:outline-none focus:ring-4 focus:ring-[#D8FF65]/30 sm:h-12 sm:w-12"
+              >
+                <X className="pointer-events-none h-4 w-4" />
+              </button>
+            </div>
 
-                        <div className="flex items-start justify-between gap-3 sm:gap-6">
-
-                            <div>
-
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#727972] sm:text-[11px]">
-                                    Project Enquiry
-                                </p>
-
-                                <h2 className="mt-3 text-[30px] font-semibold leading-none tracking-[-0.05em] text-[#101411] sm:mt-4 sm:text-[38px] md:text-[44px] lg:text-[48px]">
-                                    Get a Quote
-                                </h2>
-
-                                {cart.length >
-                                    0 && (
-
-                                        <p className="mt-4 text-[14px] leading-6 text-[#626963]">
-
-                                            {cart.length ===
-                                                1
-                                                ? "Selected product details have been added automatically."
-                                                : `${cart.length} selected products have been added automatically.`}
-
-                                        </p>
-
-                                    )}
-
-                            </div>
-
-                            <button
-                                type="button"
-                                aria-label="Close quotation request"
-                                onClick={onClose}
-                                className="relative z-30 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#101411] shadow-[0_8px_25px_rgba(0,0,0,.08)] transition hover:bg-[#101411] hover:text-white focus:outline-none focus:ring-4 focus:ring-[#D8FF65]/30 sm:h-12 sm:w-12"
-                            >
-
-                                <X className="pointer-events-none h-4 w-4" />
-
-                            </button>
-
-                        </div>
-
-                        {/* =================================================
+            {/* =================================================
                 SELECTED PRODUCTS
             ================================================= */}
 
-                        {cart.length >
-                            0 && (
+            {cart.length > 0 && (
+              <div className="mt-8 rounded-[22px] border border-black/[0.07] bg-white p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#697069]">
+                      Selected Products
+                    </p>
 
-                                <div className="mt-8 rounded-[22px] border border-black/[0.07] bg-white p-4 sm:p-5">
+                    <p className="mt-1 text-[13px] font-medium text-[#454B45]">
+                      Automatically added from your cart
+                    </p>
+                  </div>
 
-                                    <div className="flex items-center justify-between gap-4">
+                  <span className="rounded-full bg-[#D8FF65] px-3 py-1.5 text-[11px] font-bold text-[#101411]">
+                    {cart.length}
+                  </span>
+                </div>
 
-                                        <div>
+                <div className="mt-4 grid min-w-0 gap-3 md:grid-cols-2">
+                  {cart.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex min-w-0 items-center gap-3 rounded-[16px] bg-[#F4F5EF] p-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-semibold text-[#101411]">
+                          {item.name}
+                        </p>
 
-                                            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#697069]">
-                                                Selected Products
-                                            </p>
+                        <p className="mt-1 text-[10px] font-medium text-[#656C66]">
+                          {item.brand} · {item.sku}
+                        </p>
+                      </div>
 
-                                            <p className="mt-1 text-[13px] font-medium text-[#454B45]">
-                                                Automatically added from your cart
-                                            </p>
+                      <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#101411]">
+                        × {item.quantity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-                                        </div>
-
-                                        <span className="rounded-full bg-[#D8FF65] px-3 py-1.5 text-[11px] font-bold text-[#101411]">
-                                            {cart.length}
-                                        </span>
-
-                                    </div>
-
-                                    <div className="mt-4 grid min-w-0 gap-3 md:grid-cols-2">
-
-                                        {cart.map(
-                                            (item) => (
-
-                                                <div
-                                                    key={
-                                                        item.id
-                                                    }
-                                                    className="flex min-w-0 items-center gap-3 rounded-[16px] bg-[#F4F5EF] p-3"
-                                                >
-
-
-
-                                                    <div className="min-w-0 flex-1">
-
-                                                        <p className="truncate text-[13px] font-semibold text-[#101411]">
-                                                            {
-                                                                item.name
-                                                            }
-                                                        </p>
-
-                                                        <p className="mt-1 text-[10px] font-medium text-[#656C66]">
-
-                                                            {
-                                                                item.brand
-                                                            }{" "}
-                                                            ·{" "}
-                                                            {
-                                                                item.sku
-                                                            }
-
-                                                        </p>
-
-                                                    </div>
-
-                                                    <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#101411]">
-
-                                                        ×{" "}
-                                                        {
-                                                            item.quantity
-                                                        }
-
-                                                    </span>
-
-                                                </div>
-
-                                            )
-                                        )}
-
-                                    </div>
-
-                                </div>
-
-                            )}
-
-                        {/* =================================================
+            {/* =================================================
                 FORM
             ================================================= */}
 
-                        {submitMessage && <div role="status" className="mb-5 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-900">{submitMessage}</div>}
-                {submitError && <div role="alert" className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{submitError}</div>}
+            {submitMessage ? (
+  <div
+    className="mt-8 rounded-[24px] border border-[#D8FF65]/60 bg-white p-6 text-center sm:p-10"
+    role="status"
+    aria-live="polite"
+  >
+    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411]">
+      <Check className="h-7 w-7" />
+    </div>
 
-                <form
-                            onSubmit={submit}
-                            className="mt-9"
-                        >
+    <h3 className="mt-5 text-[25px] font-semibold tracking-tight text-[#101411] sm:text-[30px]">
+      Quotation Request Submitted
+    </h3>
 
-                            <div className="grid min-w-0 gap-x-5 gap-y-6 lg:grid-cols-2">
+    <p className="mx-auto mt-3 max-w-xl text-[14px] leading-7 text-[#626963]">
+      Thank you. Your quotation request has been submitted successfully.
+      Our team will review your requirements.
+    </p>
 
-                                <QuoteField
-                                    label="Company Name"
-                                    name="company"
-                                    value={
-                                        form.company
-                                    }
-                                    onChange={update}
-                                    placeholder="Company name"
-                                    required
-                                />
+    <p className="mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-[#F4F5EF] px-5 py-3 text-[13px] text-[#303630]">
+      <span className="font-medium">Reference:</span>
+      <strong>
+        {submitMessage.match(/Request (.*?) submitted/)?.[1] || "Saved"}
+      </strong>
+    </p>
 
-                                <QuoteField
-                                    label="Contact Person"
-                                    name="contactName"
-                                    value={
-                                        form.contactName
-                                    }
-                                    onChange={update}
-                                    placeholder="Full name"
-                                    required
-                                />
+    <div>
+      <button
+        type="button"
+        onClick={onClose}
+        className="mt-7 rounded-full bg-[#101411] px-8 py-3.5 text-[13px] font-semibold text-white transition hover:bg-[#1B211D]"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+) : (
+  <>
+            <form onSubmit={submit} className="mt-9">
+              <div className="grid min-w-0 gap-x-5 gap-y-6 lg:grid-cols-2">
+                <QuoteField
+                  label="Company Name"
+                  name="company"
+                  value={form.company}
+                  onChange={update}
+                  placeholder="Company name"
+                  required
+                />
 
-                                <QuoteField
-                                    label="Email"
-                                    name="email"
-                                    type="email"
-                                    value={
-                                        form.email
-                                    }
-                                    onChange={update}
-                                    placeholder="name@company.com"
-                                    required
-                                />
+                <QuoteField
+                  label="Contact Person"
+                  name="contactName"
+                  value={form.contactName}
+                  onChange={update}
+                  placeholder="Full name"
+                  required
+                />
 
-                                <QuoteField
-                                    label="Phone"
-                                    name="phone"
-                                    type="tel"
-                                    value={
-                                        form.phone
-                                    }
-                                    onChange={update}
-                                    placeholder="+971"
-                                    required
-                                />
+                <QuoteField
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={update}
+                  placeholder="name@company.com"
+                  required
+                />
 
-                                {/* AUTO PRODUCT */}
+                <QuoteField
+                  label="Phone"
+                  name="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={update}
+                  placeholder="+971"
+                  required
+                />
 
-                                <QuoteField
-                                    label="Product"
-                                    name="products"
-                                    value={
-                                        form.products
-                                    }
-                                    onChange={update}
-                                    placeholder="Product name"
-                                />
+                {/* AUTO PRODUCT */}
 
-                                {/* AUTO QUANTITY */}
+                <QuoteField
+                  label="Product"
+                  name="products"
+                  value={form.products}
+                  onChange={update}
+                  placeholder="Product name"
+                />
 
-                                <QuoteField
-                                    label="Quantity"
-                                    name="quantity"
-                                    type="number"
-                                    value={
-                                        form.quantity
-                                    }
-                                    onChange={update}
-                                    placeholder="Required quantity"
-                                />
+                {/* AUTO QUANTITY */}
 
-                                {/* PREMIUM CATEGORY */}
+                <QuoteField
+                  label="Quantity"
+                  name="quantity"
+                  type="number"
+                  value={form.quantity}
+                  onChange={update}
+                  placeholder="Required quantity"
+                />
 
-                                <PremiumQuoteDropdown
-                                    label="Category"
-                                    value={
-                                        form.category
-                                    }
-                                    placeholder="Select category"
-                                    options={[
-                                        "Power Tools",
-                                        "Hand Tools",
-                                        "Electrical",
-                                        "Plumbing",
-                                        "Hardware",
-                                        "Fasteners",
-                                        "Safety",
-                                        "Paint & Adhesives",
-                                        "Construction Materials",
-                                        "HVAC",
-                                        "Multiple Categories",
-                                    ]}
-                                    onChange={(value) =>
-                                        updateSelect(
-                                            "category",
-                                            value
-                                        )
-                                    }
-                                />
+                {/* PREMIUM CATEGORY */}
 
-                                {/* PREMIUM BRAND */}
+                <PremiumQuoteDropdown
+                  label="Category"
+                  value={form.category}
+                  placeholder="Select category"
+                  options={[
+                    "Power Tools",
+                    "Hand Tools",
+                    "Electrical",
+                    "Plumbing",
+                    "Hardware",
+                    "Fasteners",
+                    "Safety",
+                    "Paint & Adhesives",
+                    "Construction Materials",
+                    "HVAC",
+                    "Multiple Categories",
+                  ]}
+                  onChange={(value) => updateSelect("category", value)}
+                />
 
-                                <PremiumQuoteDropdown
-                                    label="Preferred Brand"
-                                    value={
-                                        form.brand
-                                    }
-                                    placeholder="Select preferred brand"
-                                    options={[
-                                        "DeWalt",
-                                        "Bosch",
-                                        "Stanley",
-                                        "3M",
-                                        "Sika",
-                                        "Fischer",
-                                        "Hepworth",
-                                        "Mueller",
-                                        "Dormakaba",
-                                        "Fluke",
-                                        "No Preference",
-                                        "Multiple Brands",
-                                    ]}
-                                    onChange={(value) =>
-                                        updateSelect(
-                                            "brand",
-                                            value
-                                        )
-                                    }
-                                />
+                {/* PREMIUM BRAND */}
 
-                                {/* Reference Number */}
+                <PremiumQuoteDropdown
+                  label="Preferred Brand"
+                  value={form.brand}
+                  placeholder="Select preferred brand"
+                  options={[
+                    "DeWalt",
+                    "Bosch",
+                    "Stanley",
+                    "3M",
+                    "Sika",
+                    "Fischer",
+                    "Hepworth",
+                    "Mueller",
+                    "Dormakaba",
+                    "Fluke",
+                    "No Preference",
+                    "Multiple Brands",
+                  ]}
+                  onChange={(value) => updateSelect("brand", value)}
+                />
 
-                                <QuoteField
-                                    label="Ref Number"
-                                    name="refNumber"
-                                    value={
-                                        form.refNumber
-                                    }
-                                    onChange={update}
-                                    placeholder="Enter reference number"
-                                />
+                {/* Reference Number */}
 
-                                {/* Delivery */}
+                <QuoteField
+                  label="Ref Number"
+                  name="refNumber"
+                  value={form.refNumber}
+                  onChange={update}
+                  placeholder="Enter reference number"
+                />
 
-                                <div className="lg:col-span-2">
+                {/* Delivery */}
 
-                                    <QuoteField
-                                        label="Delivery Location"
-                                        name="deliveryLocation"
-                                        value={
-                                            form.deliveryLocation
-                                        }
-                                        onChange={update}
-                                        placeholder="Dubai, Ajman, Sharjah, Abu Dhabi..."
-                                        required
-                                    />
-
-                                </div>
-
-                            </div>
-
-                            {/* Description */}
-
-                            <div className="mt-6">
-
-                                <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
-                                    Description / Requirement
-                                </label>
-
-                                <textarea
-                                    rows={7}
-                                    name="description"
-                                    value={
-                                        form.description
-                                    }
-                                    onChange={update}
-                                    placeholder="Product specifications and requirements..."
-                                    className="w-full resize-none rounded-[18px] border border-black/[0.10] bg-white p-5 text-[14px] leading-7 text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20"
-                                />
-
-                            </div>
-
-                            {/* Footer */}
-
-                            <div className="mt-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-
-                                <p className="max-w-md text-[11px] leading-5 text-[#737A74]">
-
-                                    Product information
-                                    is automatically
-                                    fetched from your
-                                    cart. You can edit
-                                    the details before
-                                    submitting.
-
-                                </p>
-
-                                <button
-                                    type="submit"
-                                    disabled={submitting || Boolean(submitMessage)}
-                                    className="group flex h-[58px] w-full items-center justify-between gap-7 rounded-full bg-[#101411] pl-7 pr-2 text-[14px] font-semibold text-white transition hover:bg-[#1B211D] lg:w-auto lg:min-w-[200px]"
-                                >
-
-                                    {submitting ? "Submitting..." : submitMessage ? "Submitted" : "Submit Quote"}
-
-                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
-
-                                        <ArrowUpRight className="h-4 w-4" />
-
-                                    </span>
-
-                                </button>
-
-                            </div>
-
-                        </form>
-
-                    </div>
-
+                <div className="lg:col-span-2">
+                  <QuoteField
+                    label="Delivery Location"
+                    name="deliveryLocation"
+                    value={form.deliveryLocation}
+                    onChange={update}
+                    placeholder="Dubai, Ajman, Sharjah, Abu Dhabi..."
+                    required
+                  />
                 </div>
+              </div>
 
-            </div>
+              {/* Description */}
 
+              <div className="mt-6">
+                <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+                  Description / Requirement
+                </label>
+
+                <textarea
+                  rows={7}
+                  name="description"
+                  value={form.description}
+                  onChange={update}
+                  placeholder="Product specifications and requirements..."
+                  className="w-full resize-none rounded-[18px] border border-black/[0.10] bg-white p-5 text-[14px] leading-7 text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20"
+                />
+              </div>
+
+              {/* Footer */}
+
+              <div className="mt-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <p className="max-w-md text-[11px] leading-5 text-[#737A74]">
+                  Product information is automatically fetched from your cart.
+                  You can edit the details before submitting.
+                </p>
+
+                <button
+                  type="submit"
+                  disabled={submitting || Boolean(submitMessage)}
+                  className="group flex h-[58px] w-full items-center justify-between gap-7 rounded-full bg-[#101411] pl-7 pr-2 text-[14px] font-semibold text-white transition hover:bg-[#1B211D] lg:w-auto lg:min-w-[200px]"
+                >
+                  {submitting
+                    ? "Submitting..."
+                    : submitMessage
+                      ? "Submitted"
+                      : "Submit Quote"}
+
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
+                    <ArrowUpRight className="h-4 w-4" />
+                  </span>
+                </button>
+              </div>
+            </form>
+             </>
+)}
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
 /* =========================================================
@@ -1653,41 +1520,33 @@ Unit Price: AED ${item.price}`
 ========================================================= */
 
 function QuoteField({
-    label,
-    name,
-    value,
-    onChange,
-    placeholder = "",
-    type = "text",
-    required = false,
+  label,
+  name,
+  value,
+  onChange,
+  placeholder = "",
+  type = "text",
+  required = false,
 }) {
-    return (
-        <div>
+  return (
+    <div>
+      <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+        {label}
 
-            <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+        {required && <span className="ml-1 text-red-500">*</span>}
+      </label>
 
-                {label}
-
-                {required && (
-                    <span className="ml-1 text-red-500">
-                        *
-                    </span>
-                )}
-
-            </label>
-
-            <input
-                required={required}
-                type={type}
-                name={name}
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                className="h-[58px] w-full rounded-[16px] border border-black/[0.10] bg-white px-4 text-[14px] font-medium text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20"
-            />
-
-        </div>
-    );
+      <input
+        required={required}
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="h-[58px] w-full rounded-[16px] border border-black/[0.10] bg-white px-4 text-[14px] font-medium text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20"
+      />
+    </div>
+  );
 }
 
 /* =========================================================
@@ -1695,34 +1554,28 @@ function QuoteField({
 ========================================================= */
 
 function PremiumQuoteDropdown({
-    label,
-    value,
-    placeholder,
-    options = [],
-    onChange,
+  label,
+  value,
+  placeholder,
+  options = [],
+  onChange,
 }) {
-    const [open, setOpen] =
-        useState(false);
+  const [open, setOpen] = useState(false);
 
-    return (
-        <div className="relative z-[60]">
+  return (
+    <div className="relative z-[60]">
+      {/* Label */}
 
-            {/* Label */}
+      <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+        {label}
+      </label>
 
-            <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
-                {label}
-            </label>
+      {/* Button */}
 
-            {/* Button */}
-
-            <button
-                type="button"
-                onClick={() =>
-                    setOpen(
-                        (prev) => !prev
-                    )
-                }
-                className={`
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className={`
           group
           flex
           h-[58px]
@@ -1739,35 +1592,29 @@ function PremiumQuoteDropdown({
           transition-all
           duration-300
 
-          ${open
-                        ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
-                        : "border-black/[0.10] hover:border-black/20"
-                    }
+          ${
+            open
+              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
+              : "border-black/[0.10] hover:border-black/20"
+          }
         `}
-            >
-
-                <span
-                    className={`
+      >
+        <span
+          className={`
             min-w-0
             flex-1
             truncate
             text-[14px]
             font-medium
 
-            ${value
-                            ? "text-[#202521]"
-                            : "text-black/35"
-                        }
+            ${value ? "text-[#202521]" : "text-black/35"}
           `}
-                >
+        >
+          {value || placeholder}
+        </span>
 
-                    {value ||
-                        placeholder}
-
-                </span>
-
-                <span
-                    className={`
+        <span
+          className={`
             flex
             h-9
             w-9
@@ -1778,59 +1625,41 @@ function PremiumQuoteDropdown({
             transition-all
             duration-300
 
-            ${open
-                            ? "rotate-180 bg-[#D8FF65] text-[#101411]"
-                            : "bg-[#F1F3ED] text-[#535A54]"
-                        }
+            ${
+              open
+                ? "rotate-180 bg-[#D8FF65] text-[#101411]"
+                : "bg-[#F1F3ED] text-[#535A54]"
+            }
           `}
-                >
+        >
+          <ChevronDown className="h-4 w-4" />
+        </span>
+      </button>
 
-                    <ChevronDown className="h-4 w-4" />
+      {/* Menu */}
 
-                </span>
+      {open && (
+        <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-[500] overflow-hidden rounded-[20px] border border-black/[0.08] bg-white p-2 shadow-[0_25px_70px_rgba(0,0,0,.16)]">
+          <div className="border-b border-black/[0.06] px-3 pb-2 pt-1">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/40">
+              Choose {label}
+            </p>
+          </div>
 
-            </button>
+          <div className="mt-2 max-h-[190px] space-y-1 overflow-y-auto sm:max-h-[220px] lg:max-h-[250px]">
+            {options.map((option) => {
+              const selected = value === option;
 
-            {/* Menu */}
+              return (
+                <button
+                  type="button"
+                  key={option}
+                  onClick={() => {
+                    onChange(option);
 
-            {open && (
-
-                <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-[500] overflow-hidden rounded-[20px] border border-black/[0.08] bg-white p-2 shadow-[0_25px_70px_rgba(0,0,0,.16)]">
-
-                    <div className="border-b border-black/[0.06] px-3 pb-2 pt-1">
-
-                        <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/40">
-
-                            Choose {label}
-
-                        </p>
-
-                    </div>
-
-                    <div className="mt-2 max-h-[190px] space-y-1 overflow-y-auto sm:max-h-[220px] lg:max-h-[250px]">
-
-                        {options.map(
-                            (option) => {
-
-                                const selected =
-                                    value ===
-                                    option;
-
-                                return (
-
-                                    <button
-                                        type="button"
-                                        key={option}
-                                        onClick={() => {
-                                            onChange(
-                                                option
-                                            );
-
-                                            setOpen(
-                                                false
-                                            );
-                                        }}
-                                        className={`
+                    setOpen(false);
+                  }}
+                  className={`
                       flex
                       w-full
                       items-center
@@ -1843,41 +1672,28 @@ function PremiumQuoteDropdown({
                       transition-all
                       duration-200
 
-                      ${selected
-                                                ? "bg-[#D8FF65] text-[#101411]"
-                                                : "text-[#454B46] hover:bg-[#F1F3ED]"
-                                            }
+                      ${
+                        selected
+                          ? "bg-[#D8FF65] text-[#101411]"
+                          : "text-[#454B46] hover:bg-[#F1F3ED]"
+                      }
                     `}
-                                    >
+                >
+                  <span className="text-[13px] font-semibold">{option}</span>
 
-                                        <span className="text-[13px] font-semibold">
-                                            {option}
-                                        </span>
-
-                                        {selected && (
-
-                                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#101411] text-white">
-
-                                                <Check className="h-3 w-3" />
-
-                                            </span>
-
-                                        )}
-
-                                    </button>
-
-                                );
-                            }
-                        )}
-
-                    </div>
-
-                </div>
-
-            )}
-
+                  {selected && (
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#101411] text-white">
+                      <Check className="h-3 w-3" />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
-    );
+      )}
+    </div>
+  );
 }
 
 /* =========================================================
@@ -1885,20 +1701,20 @@ function PremiumQuoteDropdown({
 ========================================================= */
 
 function CartProduct({
-    item,
-    increaseQuantity,
-    decreaseQuantity,
-    removeProduct,
+  item,
+  increaseQuantity,
+  decreaseQuantity,
+  removeProduct,
 }) {
-    const quantity = Number(item.quantity || 1);
+  const quantity = Number(item.quantity || 1);
 
-    const price = Number(item.price || 0);
+  const price = Number(item.price || 0);
 
-    const total = price * quantity;
+  const total = price * quantity;
 
-    return (
-        <article
-            className="
+  return (
+    <article
+      className="
         group
         relative
         overflow-hidden
@@ -1913,21 +1729,21 @@ function CartProduct({
         hover:shadow-[0_18px_50px_rgba(16,20,17,.06)]
         sm:p-5
       "
-        >
-            <div
-                className="
+    >
+      <div
+        className="
           flex
           min-w-0
           flex-col
           gap-5
         "
-            >
-                {/* =================================================
+      >
+        {/* =================================================
             PRODUCT INFO
         ================================================== */}
 
-                <div
-                    className="
+        <div
+          className="
             min-w-0
             flex-1
             rounded-[20px]
@@ -1935,30 +1751,30 @@ function CartProduct({
             p-4
             sm:p-5
           "
-                >
-                    <div
-                        className="
+        >
+          <div
+            className="
               flex
               items-start
               justify-between
               gap-5
             "
-                    >
-                        <div className="min-w-0">
-                            <p
-                                className="
+          >
+            <div className="min-w-0">
+              <p
+                className="
                   text-[10px]
                   font-semibold
                   uppercase
                   tracking-[0.16em]
                   text-[#778073]
                 "
-                            >
-                                {item.brand || "Top Range"}
-                            </p>
+              >
+                {item.brand || "Top Range"}
+              </p>
 
-                            <h3
-                                className="
+              <h3
+                className="
                   mt-2
                   text-[19px]
                   font-semibold
@@ -1967,32 +1783,30 @@ function CartProduct({
                   text-[#101411]
                   md:text-[21px]
                 "
-                            >
-                                {item.name || "Product"}
-                            </h3>
+              >
+                {item.name || "Product"}
+              </h3>
 
-                            {item.sku && (
-                                <p
-                                    className="
+              {item.sku && (
+                <p
+                  className="
                     mt-2
                     text-[11px]
                     text-black/30
                   "
-                                >
-                                    SKU: {item.sku}
-                                </p>
-                            )}
-                        </div>
+                >
+                  SKU: {item.sku}
+                </p>
+              )}
+            </div>
 
-                        {/* Remove */}
+            {/* Remove */}
 
-                        <button
-                            type="button"
-                            aria-label={`Remove ${item.name || "product"}`}
-                            onClick={() =>
-                                removeProduct(item.id)
-                            }
-                            className="
+            <button
+              type="button"
+              aria-label={`Remove ${item.name || "product"}`}
+              onClick={() => removeProduct(item.id)}
+              className="
                 flex
                 h-9
                 w-9
@@ -2007,15 +1821,15 @@ function CartProduct({
                 hover:bg-red-50
                 hover:text-red-500
               "
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
-                    </div>
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
-                    {/* Bottom */}
+          {/* Bottom */}
 
-                    <div
-                        className="
+          <div
+            className="
               mt-5
               flex
               flex-col
@@ -2027,12 +1841,12 @@ function CartProduct({
               sm:items-end
               sm:justify-between
             "
-                    >
-                        {/* Quantity */}
+          >
+            {/* Quantity */}
 
-                        <div>
-                            <p
-                                className="
+            <div>
+              <p
+                className="
                   mb-2
                   text-[9px]
                   font-semibold
@@ -2040,12 +1854,12 @@ function CartProduct({
                   tracking-[0.15em]
                   text-black/30
                 "
-                            >
-                                Quantity
-                            </p>
+              >
+                Quantity
+              </p>
 
-                            <div
-                                className="
+              <div
+                className="
                   inline-flex
                   items-center
                   rounded-full
@@ -2054,15 +1868,13 @@ function CartProduct({
                   bg-[#F4F5EF]
                   p-1
                 "
-                            >
-                                <button
-                                    type="button"
-                                    aria-label="Decrease quantity"
-                                    onClick={() =>
-                                        decreaseQuantity(item.id)
-                                    }
-                                    disabled={quantity <= 1}
-                                    className="
+              >
+                <button
+                  type="button"
+                  aria-label="Decrease quantity"
+                  onClick={() => decreaseQuantity(item.id)}
+                  disabled={quantity <= 1}
+                  className="
                     flex
                     h-9
                     w-9
@@ -2075,29 +1887,27 @@ function CartProduct({
                     disabled:cursor-not-allowed
                     disabled:opacity-25
                   "
-                                >
-                                    <Minus className="h-3.5 w-3.5" />
-                                </button>
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </button>
 
-                                <span
-                                    className="
+                <span
+                  className="
                     min-w-[42px]
                     text-center
                     text-sm
                     font-bold
                     tabular-nums
                   "
-                                >
-                                    {quantity}
-                                </span>
+                >
+                  {quantity}
+                </span>
 
-                                <button
-                                    type="button"
-                                    aria-label="Increase quantity"
-                                    onClick={() =>
-                                        increaseQuantity(item.id)
-                                    }
-                                    className="
+                <button
+                  type="button"
+                  aria-label="Increase quantity"
+                  onClick={() => increaseQuantity(item.id)}
+                  className="
                     flex
                     h-9
                     w-9
@@ -2110,75 +1920,69 @@ function CartProduct({
                     hover:bg-[#D8FF65]
                     hover:text-[#101411]
                   "
-                                >
-                                    <Plus className="h-3.5 w-3.5" />
-                                </button>
-                            </div>
-                        </div>
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
 
-                        {/* Price */}
+            {/* Price */}
 
-                        <div className="sm:text-right">
-                            <p
-                                className="
+            <div className="sm:text-right">
+              <p
+                className="
                   text-[9px]
                   font-semibold
                   uppercase
                   tracking-[0.15em]
                   text-black/30
                 "
-                            >
-                                Item Total
-                            </p>
+              >
+                Item Total
+              </p>
 
-                            <p
-                                className="
+              <p
+                className="
                   mt-2
                   text-[21px]
                   font-bold
                   tracking-[-0.025em]
                   text-[#101411]
                 "
-                            >
-                                <span
-                                    className="
+              >
+                <span
+                  className="
                     mr-1
                     text-[11px]
                     font-semibold
                     text-black/40
                   "
-                                >
-                                    AED
-                                </span>
+                >
+                  AED
+                </span>
 
-                                {total.toLocaleString(
-                                    undefined,
-                                    {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2,
-                                    }
-                                )}
-                            </p>
+                {total.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </p>
 
-                            {price > 0 && quantity > 1 && (
-                                <p className="mt-1 text-[10px] text-black/30">
-                                    AED{" "}
-                                    {price.toLocaleString(
-                                        undefined,
-                                        {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                        }
-                                    )}{" "}
-                                    each
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                </div>
+              {price > 0 && quantity > 1 && (
+                <p className="mt-1 text-[10px] text-black/30">
+                  AED{" "}
+                  {price.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  each
+                </p>
+              )}
             </div>
-        </article>
-    );
+          </div>
+        </div>
+      </div>
+    </article>
+  );
 }
 
 /* =========================================================
@@ -2186,18 +1990,18 @@ function CartProduct({
 ========================================================= */
 
 function SummaryFeature({ children }) {
-    return (
-        <div
-            className="
+  return (
+    <div
+      className="
         flex
         items-center
         gap-3
         text-xs
         text-white/45
       "
-        >
-            <span
-                className="
+    >
+      <span
+        className="
           flex
           h-5
           w-5
@@ -2208,11 +2012,11 @@ function SummaryFeature({ children }) {
           bg-[#D8FF65]/10
           text-[#D8FF65]
         "
-            >
-                <Check className="h-3 w-3" />
-            </span>
+      >
+        <Check className="h-3 w-3" />
+      </span>
 
-            {children}
-        </div>
-    );
+      {children}
+    </div>
+  );
 }
