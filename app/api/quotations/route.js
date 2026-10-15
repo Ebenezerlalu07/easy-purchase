@@ -849,7 +849,7 @@ export async function POST(request) {
     const mailer = getMailer();
     const pdf = await createQuotationPdf(quotation);
 
-    const adminEmail = process.env.QUOTATION_ADMIN_EMAIL || "aswinptoffical@gmail.com";
+    const adminEmail = process.env.QUOTATION_ADMIN_EMAIL || "easypurchaseadmin@gmail.com";
 
     await mailer.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
@@ -883,7 +883,7 @@ export async function POST(request) {
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to: quotation.email,
 
-      subject: `Your Top Range quotation ${quotation.id}`,
+      subject: `Your Top Range quotation`,
 
       text: [
         `Dear ${quotation.contactName},`,
