@@ -606,41 +606,20 @@ export default function ProductsPage() {
                             <div className="rounded-[30px] border border-white/15 bg-black/25 p-7 shadow-[0_30px_80px_rgba(0,0,0,.25)] backdrop-blur-2xl">
 
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.17em] text-[#D8FF65]">
-                                    Project Procurement
+                                    Reliable Supply
                                 </p>
 
                                 <h3 className="mt-6 text-[29px] font-semibold leading-[1.08] tracking-[-0.035em] text-white">
-                                    Buying materials
+                                    Materials for every
                                     <br />
-                                    in bulk?
+                                    project need.
                                 </h3>
 
                                 <p className="mt-4 text-[14px] leading-7 text-white/75">
-
-                                    Combine multiple
-                                    products into one
-                                    professional
-                                    quotation request.
-
+                                    Explore a wide range of construction materials, power tools,
+                                    hardware and building supplies from trusted brands, selected
+                                    for professional and everyday project requirements.
                                 </p>
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setQuoteOpen(true)
-                                    }
-                                    className="group mt-7 flex w-full items-center justify-between border-t border-white/15 pt-5 text-[14px] font-semibold text-white"
-                                >
-
-                                    Request quotation
-
-                                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D8FF65] text-black transition-transform duration-300 group-hover:rotate-45">
-
-                                        <ArrowUpRight className="h-4 w-4" />
-
-                                    </span>
-
-                                </button>
 
                             </div>
 
@@ -2156,106 +2135,106 @@ Unit Price: AED ${item.price}`
        SUBMIT
     ===================================================== */
 
-   
-const submit = async (e) => {
-    e.preventDefault();
 
-    if (submitting) return;
+    const submit = async (e) => {
+        e.preventDefault();
 
-    if (!Array.isArray(cart) || cart.length === 0) {
-        setSubmitError("Please add at least one product to your cart.");
-        return;
-    }
+        if (submitting) return;
 
-    // Send complete product objects, not comma-separated product names.
-    const productList = cart.map((item) => ({
-        id: String(item.id ?? item._id ?? ""),
-        name: String(item.name ?? item.productName ?? item.title ?? "").trim(),
-        sku: String(item.sku ?? item.productSku ?? ""),
-        brand: String(item.brand ?? ""),
-        category: String(item.category ?? ""),
-        unit: String(item.unit ?? item.unitName ?? "Unit"),
-        quantity: Number(item.quantity ?? item.qty ?? 1),
-        price: Number(
-            item.price ??
-            item.unitPrice ??
-            item.sellingPrice ??
-            0
-        ),
-        remarks: String(item.remarks ?? ""),
-    }));
-
-    const invalidProduct = productList.find(
-        (item) =>
-            !item.name ||
-            !Number.isFinite(item.price) ||
-            item.price < 0 ||
-            !Number.isFinite(item.quantity) ||
-            item.quantity <= 0
-    );
-
-    if (invalidProduct) {
-        setSubmitError(
-            "A cart product is missing its name, price or valid quantity. Please remove it and add the product again."
-        );
-        return;
-    }
-
-    setSubmitting(true);
-    setSubmitError("");
-
-    try {
-        const response = await fetch("/api/quotations", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                ...form,
-                productList,
-                products: productList.length,
-                quantity: String(
-                    productList.reduce(
-                        (sum, item) => sum + item.quantity,
-                        0
-                    )
-                ),
-            }),
-        });
-
-        const data = await response.json().catch(() => ({}));
-
-        if (!response.ok) {
-            throw new Error(
-                data.error || "Unable to submit quotation request."
-            );
-        }
-
-        const reference =
-            data?.quotation?.reference ||
-            data?.quotation?.id ||
-            data?.reference ||
-            data?.quotationId ||
-            "";
-
-        setQuotationReference(String(reference));
-
-        if (data.warning) {
-            setSubmitError(data.warning);
+        if (!Array.isArray(cart) || cart.length === 0) {
+            setSubmitError("Please add at least one product to your cart.");
             return;
         }
 
-        setSubmitted(true);
-    } catch (error) {
-        console.error("Quotation submission failed:", error);
+        // Send complete product objects, not comma-separated product names.
+        const productList = cart.map((item) => ({
+            id: String(item.id ?? item._id ?? ""),
+            name: String(item.name ?? item.productName ?? item.title ?? "").trim(),
+            sku: String(item.sku ?? item.productSku ?? ""),
+            brand: String(item.brand ?? ""),
+            category: String(item.category ?? ""),
+            unit: String(item.unit ?? item.unitName ?? "Unit"),
+            quantity: Number(item.quantity ?? item.qty ?? 1),
+            price: Number(
+                item.price ??
+                item.unitPrice ??
+                item.sellingPrice ??
+                0
+            ),
+            remarks: String(item.remarks ?? ""),
+        }));
 
-        setSubmitError(
-            error.message || "Unable to submit quotation request."
+        const invalidProduct = productList.find(
+            (item) =>
+                !item.name ||
+                !Number.isFinite(item.price) ||
+                item.price < 0 ||
+                !Number.isFinite(item.quantity) ||
+                item.quantity <= 0
         );
-    } finally {
-        setSubmitting(false);
-    }
-};
+
+        if (invalidProduct) {
+            setSubmitError(
+                "A cart product is missing its name, price or valid quantity. Please remove it and add the product again."
+            );
+            return;
+        }
+
+        setSubmitting(true);
+        setSubmitError("");
+
+        try {
+            const response = await fetch("/api/quotations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    ...form,
+                    productList,
+                    products: productList.length,
+                    quantity: String(
+                        productList.reduce(
+                            (sum, item) => sum + item.quantity,
+                            0
+                        )
+                    ),
+                }),
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error || "Unable to submit quotation request."
+                );
+            }
+
+            const reference =
+                data?.quotation?.reference ||
+                data?.quotation?.id ||
+                data?.reference ||
+                data?.quotationId ||
+                "";
+
+            setQuotationReference(String(reference));
+
+            if (data.warning) {
+                setSubmitError(data.warning);
+                return;
+            }
+
+            setSubmitted(true);
+        } catch (error) {
+            console.error("Quotation submission failed:", error);
+
+            setSubmitError(
+                error.message || "Unable to submit quotation request."
+            );
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
 
     return (
@@ -2451,146 +2430,146 @@ const submit = async (e) => {
                                 </div>
                             </div>
                         ) : (
-                        <form
-                            onSubmit={submit}
-                            className="mt-7 sm:mt-9"
-                        >
+                            <form
+                                onSubmit={submit}
+                                className="mt-7 sm:mt-9"
+                            >
 
-                            <div className="grid min-w-0 gap-x-5 gap-y-5 lg:grid-cols-2 lg:gap-y-6">
+                                <div className="grid min-w-0 gap-x-5 gap-y-5 lg:grid-cols-2 lg:gap-y-6">
 
-                                <QuoteField
-                                    label="Company Name"
-                                    name="company"
-                                    value={
-                                        form.company
-                                    }
-                                    onChange={update}
-                                    placeholder="Company name"
-                                    required
-                                />
+                                    <QuoteField
+                                        label="Company Name"
+                                        name="company"
+                                        value={
+                                            form.company
+                                        }
+                                        onChange={update}
+                                        placeholder="Company name"
+                                        required
+                                    />
 
-                                <QuoteField
-                                    label="Contact Person"
-                                    name="contactName"
-                                    value={
-                                        form.contactName
-                                    }
-                                    onChange={update}
-                                    placeholder="Full name"
-                                    required
-                                />
+                                    <QuoteField
+                                        label="Contact Person"
+                                        name="contactName"
+                                        value={
+                                            form.contactName
+                                        }
+                                        onChange={update}
+                                        placeholder="Full name"
+                                        required
+                                    />
 
-                                <QuoteField
-                                    label="Email"
-                                    name="email"
-                                    type="email"
-                                    value={
-                                        form.email
-                                    }
-                                    onChange={update}
-                                    placeholder="name@company.com"
-                                    required
-                                />
+                                    <QuoteField
+                                        label="Email"
+                                        name="email"
+                                        type="email"
+                                        value={
+                                            form.email
+                                        }
+                                        onChange={update}
+                                        placeholder="name@company.com"
+                                        required
+                                    />
 
-                                <QuoteField
-                                    label="Phone"
-                                    name="phone"
-                                    type="tel"
-                                    value={
-                                        form.phone
-                                    }
-                                    onChange={update}
-                                    placeholder="+971"
-                                    required
-                                />
+                                    <QuoteField
+                                        label="Phone"
+                                        name="phone"
+                                        type="tel"
+                                        value={
+                                            form.phone
+                                        }
+                                        onChange={update}
+                                        placeholder="+971"
+                                        required
+                                    />
 
-                                {/* AUTO PRODUCT */}
+                                    {/* AUTO PRODUCT */}
 
-                                <QuoteField
-                                    label="Product"
-                                    name="products"
-                                    value={
-                                        form.products
-                                    }
-                                    onChange={update}
-                                    placeholder="Product name"
-                                />
+                                    <QuoteField
+                                        label="Product"
+                                        name="products"
+                                        value={
+                                            form.products
+                                        }
+                                        onChange={update}
+                                        placeholder="Product name"
+                                    />
 
-                                {/* AUTO QUANTITY */}
+                                    {/* AUTO QUANTITY */}
 
-                                <QuoteField
-                                    label="Quantity"
-                                    name="quantity"
-                                    type="number"
-                                    value={
-                                        form.quantity
-                                    }
-                                    onChange={update}
-                                    placeholder="Required quantity"
-                                />
+                                    <QuoteField
+                                        label="Quantity"
+                                        name="quantity"
+                                        type="number"
+                                        value={
+                                            form.quantity
+                                        }
+                                        onChange={update}
+                                        placeholder="Required quantity"
+                                    />
 
-                                {/* PREMIUM CATEGORY */}
+                                    {/* PREMIUM CATEGORY */}
 
-                                <PremiumQuoteDropdown
-                                    label="Category"
-                                    value={
-                                        form.category
-                                    }
-                                    placeholder="Select category"
-                                    options={[
-                                        "Power Tools",
-                                        "Hand Tools",
-                                        "Electrical",
-                                        "Plumbing",
-                                        "Hardware",
-                                        "Fasteners",
-                                        "Safety",
-                                        "Paint & Adhesives",
-                                        "Construction Materials",
-                                        "HVAC",
-                                        "Multiple Categories",
-                                    ]}
-                                    onChange={(value) =>
-                                        updateSelect(
-                                            "category",
-                                            value
-                                        )
-                                    }
-                                />
+                                    <PremiumQuoteDropdown
+                                        label="Category"
+                                        value={
+                                            form.category
+                                        }
+                                        placeholder="Select category"
+                                        options={[
+                                            "Power Tools",
+                                            "Hand Tools",
+                                            "Electrical",
+                                            "Plumbing",
+                                            "Hardware",
+                                            "Fasteners",
+                                            "Safety",
+                                            "Paint & Adhesives",
+                                            "Construction Materials",
+                                            "HVAC",
+                                            "Multiple Categories",
+                                        ]}
+                                        onChange={(value) =>
+                                            updateSelect(
+                                                "category",
+                                                value
+                                            )
+                                        }
+                                    />
 
-                                {/* PREMIUM BRAND */}
+                                    {/* PREMIUM BRAND */}
 
-                                <PremiumQuoteDropdown
-                                    label="Preferred Brand"
-                                    value={
-                                        form.brand
-                                    }
-                                    placeholder="Select preferred brand"
-                                    options={[
-                                        "DeWalt",
-                                        "Bosch",
-                                        "Stanley",
-                                        "3M",
-                                        "Sika",
-                                        "Fischer",
-                                        "Hepworth",
-                                        "Mueller",
-                                        "Dormakaba",
-                                        "Fluke",
-                                        "No Preference",
-                                        "Multiple Brands",
-                                    ]}
-                                    onChange={(value) =>
-                                        updateSelect(
-                                            "brand",
-                                            value
-                                        )
-                                    }
-                                />
+                                    <PremiumQuoteDropdown
+                                        label="Preferred Brand"
+                                        value={
+                                            form.brand
+                                        }
+                                        placeholder="Select preferred brand"
+                                        options={[
+                                            "DeWalt",
+                                            "Bosch",
+                                            "Stanley",
+                                            "3M",
+                                            "Sika",
+                                            "Fischer",
+                                            "Hepworth",
+                                            "Mueller",
+                                            "Dormakaba",
+                                            "Fluke",
+                                            "No Preference",
+                                            "Multiple Brands",
+                                        ]}
+                                        onChange={(value) =>
+                                            updateSelect(
+                                                "brand",
+                                                value
+                                            )
+                                        }
+                                    />
 
-                                {/* Reference Number */}
+                                    {/* Reference Number */}
 
-                                {/* <QuoteField
+                                    {/* <QuoteField
                                     label="Ref Number"
                                     name="refNumber"
                                     value={
@@ -2600,87 +2579,87 @@ const submit = async (e) => {
                                     placeholder="Enter reference number"
                                 /> */}
 
-                                {/* Delivery */}
+                                    {/* Delivery */}
 
-                                <div className="lg:col-span-2">
+                                    <div className="lg:col-span-2">
 
-                                    <QuoteField
-                                        label="Delivery Location"
-                                        name="deliveryLocation"
+                                        <QuoteField
+                                            label="Delivery Location"
+                                            name="deliveryLocation"
+                                            value={
+                                                form.deliveryLocation
+                                            }
+                                            onChange={update}
+                                            placeholder="Dubai, Ajman, Sharjah, Abu Dhabi..."
+                                            required
+                                        />
+
+                                    </div>
+
+                                </div>
+
+                                {/* Description */}
+
+                                <div className="mt-5 sm:mt-6">
+
+                                    <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+                                        Description / Requirement
+                                    </label>
+
+                                    <textarea
+                                        rows={7}
+                                        name="description"
                                         value={
-                                            form.deliveryLocation
+                                            form.description
                                         }
                                         onChange={update}
-                                        placeholder="Dubai, Ajman, Sharjah, Abu Dhabi..."
-                                        required
+                                        placeholder="Product specifications and requirements..."
+                                        className="min-h-[150px] w-full min-w-0 resize-y rounded-[16px] border border-black/[0.10] bg-white p-4 text-[14px] leading-6 text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:min-h-[170px] sm:rounded-[18px] sm:p-5 sm:leading-7"
                                     />
 
                                 </div>
 
-                            </div>
+                                {/* Footer */}
 
-                            {/* Description */}
+                                <div className="mt-7 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
 
-                            <div className="mt-5 sm:mt-6">
+                                    <p className="max-w-md text-[11px] leading-5 text-[#737A74]">
 
-                                <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
-                                    Description / Requirement
-                                </label>
+                                        Product information
+                                        is automatically
+                                        fetched from your
+                                        cart. You can edit
+                                        the details before
+                                        submitting.
 
-                                <textarea
-                                    rows={7}
-                                    name="description"
-                                    value={
-                                        form.description
-                                    }
-                                    onChange={update}
-                                    placeholder="Product specifications and requirements..."
-                                    className="min-h-[150px] w-full min-w-0 resize-y rounded-[16px] border border-black/[0.10] bg-white p-4 text-[14px] leading-6 text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:min-h-[170px] sm:rounded-[18px] sm:p-5 sm:leading-7"
-                                />
+                                    </p>
 
-                            </div>
+                                    <div className="w-full lg:w-auto">
+                                        {submitError && (
+                                            <p className="mb-3 text-sm text-red-600" role="alert">
+                                                {submitError}
+                                            </p>
+                                        )}
+                                        <button
+                                            type="submit"
+                                            disabled={submitting}
+                                            className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white transition hover:bg-[#1B211D] disabled:cursor-wait disabled:opacity-60 sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
+                                        >
 
-                            {/* Footer */}
+                                            {submitting ? "Submitting…" : "Submit Quote"}
 
-                            <div className="mt-7 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
+                                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
 
-                                <p className="max-w-md text-[11px] leading-5 text-[#737A74]">
+                                                <ArrowUpRight className="h-4 w-4" />
 
-                                    Product information
-                                    is automatically
-                                    fetched from your
-                                    cart. You can edit
-                                    the details before
-                                    submitting.
+                                            </span>
 
-                                </p>
+                                        </button>
+                                    </div>
 
-                                <div className="w-full lg:w-auto">
-                                    {submitError && (
-                                        <p className="mb-3 text-sm text-red-600" role="alert">
-                                            {submitError}
-                                        </p>
-                                    )}
-                                <button
-                                    type="submit"
-                                    disabled={submitting}
-                                    className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white transition hover:bg-[#1B211D] disabled:cursor-wait disabled:opacity-60 sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
-                                >
-
-                                    {submitting ? "Submitting…" : "Submit Quote"}
-
-                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
-
-                                        <ArrowUpRight className="h-4 w-4" />
-
-                                    </span>
-
-                                </button>
                                 </div>
 
-                            </div>
-
-                        </form>
+                            </form>
                         )}
 
                     </div>
