@@ -603,7 +603,7 @@ export default function ProductsPage() {
 
                             {/* Quote Card */}
 
-                            <div className="rounded-[30px] border border-white/15 bg-black/25 p-7 shadow-[0_30px_80px_rgba(0,0,0,.25)] backdrop-blur-2xl">
+                            <div className="hidden rounded-[30px] border border-white/15 bg-black/25 p-7 shadow-[0_30px_80px_rgba(0,0,0,.25)] backdrop-blur-2xl md:block">
 
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.17em] text-[#D8FF65]">
                                     Reliable Supply
