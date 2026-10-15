@@ -1318,23 +1318,16 @@ export default function ProductsPage() {
 
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setQuoteOpen(true)
-                                        }
+                                    <Link
+                                        href="/contact"
                                         className="group mt-9 flex h-[60px] w-full items-center justify-between rounded-full bg-[#D8FF65] pl-7 pr-2 text-[14px] font-semibold text-black transition hover:bg-white"
                                     >
-
-                                        Start Quote Request
+                                        Get in Touch
 
                                         <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#101411] text-white transition-transform duration-300 group-hover:rotate-45">
-
                                             <ArrowUpRight className="h-4 w-4" />
-
                                         </span>
-
-                                    </button>
+                                    </Link>
 
                                 </div>
 
