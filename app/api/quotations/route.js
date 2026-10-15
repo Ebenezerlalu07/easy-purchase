@@ -304,44 +304,46 @@ function createQuotationPdf(quotation) {
 
     /* Customer details */
 
-    doc.fillColor(DARK)
-      .font("Helvetica-Bold")
-      .fontSize(7.8);
+    
+doc.fillColor(DARK)
+  .font("Helvetica-Bold")
+  .fontSize(7.8);
 
-    text("Company Name:", 42, 190, 25);
-    text("Customer Name:", 330, 190, 52);
-    text("Project:", 42, 216, 40);
-    text("Phone:", 330, 216, 38);
+text("Company Name:", 42, 190, 80);
+text("Customer Name:", 330, 190, 88);
+text("Project:", 42, 216, 40);
+text("Phone:", 330, 216, 38);
 
-    doc.font("Helvetica").fontSize(7.8);
+doc.font("Helvetica").fontSize(7.8);
 
-    text(
-      safe(quotation.company || quotation.contactName, "-"),
-      69,
-      190,
-      245
-    );
+text(
+  safe(quotation.company || quotation.contactName, "-"),
+  126,
+  190,
+  185
+);
 
-    text(
-      safe(quotation.contactName, "-"),
-      384,
-      190,
-      166
-    );
+text(
+  safe(quotation.contactName, "-"),
+  421,
+  190,
+  132
+);
 
-    text(
-      safe(quotation.project, "Material supply"),
-      84,
-      216,
-      230
-    );
+text(
+  safe(quotation.project, "Material supply"),
+  84,
+  216,
+  220
+);
 
-    text(
-      safe(quotation.phone, "-"),
-      370,
-      216,
-      180
-    );
+text(
+  safe(quotation.phone, "-"),
+  370,
+  216,
+  180
+);
+
 
     doc.fillColor(DARK)
       .font("Helvetica")
@@ -672,15 +674,15 @@ function createQuotationPdf(quotation) {
 
     text("For Top Range Building Materials", 42, 737, 250);
 
-    doc.strokeColor("#B8B4AD")
-      .lineWidth(0.5)
-      .moveTo(397, 739)
-      .lineTo(552, 739)
-      .stroke();
+    // doc.strokeColor("#B8B4AD")
+    //   .lineWidth(0.5)
+    //   .moveTo(397, 739)
+    //   .lineTo(552, 739)
+    //   .stroke();
 
-    doc.fillColor(MUTED)
-      .font("Helvetica")
-      .fontSize(7);
+    // doc.fillColor(MUTED)
+    //   .font("Helvetica")
+    //   .fontSize(7);
 
     doc.end();
   });
