@@ -304,45 +304,45 @@ function createQuotationPdf(quotation) {
 
     /* Customer details */
 
-    
-doc.fillColor(DARK)
-  .font("Helvetica-Bold")
-  .fontSize(7.8);
 
-text("Company Name:", 42, 190, 80);
-text("Customer Name:", 330, 190, 88);
-text("Project:", 42, 216, 40);
-text("Phone:", 330, 216, 38);
+    doc.fillColor(DARK)
+      .font("Helvetica-Bold")
+      .fontSize(7.8);
 
-doc.font("Helvetica").fontSize(7.8);
+    text("Company Name:", 42, 190, 80);
+    text("Customer Name:", 330, 190, 88);
+    text("Project:", 42, 216, 40);
+    text("Phone:", 330, 216, 38);
 
-text(
-  safe(quotation.company || quotation.contactName, "-"),
-  126,
-  190,
-  185
-);
+    doc.font("Helvetica").fontSize(7.8);
 
-text(
-  safe(quotation.contactName, "-"),
-  421,
-  190,
-  132
-);
+    text(
+      safe(quotation.company || quotation.contactName, "-"),
+      126,
+      190,
+      185
+    );
 
-text(
-  safe(quotation.project, "Material supply"),
-  84,
-  216,
-  220
-);
+    text(
+      safe(quotation.contactName, "-"),
+      421,
+      190,
+      132
+    );
 
-text(
-  safe(quotation.phone, "-"),
-  370,
-  216,
-  180
-);
+    text(
+      safe(quotation.project, "Material supply"),
+      84,
+      216,
+      220
+    );
+
+    text(
+      safe(quotation.phone, "-"),
+      370,
+      216,
+      180
+    );
 
 
     doc.fillColor(DARK)
@@ -569,7 +569,7 @@ text(
           (sum, item) =>
             sum +
             toNumber(item.price, 0) *
-              toNumber(item.quantity, 1),
+            toNumber(item.quantity, 1),
           0
         )
         .toFixed(2)
@@ -849,7 +849,7 @@ export async function POST(request) {
     const mailer = getMailer();
     const pdf = await createQuotationPdf(quotation);
 
-    const adminEmail = process.env.QUOTATION_ADMIN_EMAIL || "easypurchaseadmin@gmail.com";
+    const adminEmail = process.env.QUOTATION_ADMIN_EMAIL || "aswinptoffical@gmail.com";
 
     await mailer.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,

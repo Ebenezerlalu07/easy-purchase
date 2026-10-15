@@ -1442,13 +1442,13 @@ Unit Price: AED ${item.price}`,
 
                 {/* Reference Number */}
 
-                <QuoteField
+                {/* <QuoteField
                   label="Ref Number"
                   name="refNumber"
                   value={form.refNumber}
                   onChange={update}
                   placeholder="Enter reference number"
-                />
+                /> */}
 
                 {/* Delivery */}
 

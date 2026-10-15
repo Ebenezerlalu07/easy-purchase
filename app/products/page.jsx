@@ -2590,7 +2590,7 @@ const submit = async (e) => {
 
                                 {/* Reference Number */}
 
-                                <QuoteField
+                                {/* <QuoteField
                                     label="Ref Number"
                                     name="refNumber"
                                     value={
@@ -2598,7 +2598,7 @@ const submit = async (e) => {
                                     }
                                     onChange={update}
                                     placeholder="Enter reference number"
-                                />
+                                /> */}
 
                                 {/* Delivery */}
 
