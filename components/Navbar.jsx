@@ -186,11 +186,73 @@ export default function Navbar() {
         setSelectedLanguage(language);
         setLanguageOpen(false);
         localStorage.setItem(LANGUAGE_STORAGE_KEY, language.code);
+
+        // Keep normal English browsing instant. Google Translate is loaded only
+        // when translation is actually needed, or when reverting an active
+        // translated session back to English.
+        if (language.code === "en") {
+            const combo = document.querySelector(".goog-te-combo");
+
+            if (!combo) return;
+
+            combo.value = "en";
+            combo.dispatchEvent(new Event("change", { bubbles: true }));
+            return;
+        }
+
         await setGoogleLanguage(language.code);
     };
 
     return (
         <>
+            {/* Hide Google Translate's injected banners, tooltips and overlays.
+          This is CSS-only: no MutationObserver, polling interval or DOM watcher. */}
+            <style jsx global>{`
+        html,
+        body {
+          top: 0 !important;
+        }
+
+        body > .skiptranslate,
+        iframe.goog-te-banner-frame,
+        iframe.skiptranslate,
+        .goog-te-banner-frame,
+        .goog-te-banner-frame.skiptranslate,
+        #goog-gt-tt,
+        .goog-te-balloon-frame,
+        .goog-te-spinner-pos,
+        .goog-te-gadget-icon,
+        .goog-te-menu-frame {
+          display: none !important;
+          visibility: hidden !important;
+        }
+
+        iframe.goog-te-banner-frame,
+        iframe.skiptranslate,
+        .goog-te-banner-frame,
+        .goog-te-banner-frame.skiptranslate {
+          height: 0 !important;
+          min-height: 0 !important;
+          border: 0 !important;
+        }
+
+        .goog-text-highlight {
+          background: transparent !important;
+          box-shadow: none !important;
+        }
+
+        #google_translate_element {
+          position: fixed !important;
+          left: -99999px !important;
+          top: -99999px !important;
+          width: 1px !important;
+          height: 1px !important;
+          overflow: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
+        }
+      `}</style>
+
             <div
                 id="google_translate_element"
                 className="fixed -left-[9999px] -top-[9999px] h-px w-px overflow-hidden opacity-0 pointer-events-none"
