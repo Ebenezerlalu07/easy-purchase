@@ -22,6 +22,12 @@ import {
 } from "lucide-react";
 
 /* =========================================================
+   PERFORMANCE NOTE
+   Heavy blur/backdrop effects, motion transforms and animated
+   hover effects were removed to avoid iPhone WebKit scroll jank.
+========================================================= */
+
+/* =========================================================
    SETTINGS
 ========================================================= */
 
@@ -362,7 +368,7 @@ export default function ProductsPage() {
 
     setTimeout(() => {
       document.getElementById("products-section")?.scrollIntoView({
-        behavior: "smooth",
+        behavior: "auto",
         block: "start",
       });
     }, 50);
@@ -385,13 +391,13 @@ export default function ProductsPage() {
         return current.map((item) =>
           String(item.id) === String(product.id)
             ? {
-                ...item,
-                ...product,
-                quantity: Math.min(
-                  Number(product.stock),
-                  Number(item.quantity || 1) + 1,
-                ),
-              }
+              ...item,
+              ...product,
+              quantity: Math.min(
+                Number(product.stock),
+                Number(item.quantity || 1) + 1,
+              ),
+            }
             : item,
         );
       }
@@ -406,12 +412,12 @@ export default function ProductsPage() {
         .map((item) =>
           item.id === id
             ? {
-                ...item,
-                quantity: Math.min(
-                  Number(item.stock || 0),
-                  Math.max(0, Number(item.quantity || 1) + amount),
-                ),
-              }
+              ...item,
+              quantity: Math.min(
+                Number(item.stock || 0),
+                Math.max(0, Number(item.quantity || 1) + amount),
+              ),
+            }
             : item,
         )
         .filter((item) => item.quantity > 0),
@@ -481,10 +487,6 @@ export default function ProductsPage() {
 
           {/* Glows */}
 
-          <div className="pointer-events-none absolute -right-40 -top-20 h-[600px] w-[600px] rounded-full bg-[#D8FF65]/10 blur-[40px] md:blur-[170px]" />
-
-          <div className="pointer-events-none absolute -bottom-48 -left-40 h-[500px] w-[500px] rounded-full bg-[#C6772C]/10 blur-[30px] md:blur-[150px]" />
-
           <div className="relative z-10 mx-auto max-w-[1450px]">
             <div className="grid gap-12 lg:grid-cols-[1fr_390px] lg:items-end">
               {/* Hero Content */}
@@ -513,7 +515,7 @@ export default function ProductsPage() {
 
               {/* Quote Card */}
 
-              <div className="rounded-[30px] border border-white/15 bg-black/25 p-7 shadow-[0_30px_80px_rgba(0,0,0,.25)] backdrop-blur-sm md:backdrop-blur-2xl">
+              <div className="rounded-[30px] border border-white/15 bg-[#111713] p-7 shadow-[0_16px_40px_rgba(0,0,0,.18)]">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.17em] text-[#D8FF65]">
                   Project Procurement
                 </p>
@@ -535,7 +537,7 @@ export default function ProductsPage() {
                   className="group mt-7 flex w-full items-center justify-between border-t border-white/15 pt-5 text-[14px] font-semibold text-white"
                 >
                   Request quotation
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D8FF65] text-black transition-transform duration-300 group-hover:rotate-45">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D8FF65] text-black   ">
                     <ArrowUpRight className="h-4 w-4" />
                   </span>
                 </button>
@@ -546,7 +548,7 @@ export default function ProductsPage() {
                 SEARCH
             ================================================= */}
 
-            <div className="mt-14 flex flex-col gap-2 rounded-[24px] border border-white/15 bg-black/25 p-2 shadow-[0_20px_60px_rgba(0,0,0,.2)] backdrop-blur-sm md:backdrop-blur-xl md:flex-row">
+            <div className="mt-14 flex flex-col gap-2 rounded-[24px] border border-white/15 bg-[#111713] p-2 shadow-[0_12px_30px_rgba(0,0,0,.14)] md:flex-row">
               <div className="relative min-w-0 flex-1 search-suggestions-container">
                 <div className="flex items-center gap-4 px-4">
                   <Search className="h-5 w-5 shrink-0 text-white/75" />
@@ -596,7 +598,7 @@ export default function ProductsPage() {
                               setCurrentPage(1);
                               setSearchFocused(false);
                             }}
-                            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-white/10 focus:bg-white/10 focus:outline-none"
+                            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left  hover:bg-white/10 focus:bg-white/10 focus:outline-none"
                           >
                             <span className="min-w-0">
                               <span className="block truncate text-sm font-semibold text-white">
@@ -626,7 +628,7 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={() => setShowFilters((prev) => !prev)}
-                className="flex h-14 items-center justify-center gap-3 rounded-[17px] bg-[#D8FF65] px-7 text-[14px] font-semibold text-[#101411] transition hover:bg-white"
+                className="flex h-14 items-center justify-center gap-3 rounded-[17px] bg-[#D8FF65] px-7 text-[14px] font-semibold text-[#101411]  hover:bg-white"
               >
                 <SlidersHorizontal className="h-4 w-4" />
                 Filters
@@ -665,14 +667,13 @@ export default function ProductsPage() {
                       py-3
                       text-[12px]
                       font-semibold
-                      transition-all
-                      duration-300
 
-                      ${
-                        category === item
-                          ? "bg-[#101411] text-white"
-                          : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
-                      }
+
+
+                      ${category === item
+                      ? "bg-[#101411] text-white"
+                      : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
+                    }
                     `}
                 >
                   {item}
@@ -728,7 +729,7 @@ export default function ProductsPage() {
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="h-[54px] w-full rounded-[15px] border border-black/10 bg-[#F4F5EF] text-[13px] font-semibold text-[#303530] transition hover:bg-[#101411] hover:text-white"
+                    className="h-[54px] w-full rounded-[15px] border border-black/10 bg-[#F4F5EF] text-[13px] font-semibold text-[#303530]  hover:bg-[#101411] hover:text-white"
                   >
                     Reset Filters
                   </button>
@@ -830,7 +831,7 @@ export default function ProductsPage() {
                 role="status"
                 aria-live="polite"
               >
-                <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-black/15 border-t-[#101411]" />
+                <div className="mx-auto h-8 w-8  rounded-full border-2 border-black/15 border-t-[#101411]" />
                 <p className="mt-4 text-[14px] font-medium text-[#626963]">
                   Loading products…
                 </p>
@@ -864,7 +865,7 @@ export default function ProductsPage() {
                   return (
                     <article
                       key={product.id}
-                      className="group overflow-hidden rounded-[28px] border border-black/[0.10] bg-white shadow-[0_10px_28px_rgba(16,20,17,.08)] transition-all duration-300 hover:-translate-y-1 hover:border-black/[0.16] hover:shadow-[0_18px_42px_rgba(16,20,17,.12)]"
+                      className="group overflow-hidden rounded-[28px] border border-black/[0.10] bg-white shadow-[0_10px_28px_rgba(16,20,17,.08)]    hover:border-black/[0.16] "
                     >
                       <div className={`h-2 w-full ${cardStyle.accent}`} />
 
@@ -884,7 +885,7 @@ export default function ProductsPage() {
                         </div>
 
                         <Link href={product.productLink} className="block">
-                          <h3 className="mt-4 text-[25px] font-bold leading-[1.13] tracking-[-0.038em] text-[#101411] transition-colors hover:text-[#52651A] md:text-[28px]">
+                          <h3 className="mt-4 text-[25px] font-bold leading-[1.13] tracking-[-0.038em] text-[#101411]  hover:text-[#52651A] md:text-[28px]">
                             {product.name}
                           </h3>
                         </Link>
@@ -918,11 +919,10 @@ export default function ProductsPage() {
                             </p>
 
                             <p
-                              className={`mt-1 text-[11px] font-bold ${
-                                product.stock <= 15
+                              className={`mt-1 text-[11px] font-bold ${product.stock <= 15
                                   ? "text-[#B66B19]"
                                   : "text-[#34733D]"
-                              }`}
+                                }`}
                             >
                               {product.stock <= 0
                                 ? "Out of Stock"
@@ -968,16 +968,15 @@ export default function ProductsPage() {
                                 px-5
                                 text-[11px]
                                 font-bold
-                                transition-all
-                                duration-300
 
-                                ${
-                                  product.stock <= 0
-                                    ? "cursor-not-allowed bg-black/10 text-black/40"
-                                    : added
-                                      ? "bg-[#D8FF65] text-[#101411]"
-                                      : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
-                                }
+
+
+                                ${product.stock <= 0
+                                ? "cursor-not-allowed bg-black/10 text-black/40"
+                                : added
+                                  ? "bg-[#D8FF65] text-[#101411]"
+                                  : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
+                              }
                               `}
                           >
                             {product.stock <= 0 ? (
@@ -1000,7 +999,7 @@ export default function ProductsPage() {
                           className="group/details mt-5 flex items-center justify-between border-t border-black/[0.08] pt-4 text-[12px] font-semibold text-[#303630]"
                         >
                           View Product Details
-                          <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/details:-translate-y-0.5 group-hover/details:translate-x-0.5" />
+                          <ArrowUpRight className="h-4 w-4    " />
                         </a>
                       </div>
                     </article>
@@ -1046,8 +1045,7 @@ export default function ProductsPage() {
         ===================================================== */}
 
         <section className="px-5 pb-20 md:px-10 lg:px-14">
-          <div className="relative mx-auto max-w-[1450px] overflow-hidden rounded-[38px] bg-[#101411] text-white shadow-[0_30px_100px_rgba(0,0,0,.15)]">
-            <div className="pointer-events-none absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#D8FF65]/10 blur-[140px]" />
+          <div className="relative mx-auto max-w-[1450px] overflow-hidden rounded-[38px] bg-[#101411] text-white shadow-[0_14px_38px_rgba(0,0,0,.10)]">
 
             <div className="relative grid lg:grid-cols-[1.08fr_.92fr]">
               {/* Left */}
@@ -1102,7 +1100,7 @@ export default function ProductsPage() {
               {/* Right */}
 
               <div className="border-t border-white/10 p-5 lg:border-l lg:border-t-0 lg:p-6">
-                <div className="flex h-full flex-col justify-between rounded-[30px] border border-white/10 bg-white/[0.07] p-7 backdrop-blur-2xl sm:p-9">
+                <div className="flex h-full flex-col justify-between rounded-[30px] border border-white/10 bg-[#1A201C] p-7 sm:p-9">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-white/75">
                       Request a Quotation
@@ -1139,10 +1137,10 @@ export default function ProductsPage() {
 
                   <Link
                     href="/contact"
-                    className="group mt-9 flex h-[60px] w-full items-center justify-between rounded-full bg-[#D8FF65] pl-7 pr-2 text-[14px] font-semibold text-black transition hover:bg-white"
+                    className="group mt-9 flex h-[60px] w-full items-center justify-between rounded-full bg-[#D8FF65] pl-7 pr-2 text-[14px] font-semibold text-black  hover:bg-white"
                   >
                     Get in Touch.
-                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#101411] text-white transition-transform duration-300 group-hover:rotate-45">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#101411] text-white   ">
                       <ArrowUpRight className="h-4 w-4" />
                     </span>
                   </Link>
@@ -1168,7 +1166,7 @@ export default function ProductsPage() {
             type="button"
             aria-label="Close cart"
             onClick={closeCart}
-            className="absolute inset-0 z-0 cursor-default bg-black/55 backdrop-blur-sm"
+            className="absolute inset-0 z-0 cursor-default bg-black/65"
           />
 
           <aside
@@ -1190,7 +1188,7 @@ export default function ProductsPage() {
                 type="button"
                 aria-label="Close cart"
                 onClick={closeCart}
-                className="relative z-20 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#101411] shadow-[0_8px_24px_rgba(0,0,0,.08)] transition hover:bg-[#101411] hover:text-white focus:outline-none focus:ring-4 focus:ring-[#D8FF65]/30"
+                className="relative z-20 flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#101411] shadow-[0_8px_24px_rgba(0,0,0,.08)]  hover:bg-[#101411] hover:text-white focus:outline-none focus:ring-4 focus:ring-[#D8FF65]/30"
               >
                 <X className="pointer-events-none h-4 w-4" />
               </button>
@@ -1236,7 +1234,7 @@ export default function ProductsPage() {
                         <button
                           type="button"
                           onClick={() => removeProduct(item.id)}
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F4F5EF] text-black/50 transition hover:bg-red-50 hover:text-red-500"
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#F4F5EF] text-black/50  hover:bg-red-50 hover:text-red-500"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -1360,19 +1358,17 @@ function FilterDropdown({
           border
           bg-white
           text-left
-          transition-all
-          duration-300
 
-          ${
-            open
-              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
-              : "border-black/[0.09] hover:border-black/20"
+
+
+          ${open
+            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
+            : "border-black/[0.09] hover:border-black/20"
           }
 
-          ${
-            compact
-              ? "h-[50px] min-w-[190px] rounded-full px-5"
-              : "h-[54px] w-full rounded-[15px] px-4"
+          ${compact
+            ? "h-[50px] min-w-[190px] rounded-full px-5"
+            : "h-[54px] w-full rounded-[15px] px-4"
           }
         `}
       >
@@ -1381,14 +1377,13 @@ function FilterDropdown({
         </span>
 
         <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`h-4 w-4 shrink-0  ${open ? "rotate-180" : ""
+            }`}
         />
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-[80] max-h-[300px] overflow-y-auto rounded-[18px] border border-black/[0.08] bg-white p-2 shadow-[0_20px_60px_rgba(0,0,0,.15)]">
+        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-[80] max-h-[300px] overflow-y-auto rounded-[18px] border border-black/[0.08] bg-white p-2 shadow-[0_12px_30px_rgba(0,0,0,.10)]">
           {options.map((option) => (
             <button
               type="button"
@@ -1408,13 +1403,12 @@ function FilterDropdown({
                   text-left
                   text-[13px]
                   font-medium
-                  transition
 
-                  ${
-                    value === option
-                      ? "bg-[#D8FF65] text-[#101411]"
-                      : "text-[#454B46] hover:bg-[#F2F4EE]"
-                  }
+
+                  ${value === option
+                  ? "bg-[#D8FF65] text-[#101411]"
+                  : "text-[#454B46] hover:bg-[#F2F4EE]"
+                }
                 `}
             >
               {option}
@@ -1484,7 +1478,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
           type="button"
           disabled={currentPage === 1}
           onClick={() => onPageChange(currentPage - 1)}
-          className="flex h-11 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[12px] font-semibold transition hover:bg-[#101411] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+          className="flex h-11 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-[12px] font-semibold  hover:bg-[#101411] hover:text-white disabled:pointer-events-none disabled:opacity-30"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
 
@@ -1514,13 +1508,12 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
                   px-3
                   text-[12px]
                   font-bold
-                  transition
 
-                  ${
-                    currentPage === page
-                      ? "bg-[#101411] text-white"
-                      : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
-                  }
+
+                  ${currentPage === page
+                  ? "bg-[#101411] text-white"
+                  : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
+                }
                 `}
             >
               {page}
@@ -1532,7 +1525,7 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
           type="button"
           disabled={currentPage === totalPages}
           onClick={() => onPageChange(currentPage + 1)}
-          className="flex h-11 items-center gap-2 rounded-full bg-[#D8FF65] px-4 text-[12px] font-bold text-black transition hover:bg-[#101411] hover:text-white disabled:pointer-events-none disabled:opacity-30"
+          className="flex h-11 items-center gap-2 rounded-full bg-[#D8FF65] px-4 text-[12px] font-bold text-black  hover:bg-[#101411] hover:text-white disabled:pointer-events-none disabled:opacity-30"
         >
           <span className="hidden sm:inline">Next</span>
 
@@ -1621,15 +1614,15 @@ function QuoteModal({ cart = [], onClose }) {
   const autoDescription =
     cart.length > 0
       ? cart
-          .map(
-            (item, index) => `${index + 1}. ${item.name}
+        .map(
+          (item, index) => `${index + 1}. ${item.name}
 SKU: ${item.sku}
 Brand: ${item.brand}
 Category: ${item.category}
 Quantity: ${item.quantity}
 Unit Price: AED ${item.price}`,
-          )
-          .join("\n\n")
+        )
+        .join("\n\n")
       : "";
 
   /* =====================================================
@@ -1775,7 +1768,7 @@ Unit Price: AED ${item.price}`,
 
   return (
     <div
-      className="fixed inset-0 z-[6000] overflow-x-hidden overflow-y-auto bg-[#07100D]/80 p-2 backdrop-blur-md sm:p-4 md:p-6 lg:p-8"
+      className="fixed inset-0 z-[6000] overflow-x-hidden overflow-y-auto bg-[#07100D]/95 p-2 sm:p-4 md:p-6 lg:p-8"
       role="dialog"
       aria-modal="true"
       aria-label="Quotation request"
@@ -1798,8 +1791,6 @@ Unit Price: AED ${item.price}`,
           onMouseDown={(event) => event.stopPropagation()}
         >
           {/* Glow */}
-
-          <div className="pointer-events-none absolute -right-24 -top-24 h-[260px] w-[260px] rounded-full bg-[#D8FF65]/10 blur-[90px] sm:-right-40 sm:-top-40 sm:h-[420px] sm:w-[420px] sm:blur-[120px]" />
 
           <div className="relative p-4 sm:p-6 md:p-8 lg:p-12">
             {/* Header */}
@@ -1827,7 +1818,7 @@ Unit Price: AED ${item.price}`,
                 type="button"
                 aria-label="Close quotation request"
                 onClick={onClose}
-                className="relative z-30 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#101411] shadow-[0_8px_25px_rgba(0,0,0,.08)] transition hover:bg-[#101411] hover:text-white focus:outline-none focus:ring-4 focus:ring-[#D8FF65]/30 sm:h-12 sm:w-12"
+                className="relative z-30 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#101411] shadow-[0_8px_25px_rgba(0,0,0,.08)]  hover:bg-[#101411] hover:text-white focus:outline-none focus:ring-4 focus:ring-[#D8FF65]/30 sm:h-12 sm:w-12"
               >
                 <X className="pointer-events-none h-4 w-4" />
               </button>
@@ -1910,7 +1901,7 @@ Unit Price: AED ${item.price}`,
                   <button
                     type="button"
                     onClick={onClose}
-                    className="mt-7 rounded-full bg-[#101411] px-8 py-3.5 text-[13px] font-semibold text-white transition hover:bg-[#1B211D]"
+                    className="mt-7 rounded-full bg-[#101411] px-8 py-3.5 text-[13px] font-semibold text-white  hover:bg-[#1B211D]"
                   >
                     Close
                   </button>
@@ -2062,7 +2053,7 @@ Unit Price: AED ${item.price}`,
                     value={form.description}
                     onChange={update}
                     placeholder="Product specifications and requirements..."
-                    className="min-h-[150px] w-full min-w-0 resize-y rounded-[16px] border border-black/[0.10] bg-white p-4 text-[14px] leading-6 text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:min-h-[170px] sm:rounded-[18px] sm:p-5 sm:leading-7"
+                    className="min-h-[150px] w-full min-w-0 resize-y rounded-[16px] border border-black/[0.10] bg-white p-4 text-[14px] leading-6 text-[#202521] outline-none  placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:min-h-[170px] sm:rounded-[18px] sm:p-5 sm:leading-7"
                   />
                 </div>
 
@@ -2083,11 +2074,11 @@ Unit Price: AED ${item.price}`,
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white transition hover:bg-[#1B211D] disabled:cursor-wait disabled:opacity-60 sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
+                      className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white  hover:bg-[#1B211D] disabled:cursor-wait disabled:opacity-60 sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
                     >
                       {submitting ? "Submitting…" : "Submit Quote"}
 
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411]   ">
                         <ArrowUpRight className="h-4 w-4" />
                       </span>
                     </button>
@@ -2130,7 +2121,7 @@ function QuoteField({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="h-[54px] w-full min-w-0 rounded-[14px] border border-black/[0.10] bg-white px-4 text-[14px] font-medium text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:h-[58px] sm:rounded-[16px]"
+        className="h-[54px] w-full min-w-0 rounded-[14px] border border-black/[0.10] bg-white px-4 text-[14px] font-medium text-[#202521] outline-none  placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:h-[58px] sm:rounded-[16px]"
       />
     </div>
   );
@@ -2179,13 +2170,12 @@ function PremiumQuoteDropdown({
           pl-4
           pr-2.5
           text-left
-          transition-all
-          duration-300
 
-          ${
-            open
-              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
-              : "border-black/[0.10] hover:border-black/20"
+
+
+          ${open
+            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
+            : "border-black/[0.10] hover:border-black/20"
           }
         `}
       >
@@ -2212,13 +2202,12 @@ function PremiumQuoteDropdown({
             items-center
             justify-center
             rounded-full
-            transition-all
-            duration-300
 
-            ${
-              open
-                ? "rotate-180 bg-[#D8FF65] text-[#101411]"
-                : "bg-[#F1F3ED] text-[#535A54]"
+
+
+            ${open
+              ? "rotate-180 bg-[#D8FF65] text-[#101411]"
+              : "bg-[#F1F3ED] text-[#535A54]"
             }
           `}
         >
@@ -2259,14 +2248,13 @@ function PremiumQuoteDropdown({
                       px-3.5
                       py-3
                       text-left
-                      transition-all
-                      duration-200
 
-                      ${
-                        selected
-                          ? "bg-[#D8FF65] text-[#101411]"
-                          : "text-[#454B46] hover:bg-[#F1F3ED]"
-                      }
+
+
+                      ${selected
+                      ? "bg-[#D8FF65] text-[#101411]"
+                      : "text-[#454B46] hover:bg-[#F1F3ED]"
+                    }
                     `}
                 >
                   <span className="text-[13px] font-semibold">{option}</span>
