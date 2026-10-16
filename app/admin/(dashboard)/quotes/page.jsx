@@ -369,9 +369,9 @@ export default function QuotationsPage() {
                                     Status
                                 </th>
 
-                                <th className="px-6 py-4">
+                                {/* <th className="px-6 py-4">
                                     Action
-                                </th>
+                                </th> */}
                             </tr>
                         </thead>
 
@@ -572,7 +572,7 @@ export default function QuotationsPage() {
 
                                     {/* Action */}
 
-                                    <td className="px-6 py-5 align-top">
+                                    {/* <td className="px-6 py-5 align-top">
                                         <button
                                             type="button"
                                             onClick={() =>
@@ -606,7 +606,7 @@ export default function QuotationsPage() {
                         "
                                             />
                                         </button>
-                                    </td>
+                                    </td> */}
 
                                 </tr>
                             ))}

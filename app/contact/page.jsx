@@ -1246,7 +1246,7 @@ Thank you.`
 
                             title="Top Range Building Materials Location"
 
-                            src="https://www.google.com/maps?q=United%20Arab%20Emirates&output=embed"
+                            src="https://maps.app.goo.gl/XAFWNhLQz8RnATiu7"
 
                             loading="lazy"
 

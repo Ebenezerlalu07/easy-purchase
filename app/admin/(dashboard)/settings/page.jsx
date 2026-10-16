@@ -31,7 +31,7 @@ const defaultSettings = {
     // email: "info@toprange.ae",
     // phone: "+971 00 000 0000",
     // whatsapp: "+971 50 123 4567",
-    address: "Ajman, United Arab Emirates",
+    address: "Maliha Road, sharjah",
 
     websiteName: "Easy Purchase",
     websiteUrl: "",
