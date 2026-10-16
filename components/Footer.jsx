@@ -369,7 +369,7 @@ export default function Footer() {
                   md:text-[24px]
                 "
               >
-                info@toprange.ae
+                easypurchaseadmin@gmail.com
               </h3>
 
               <p
@@ -389,7 +389,7 @@ export default function Footer() {
           ================================================== */}
 
           <a
-            href="tel:+971 504682745"
+            href="tel:+971 50 468 2745"
             className="
               group
               flex
@@ -446,7 +446,7 @@ export default function Footer() {
                   md:text-[22px]
                 "
               >
-                +971 00 000 0000
+               +971 504682745
               </h3>
 
               <p
