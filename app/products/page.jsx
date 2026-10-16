@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import {
     ArrowLeft,
@@ -109,7 +110,6 @@ export default function ProductsPage() {
             try {
                 const response = await fetch("/api/store/products", {
                     method: "GET",
-                    cache: "no-store",
                     signal: controller.signal,
                 });
                 const payload = await response.json().catch(() => ({}));
@@ -535,14 +535,15 @@ export default function ProductsPage() {
 
                 <section className="relative overflow-hidden bg-[#07100D] px-5 pb-16 pt-36 text-white md:px-10 lg:px-14 lg:pb-20">
 
-                    {/* Banner Background Image */}
+                    {/* Optimized Banner Background Image */}
 
-                    <div
-                        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                        style={{
-                            backgroundImage:
-                                "url('/Assets/Product Banner.jpg')",
-                        }}
+                    <Image
+                        src="/Assets/Product Banner.jpg"
+                        alt=""
+                        fill
+                        priority
+                        sizes="100vw"
+                        className="object-cover object-center"
                     />
 
                     {/* Dark Overlays */}
@@ -553,9 +554,9 @@ export default function ProductsPage() {
 
                     {/* Glows */}
 
-                    <div className="pointer-events-none absolute -right-40 -top-20 h-[600px] w-[600px] rounded-full bg-[#D8FF65]/10 blur-[170px]" />
+                    <div className="pointer-events-none absolute -right-40 -top-20 hidden h-[600px] w-[600px] rounded-full bg-[#D8FF65]/10 blur-[170px] md:block" />
 
-                    <div className="pointer-events-none absolute -bottom-48 -left-40 h-[500px] w-[500px] rounded-full bg-[#C6772C]/10 blur-[150px]" />
+                    <div className="pointer-events-none absolute -bottom-48 -left-40 hidden h-[500px] w-[500px] rounded-full bg-[#C6772C]/10 blur-[150px] md:block" />
 
                     <div className="relative z-10 mx-auto max-w-[1450px]">
 
@@ -629,7 +630,7 @@ export default function ProductsPage() {
                 SEARCH
             ================================================= */}
 
-                        <div className="mt-14 flex flex-col gap-2 rounded-[24px] border border-white/15 bg-black/25 p-2 shadow-[0_20px_60px_rgba(0,0,0,.2)] backdrop-blur-xl md:flex-row">
+                        <div className="mt-14 flex flex-col gap-2 rounded-[24px] border border-white/15 bg-black/25 p-2 shadow-[0_20px_60px_rgba(0,0,0,.2)] md:backdrop-blur-xl md:flex-row">
 
                             <div className="flex flex-1 items-center gap-4 px-4">
 
@@ -1197,7 +1198,7 @@ export default function ProductsPage() {
 
                     <div className="relative mx-auto max-w-[1450px] overflow-hidden rounded-[38px] bg-[#101411] text-white shadow-[0_30px_100px_rgba(0,0,0,.15)]">
 
-                        <div className="pointer-events-none absolute -right-40 -top-40 h-[500px] w-[500px] rounded-full bg-[#D8FF65]/10 blur-[140px]" />
+                        <div className="pointer-events-none absolute -right-40 -top-40 hidden h-[500px] w-[500px] rounded-full bg-[#D8FF65]/10 blur-[140px] md:block" />
 
                         <div className="relative grid lg:grid-cols-[1.08fr_.92fr]">
 
@@ -1272,7 +1273,7 @@ export default function ProductsPage() {
 
                             <div className="border-t border-white/10 p-5 lg:border-l lg:border-t-0 lg:p-6">
 
-                                <div className="flex h-full flex-col justify-between rounded-[30px] border border-white/10 bg-white/[0.07] p-7 backdrop-blur-2xl sm:p-9">
+                                <div className="flex h-full flex-col justify-between rounded-[30px] border border-white/10 bg-white/[0.07] p-7 md:backdrop-blur-2xl sm:p-9">
 
                                     <div>
 
@@ -1358,7 +1359,7 @@ export default function ProductsPage() {
                         type="button"
                         aria-label="Close cart"
                         onClick={closeCart}
-                        className="absolute inset-0 z-0 cursor-default bg-black/55 backdrop-blur-sm"
+                        className="absolute inset-0 z-0 cursor-default bg-black/55 md:backdrop-blur-sm"
                     />
 
                     <aside
@@ -2232,7 +2233,7 @@ Unit Price: AED ${item.price}`
 
     return (
         <div
-            className="fixed inset-0 z-[6000] overflow-x-hidden overflow-y-auto bg-[#07100D]/80 p-2 backdrop-blur-md sm:p-4 md:p-6 lg:p-8"
+            className="fixed inset-0 z-[6000] overflow-x-hidden overflow-y-auto bg-[#07100D]/80 p-2 sm:p-4 md:backdrop-blur-md md:p-6 lg:p-8"
             role="dialog"
             aria-modal="true"
             aria-label="Quotation request"
@@ -2259,7 +2260,7 @@ Unit Price: AED ${item.price}`
 
                     {/* Glow */}
 
-                    <div className="pointer-events-none absolute -right-24 -top-24 h-[260px] w-[260px] rounded-full bg-[#D8FF65]/10 blur-[90px] sm:-right-40 sm:-top-40 sm:h-[420px] sm:w-[420px] sm:blur-[120px]" />
+                    <div className="pointer-events-none absolute -right-24 -top-24 hidden h-[260px] w-[260px] rounded-full bg-[#D8FF65]/10 blur-[90px] sm:-right-40 sm:-top-40 sm:h-[420px] sm:w-[420px] sm:blur-[120px] md:block" />
 
                     <div className="relative p-4 sm:p-6 md:p-8 lg:p-12">
 
