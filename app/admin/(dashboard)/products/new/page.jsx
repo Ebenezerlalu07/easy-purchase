@@ -1563,7 +1563,7 @@ export default function ProductsPage() {
                                             </div>
 
                                             <div className="mt-5">
-                                                <FormField label="Product Hyperlink" required>
+                                                <FormField label="Product Hyperlink">
                                                     <input
                                                         type="text"
                                                         name="productLink"

@@ -87,6 +87,103 @@ const navItems = [
 
 
 /* =========================================================
+   LAZY GOOGLE TRANSLATE LOADER
+   The Google script is not downloaded unless a non-English
+   language is requested or a non-English preference is saved.
+========================================================= */
+
+let googleTranslateLoadPromise = null;
+
+function hasGoogleTranslate() {
+    return Boolean(
+        typeof window !== "undefined" &&
+        window.google?.translate?.TranslateElement
+    );
+}
+
+function loadGoogleTranslate() {
+    if (hasGoogleTranslate()) {
+        return Promise.resolve();
+    }
+
+    if (googleTranslateLoadPromise) {
+        return googleTranslateLoadPromise;
+    }
+
+    googleTranslateLoadPromise = new Promise((resolve, reject) => {
+        window.topRangeGoogleTranslateInit = () => {
+            if (hasGoogleTranslate()) {
+                resolve();
+            } else {
+                googleTranslateLoadPromise = null;
+                reject(new Error("Google Translate did not initialize."));
+            }
+        };
+
+        let script = document.getElementById("google-translate-script");
+
+        if (!script) {
+            script = document.createElement("script");
+            script.id = "google-translate-script";
+            script.src =
+                "https://translate.google.com/translate_a/element.js?cb=topRangeGoogleTranslateInit";
+            script.async = true;
+            script.onerror = () => {
+                googleTranslateLoadPromise = null;
+                reject(new Error("Unable to load Google Translate."));
+            };
+            document.head.appendChild(script);
+        } else {
+            script.addEventListener(
+                "error",
+                () => {
+                    googleTranslateLoadPromise = null;
+                    reject(new Error("Unable to load Google Translate."));
+                },
+                { once: true }
+            );
+        }
+    });
+
+    return googleTranslateLoadPromise;
+}
+
+function initializeGoogleTranslate() {
+    if (!hasGoogleTranslate()) return;
+
+    const host = document.getElementById("google_translate_element");
+    if (!host || host.dataset.initialized === "true") return;
+
+    new window.google.translate.TranslateElement(
+        {
+            pageLanguage: "en",
+            includedLanguages: "en,hi,ur,te",
+            autoDisplay: false,
+        },
+        "google_translate_element"
+    );
+
+    host.dataset.initialized = "true";
+}
+
+function applyGoogleTranslateLanguage(code) {
+    const apply = () => {
+        const combo = document.querySelector(".goog-te-combo");
+        if (!combo) return false;
+
+        combo.value = code;
+        combo.dispatchEvent(new Event("change", { bubbles: true }));
+        return true;
+    };
+
+    // Google normally creates the select during initialization. Use one
+    // fallback attempt rather than polling repeatedly.
+    if (!apply()) {
+        window.setTimeout(apply, 150);
+    }
+}
+
+/* =========================================================
 
    NAVBAR
 
@@ -153,8 +250,10 @@ export default function Navbar() {
 
     /* =========================================================
        LANGUAGE TRANSLATION
+       Google Translate loads only when a non-English language is needed.
     ========================================================= */
 
+<<<<<<< HEAD
     // useEffect(() => {
     //     const savedCode =
     //         localStorage.getItem(
@@ -166,9 +265,18 @@ export default function Navbar() {
     //             (language) =>
     //                 language.code === savedCode
     //         ) || languages[0];
+=======
+    useEffect(() => {
+        const savedCode =
+            localStorage.getItem(LANGUAGE_STORAGE_KEY) || "en";
+        const savedLanguage =
+            languages.find((language) => language.code === savedCode) ||
+            languages[0];
+>>>>>>> 82c13e198e9b07c7a4303e71ad8ec7c503d8e2e6
 
     //     setSelectedLanguage(savedLanguage);
 
+<<<<<<< HEAD
     //     const applySavedLanguage = () => {
     //         let attempts = 0;
 
@@ -290,138 +398,95 @@ export default function Navbar() {
     //         }
     //     }, 100);
     // };
+=======
+        if (savedLanguage.code === "en") return;
 
-    /* =========================================================
-       HIDE GOOGLE TRANSLATE CONTROLS / TOP BANNER
-    ========================================================= */
+        let cancelled = false;
 
-    useEffect(() => {
-        const styleId =
-            "toprange-google-translate-hide";
-
-        if (!document.getElementById(styleId)) {
-            const style =
-                document.createElement("style");
-
-            style.id = styleId;
-
-            style.innerHTML = `
-                html,
-                body {
-                    top: 0 !important;
-                }
-
-                body {
-                    position: static !important;
-                }
-
-                body > .skiptranslate {
-                    display: none !important;
-                }
-
-                iframe.goog-te-banner-frame,
-                iframe.skiptranslate,
-                .goog-te-banner-frame,
-                .goog-te-banner-frame.skiptranslate {
-                    display: none !important;
-                    visibility: hidden !important;
-                    height: 0 !important;
-                    min-height: 0 !important;
-                }
-
-                #goog-gt-tt,
-                .goog-te-balloon-frame,
-                .goog-te-spinner-pos,
-                .goog-te-gadget-icon {
-                    display: none !important;
-                }
-
-                .goog-text-highlight {
-                    background: transparent !important;
-                    box-shadow: none !important;
-                }
-
-                #google_translate_element {
-                    position: fixed !important;
-                    left: -99999px !important;
-                    top: -99999px !important;
-                    width: 1px !important;
-                    height: 1px !important;
-                    overflow: hidden !important;
-                    opacity: 0 !important;
-                    pointer-events: none !important;
-                }
-            `;
-
-            document.head.appendChild(style);
-        }
-
-        const hideTranslateUi = () => {
-            document.documentElement.style.top =
-                "0px";
-
-            document.body.style.top = "0px";
-
-            [
-                "iframe.goog-te-banner-frame",
-                "iframe.skiptranslate",
-                ".goog-te-banner-frame",
-                ".goog-te-banner-frame.skiptranslate",
-            ].forEach((selector) => {
-                document
-                    .querySelectorAll(selector)
-                    .forEach((element) => {
-                        element.style.display =
-                            "none";
-
-                        element.style.visibility =
-                            "hidden";
-
-                        element.style.height =
-                            "0px";
-                    });
+        loadGoogleTranslate()
+            .then(() => {
+                if (cancelled) return;
+                initializeGoogleTranslate();
+                applyGoogleTranslateLanguage(savedLanguage.code);
+            })
+            .catch((error) => {
+                console.warn("Google Translate could not be loaded:", error);
             });
-
-            document
-                .querySelectorAll(
-                    "body > .skiptranslate"
-                )
-                .forEach((element) => {
-                    if (
-                        element.id !==
-                        "google_translate_element"
-                    ) {
-                        element.style.display =
-                            "none";
-                    }
-                });
-        };
-
-        hideTranslateUi();
-
-        const observer =
-            new MutationObserver(() => {
-                hideTranslateUi();
-            });
-
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true,
-        });
-
-        const interval =
-            window.setInterval(
-                hideTranslateUi,
-                500
-            );
 
         return () => {
-            observer.disconnect();
-
-            window.clearInterval(interval);
+            cancelled = true;
         };
     }, []);
 
+    const changeLanguage = async (language) => {
+        setSelectedLanguage(language);
+        setLanguageOpen(false);
+
+        try {
+            localStorage.setItem(LANGUAGE_STORAGE_KEY, language.code);
+        } catch (error) {
+            console.warn("Unable to save language preference:", error);
+        }
+
+        // English is the default page language. Do not download the external
+        // translation script just to select English.
+        if (language.code === "en" && !hasGoogleTranslate()) return;
+
+        try {
+            await loadGoogleTranslate();
+            initializeGoogleTranslate();
+            applyGoogleTranslateLanguage(language.code);
+        } catch (error) {
+            console.warn("Unable to change website language:", error);
+        }
+    };
+>>>>>>> 82c13e198e9b07c7a4303e71ad8ec7c503d8e2e6
+
+    /* =========================================================
+       HIDE GOOGLE TRANSLATE CONTROLS / TOP BANNER
+       CSS-only cleanup: no MutationObserver and no recurring timer.
+    ========================================================= */
+
+    useEffect(() => {
+        const styleId = "toprange-google-translate-hide";
+        if (document.getElementById(styleId)) return;
+
+        const style = document.createElement("style");
+        style.id = styleId;
+        style.textContent = `
+            html, body { top: 0 !important; }
+            body { position: static !important; }
+            body > .skiptranslate { display: none !important; }
+            iframe.goog-te-banner-frame,
+            iframe.skiptranslate,
+            .goog-te-banner-frame,
+            .goog-te-banner-frame.skiptranslate {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                min-height: 0 !important;
+            }
+            #goog-gt-tt,
+            .goog-te-balloon-frame,
+            .goog-te-spinner-pos,
+            .goog-te-gadget-icon { display: none !important; }
+            .goog-text-highlight {
+                background: transparent !important;
+                box-shadow: none !important;
+            }
+            #google_translate_element {
+                position: fixed !important;
+                left: -99999px !important;
+                top: -99999px !important;
+                width: 1px !important;
+                height: 1px !important;
+                overflow: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }, []);
 
     /* =========================================================
 
