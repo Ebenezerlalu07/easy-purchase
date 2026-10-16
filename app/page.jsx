@@ -317,28 +317,27 @@ export default function ProductsPage() {
 ========================================================= */
 
     useEffect(() => {
-        try {
-            const savedCart =
-                localStorage.getItem(
-                    "toprange_cart"
-                );
+        // Read browser storage after mount. Scheduling the state update avoids
+        // synchronously cascading another render from inside the effect.
+        const timer = window.setTimeout(() => {
+            try {
+                const savedCart = localStorage.getItem("toprange_cart");
 
-            if (savedCart) {
-                const parsedCart =
-                    JSON.parse(savedCart);
+                if (savedCart) {
+                    const parsedCart = JSON.parse(savedCart);
 
-                if (Array.isArray(parsedCart)) {
-                    setCart(parsedCart);
+                    if (Array.isArray(parsedCart)) {
+                        setCart(parsedCart);
+                    }
                 }
+            } catch (error) {
+                console.error("Unable to load cart:", error);
+            } finally {
+                setCartLoaded(true);
             }
-        } catch (error) {
-            console.error(
-                "Unable to load cart:",
-                error
-            );
-        } finally {
-            setCartLoaded(true);
-        }
+        }, 0);
+
+        return () => window.clearTimeout(timer);
     }, []);
 
     /* =========================================================
@@ -381,8 +380,11 @@ export default function ProductsPage() {
         )
     );
 
+    // Keep pagination within bounds during render, without a corrective effect.
+    const safeCurrentPage = Math.min(currentPage, totalPages);
+
     const startIndex =
-        (currentPage - 1) *
+        (safeCurrentPage - 1) *
         PRODUCTS_PER_PAGE;
 
     const endIndex =
@@ -394,30 +396,6 @@ export default function ProductsPage() {
             startIndex,
             endIndex
         );
-
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [
-        search,
-        category,
-        brand,
-        availability,
-        sort,
-    ]);
-
-    useEffect(() => {
-        if (
-            currentPage >
-            totalPages
-        ) {
-            setCurrentPage(
-                totalPages
-            );
-        }
-    }, [
-        currentPage,
-        totalPages,
-    ]);
 
     const changePage = (page) => {
         if (
@@ -516,6 +494,7 @@ export default function ProductsPage() {
     ========================================================= */
 
     const resetFilters = () => {
+        setCurrentPage(1);
         setSearch("");
         setCategory("All Products");
         setBrand("All Brands");
@@ -659,11 +638,10 @@ export default function ProductsPage() {
                                 <input
                                     type="text"
                                     value={search}
-                                    onChange={(e) =>
-                                        setSearch(
-                                            e.target.value
-                                        )
-                                    }
+                                    onChange={(e) => {
+                                        setSearch(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
                                     placeholder="Search products, brands, categories or SKU..."
                                     className="h-14 w-full bg-transparent text-[15px] font-medium text-white outline-none placeholder:text-white/55"
                                 />
@@ -774,9 +752,10 @@ export default function ProductsPage() {
                                     options={
                                         productCategories
                                     }
-                                    onChange={
-                                        setCategory
-                                    }
+                                    onChange={(value) => {
+                                        setCategory(value);
+                                        setCurrentPage(1);
+                                    }}
                                 />
 
                                 <FilterDropdown
@@ -785,9 +764,10 @@ export default function ProductsPage() {
                                     options={
                                         productBrands
                                     }
-                                    onChange={
-                                        setBrand
-                                    }
+                                    onChange={(value) => {
+                                        setBrand(value);
+                                        setCurrentPage(1);
+                                    }}
                                 />
 
                                 <FilterDropdown
@@ -798,9 +778,10 @@ export default function ProductsPage() {
                                     options={
                                         availabilityOptions
                                     }
-                                    onChange={
-                                        setAvailability
-                                    }
+                                    onChange={(value) => {
+                                        setAvailability(value);
+                                        setCurrentPage(1);
+                                    }}
                                 />
 
                                 <div className="flex items-end">
@@ -850,9 +831,10 @@ export default function ProductsPage() {
                                     options={
                                         sortOptions
                                     }
-                                    onChange={
-                                        setSort
-                                    }
+                                    onChange={(value) => {
+                                        setSort(value);
+                                        setCurrentPage(1);
+                                    }}
                                     compact
                                 />
 
@@ -1194,7 +1176,7 @@ export default function ProductsPage() {
 
                             <Pagination
                                 currentPage={
-                                    currentPage
+                                    safeCurrentPage
                                 }
                                 totalPages={
                                     totalPages

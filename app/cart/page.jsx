@@ -521,7 +521,7 @@ export default function CartPage() {
                 </p>
 
                 <Link
-                  href="/products"
+                  href="/"
                   className="
                   group
                   mt-8
@@ -653,7 +653,7 @@ export default function CartPage() {
                 {/* Continue */}
 
                 <Link
-                  href="/products"
+                  href="/"
                   className="
                   group
                   mt-6

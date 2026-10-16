@@ -268,8 +268,8 @@ export default function HomeEffects() {
 
                 router.push(
                     query
-                        ? `/products?${query}`
-                        : "/products"
+                        ? `/?${query}`
+                        : "/"
                 );
             };
 
