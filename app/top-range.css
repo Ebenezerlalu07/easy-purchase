@@ -67,3 +67,45 @@ button {
 }
 
 
+/* all your existing CSS above */
+
+
+/* =========================================================
+   IPHONE / TOUCH SCROLL PERFORMANCE FIX
+========================================================= */
+
+@media (max-width: 1023px),
+(pointer: coarse) {
+    html {
+        scroll-behavior: auto !important;
+    }
+
+    * {
+        will-change: auto !important;
+    }
+
+    [data-reveal],
+    [data-reveal-left],
+    [data-reveal-right],
+    [data-parallax],
+    [data-float],
+    [data-magnetic],
+    [data-tilt] {
+        transform: none !important;
+        animation: none !important;
+        transition: none !important;
+    }
+
+    .glass,
+    .custom-select-menu,
+    .footer-v3-box {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .card-glow,
+    .ambient-glow,
+    .footer-v3-light {
+        display: none !important;
+    }
+}
