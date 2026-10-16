@@ -2972,3 +2972,105 @@ button {
         transition: none !important;
     }
 }
+
+
+/* =========================================================
+   FOOTER — SAFARI / CHROME / IPHONE STATIC FIX
+   Add this at the VERY END of app/top-range.css
+========================================================= */
+
+/* HomeEffects was removed, so footer reveal elements must
+   no longer start hidden. */
+[data-footer-v3] {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    will-change: auto !important;
+}
+
+.footer-v3-word {
+    transform: none !important;
+    will-change: auto !important;
+}
+
+.footer-v3-underline path {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+}
+
+.footer-v3-light {
+    display: none !important;
+    filter: none !important;
+    will-change: auto !important;
+}
+
+.footer-v3-live-dot {
+    animation: none !important;
+    box-shadow: none !important;
+}
+
+.footer-v3-box {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transform: none !important;
+    will-change: auto !important;
+}
+
+.footer-v3-box,
+.footer-v3-main-button-icon,
+.footer-v3-icon-circle,
+.footer-v3-nav a,
+.footer-v3-social {
+    transition: none !important;
+}
+
+.footer-v3-box:hover,
+.footer-v3-main-button:hover .footer-v3-main-button-icon,
+.group:hover .footer-v3-icon-circle,
+.footer-v3-nav a:hover,
+.footer-v3-social:hover {
+    transform: none !important;
+}
+
+.footer-v3 {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+.footer-v3-grid,
+.footer-v3-light {
+    pointer-events: none !important;
+}
+
+@media (max-width: 1023px),
+(pointer: coarse) {
+    .footer-v3 {
+        overflow: hidden;
+        transform: none !important;
+    }
+
+    .footer-v3-box {
+        min-height: auto !important;
+        padding: 24px !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .footer-v3-grid,
+    .footer-v3-light {
+        display: none !important;
+    }
+
+    .footer-v3-word {
+        font-size: clamp(56px, 22vw, 120px) !important;
+        transform: none !important;
+    }
+
+    [data-footer-v3] {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+    }
+}

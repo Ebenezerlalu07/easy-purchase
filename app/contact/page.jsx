@@ -1227,135 +1227,58 @@ Thank you.`
 
 
             <section className="pb-16 md:pb-20 lg:pb-24">
-
-
-
                 <div className="mx-auto max-w-[1450px] px-5 md:px-10 lg:px-14">
-
-
-
                     <div className="relative min-h-[520px] overflow-hidden rounded-[34px] bg-[#101411]">
 
-
-
                         {/* Google Map */}
-
-
-
                         <iframe
-
                             title="Top Range Building Materials Location"
-
-                            src="https://maps.app.goo.gl/XAFWNhLQz8RnATiu7"
-
+                            src="https://www.google.com/maps?q=Top+Range+Building+Materials+UAE&output=embed"
                             loading="lazy"
-
                             referrerPolicy="no-referrer-when-downgrade"
-
                             className="absolute inset-0 h-full w-full border-0"
-
                         />
 
-
-
                         {/* Bottom Overlay */}
-
-
-
                         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[260px] bg-gradient-to-t from-[#07100D]/95 via-[#07100D]/45 to-transparent" />
 
-
-
-                        {/* =================================================
-
-                LOCATION CARD
-
-            ================================================== */}
-
-
-
-                        <div className="absolute bottom-5 left-5 right-5 rounded-[26px] border border-white/15 bg-[#07100D]/85 p-6 text-white shadow-2xl backdrop-blur-2xl sm:bottom-7 sm:left-7 sm:right-auto sm:w-[420px]">
-
-
+                        {/* LOCATION CARD */}
+                        <div className="absolute bottom-5 left-5 right-5 rounded-[26px] border border-white/15 bg-[#07100D]/90 p-6 text-white shadow-xl sm:bottom-7 sm:left-7 sm:right-auto sm:w-[420px]">
 
                             <div className="flex items-start justify-between gap-4">
-
-
-
                                 <div>
-
-
-
-                                    <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/30">
-
+                                    <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-white/40">
                                         Find Us
-
                                     </p>
-
-
 
                                     <h3 className="mt-2 text-xl font-medium tracking-[-0.02em]">
-
                                         Top Range Building Materials
-
                                     </h3>
 
-
-
-                                    <p className="mt-2 text-sm text-white/45">
-
+                                    <p className="mt-2 text-sm text-white/55">
                                         United Arab Emirates
-
                                     </p>
-
-
-
                                 </div>
 
-
-
                                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-black">
-
                                     <MapPin className="h-4 w-4" />
-
                                 </span>
-
-
-
                             </div>
 
-
-
                             <a
-
-                                href="https://maps.google.com"
-
+                                href="https://maps.app.goo.gl/HUDaky5cXiPDE2u67"
                                 target="_blank"
-
                                 rel="noopener noreferrer"
-
                                 className="group mt-6 flex items-center justify-between border-t border-white/10 pt-5 text-sm text-white/65 transition-colors hover:text-white"
-
                             >
-
                                 Open in Google Maps
 
-
-
                                 <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
-
-
-
                             </a>
 
-
-
                         </div>
-
                     </div>
-
                 </div>
-
             </section>
 
 
