@@ -157,351 +157,348 @@ export default function Navbar() {
        - Translation loads only when required.
     ========================================================= */
 
-    const hideGoogleTranslateUi = () => {
-        document.documentElement.style.top = "0px";
-        document.body.style.top = "0px";
-    };
+    // const hideGoogleTranslateUi = () => {
+    //     document.documentElement.style.top = "0px";
+    //     document.body.style.top = "0px";
+    // };
 
-    const initializeGoogleTranslate = () => {
-        if (
-            !window.google?.translate?.TranslateElement
-        ) {
-            return false;
-        }
+    // const initializeGoogleTranslate = () => {
+    //     if (
+    //         !window.google?.translate?.TranslateElement
+    //     ) {
+    //         return false;
+    //     }
 
-        const host = document.getElementById(
-            "google_translate_element"
-        );
+    //     const host = document.getElementById(
+    //         "google_translate_element"
+    //     );
 
-        if (host && !host.dataset.initialized) {
-            new window.google.translate.TranslateElement(
-                {
-                    pageLanguage: "en",
-                    includedLanguages: "en,hi,ur,te",
-                    autoDisplay: false,
-                },
-                "google_translate_element"
-            );
+    //     if (host && !host.dataset.initialized) {
+    //         new window.google.translate.TranslateElement(
+    //             {
+    //                 pageLanguage: "en",
+    //                 includedLanguages: "en,hi,ur,te",
+    //                 autoDisplay: false,
+    //             },
+    //             "google_translate_element"
+    //         );
 
-            host.dataset.initialized = "true";
-        }
+    //         host.dataset.initialized = "true";
+    //     }
 
-        hideGoogleTranslateUi();
+    //     hideGoogleTranslateUi();
 
-        return true;
-    };
+    //     return true;
+    // };
 
-    const loadGoogleTranslate = () => {
-        return new Promise((resolve, reject) => {
-            if (initializeGoogleTranslate()) {
-                resolve(true);
-                return;
-            }
+    // const loadGoogleTranslate = () => {
+    //     return new Promise((resolve, reject) => {
+    //         if (initializeGoogleTranslate()) {
+    //             resolve(true);
+    //             return;
+    //         }
 
-            const existingScript =
-                document.getElementById(
-                    "google-translate-script"
-                );
+    //         const existingScript =
+    //             document.getElementById(
+    //                 "google-translate-script"
+    //             );
 
-            let finished = false;
+    //         let finished = false;
 
-            const complete = () => {
-                if (finished) {
-                    return;
-                }
+    //         const complete = () => {
+    //             if (finished) {
+    //                 return;
+    //             }
 
-                finished = true;
+    //             finished = true;
 
-                if (initializeGoogleTranslate()) {
-                    resolve(true);
-                } else {
-                    reject(
-                        new Error(
-                            "Google Translate failed to initialize."
-                        )
-                    );
-                }
-            };
+    //             if (initializeGoogleTranslate()) {
+    //                 resolve(true);
+    //             } else {
+    //                 reject(
+    //                     new Error(
+    //                         "Google Translate failed to initialize."
+    //                     )
+    //                 );
+    //             }
+    //         };
 
-            window.topRangeGoogleTranslateInit =
-                complete;
+    //         window.topRangeGoogleTranslateInit =
+    //             complete;
 
-            if (existingScript) {
-                existingScript.addEventListener(
-                    "load",
-                    complete,
-                    { once: true }
-                );
+    //         if (existingScript) {
+    //             existingScript.addEventListener(
+    //                 "load",
+    //                 complete,
+    //                 { once: true }
+    //             );
 
-                existingScript.addEventListener(
-                    "error",
-                    () => {
-                        if (!finished) {
-                            finished = true;
-                            reject(
-                                new Error(
-                                    "Google Translate script failed to load."
-                                )
-                            );
-                        }
-                    },
-                    { once: true }
-                );
+    //             existingScript.addEventListener(
+    //                 "error",
+    //                 () => {
+    //                     if (!finished) {
+    //                         finished = true;
+    //                         reject(
+    //                             new Error(
+    //                                 "Google Translate script failed to load."
+    //                             )
+    //                         );
+    //                     }
+    //                 },
+    //                 { once: true }
+    //             );
 
-                return;
-            }
+    //             return;
+    //         }
 
-            const script =
-                document.createElement("script");
+    //         const script =
+    //             document.createElement("script");
 
-            script.id =
-                "google-translate-script";
+    //         script.id =
+    //             "google-translate-script";
 
-            script.src =
-                "https://translate.google.com/translate_a/element.js?cb=topRangeGoogleTranslateInit";
+    //         script.src =
+    //             "https://translate.google.com/translate_a/element.js?cb=topRangeGoogleTranslateInit";
 
-            script.async = true;
-            script.defer = true;
+    //         script.async = true;
+    //         script.defer = true;
 
-            script.onerror = () => {
-                if (!finished) {
-                    finished = true;
+    //         script.onerror = () => {
+    //             if (!finished) {
+    //                 finished = true;
 
-                    reject(
-                        new Error(
-                            "Google Translate script failed to load."
-                        )
-                    );
-                }
-            };
+    //                 reject(
+    //                     new Error(
+    //                         "Google Translate script failed to load."
+    //                     )
+    //                 );
+    //             }
+    //         };
 
-            document.body.appendChild(script);
-        });
-    };
+    //         document.body.appendChild(script);
+    //     });
+    // };
 
-    const applyGoogleLanguage = async (
-        languageCode
-    ) => {
-        if (languageCode === "en") {
-            const combo =
-                document.querySelector(
-                    ".goog-te-combo"
-                );
+    // const applyGoogleLanguage = async (
+    //     languageCode
+    // ) => {
+    //     if (languageCode === "en") {
+    //         const combo =
+    //             document.querySelector(
+    //                 ".goog-te-combo"
+    //             );
 
-            if (combo) {
-                combo.value = "en";
+    //         if (combo) {
+    //             combo.value = "en";
 
-                combo.dispatchEvent(
-                    new Event("change", {
-                        bubbles: true,
-                    })
-                );
-            }
+    //             combo.dispatchEvent(
+    //                 new Event("change", {
+    //                     bubbles: true,
+    //                 })
+    //             );
+    //         }
 
-            hideGoogleTranslateUi();
-            return;
-        }
+    //         hideGoogleTranslateUi();
+    //         return;
+    //     }
 
-        try {
-            await loadGoogleTranslate();
+    //     try {
+    //         await loadGoogleTranslate();
 
-            /*
-             * Google creates the select just after TranslateElement
-             * initialization. Retry briefly only for this user action.
-             * There is no permanent interval running in the background.
-             */
-            for (
-                let attempt = 0;
-                attempt < 12;
-                attempt += 1
-            ) {
-                const combo =
-                    document.querySelector(
-                        ".goog-te-combo"
-                    );
+    //         /*
+    //          * Google creates the select just after TranslateElement
+    //          * initialization. Retry briefly only for this user action.
+    //          * There is no permanent interval running in the background.
+    //          */
+    //         for (
+    //             let attempt = 0;
+    //             attempt < 12;
+    //             attempt += 1
+    //         ) {
+    //             const combo =
+    //                 document.querySelector(
+    //                     ".goog-te-combo"
+    //                 );
 
-                if (combo) {
-                    combo.value =
-                        languageCode;
+    //             if (combo) {
+    //                 combo.value =
+    //                     languageCode;
 
-                    combo.dispatchEvent(
-                        new Event("change", {
-                            bubbles: true,
-                        })
-                    );
+    //                 combo.dispatchEvent(
+    //                     new Event("change", {
+    //                         bubbles: true,
+    //                     })
+    //                 );
 
-                    hideGoogleTranslateUi();
-                    return;
-                }
+    //                 hideGoogleTranslateUi();
+    //                 return;
+    //             }
 
-                await new Promise((resolve) =>
-                    window.setTimeout(
-                        resolve,
-                        100
-                    )
-                );
-            }
+    //             await new Promise((resolve) =>
+    //                 window.setTimeout(
+    //                     resolve,
+    //                     100
+    //                 )
+    //             );
+    //         }
 
-            console.warn(
-                "Google Translate language selector was not ready."
-            );
-        } catch (error) {
-            console.error(
-                "Unable to load Google Translate:",
-                error
-            );
-        }
-    };
+    //         console.warn(
+    //             "Google Translate language selector was not ready."
+    //         );
+    //     } catch (error) {
+    //         console.error(
+    //             "Unable to load Google Translate:",
+    //             error
+    //         );
+    //     }
+    // };
 
-    useEffect(() => {
-        const savedCode =
-            localStorage.getItem(
-                LANGUAGE_STORAGE_KEY
-            ) || "en";
+    // useEffect(() => {
+    //     const savedCode =
+    //         localStorage.getItem(
+    //             LANGUAGE_STORAGE_KEY
+    //         ) || "en";
 
-        const savedLanguage =
-            languages.find(
-                (language) =>
-                    language.code ===
-                    savedCode
-            ) || languages[0];
+    //     const savedLanguage =
+    //         languages.find(
+    //             (language) =>
+    //                 language.code ===
+    //                 savedCode
+    //         ) || languages[0];
 
-        setSelectedLanguage(
-            savedLanguage
-        );
+    //     setSelectedLanguage(
+    //         savedLanguage
+    //     );
 
-        /*
-         * Keep the initial English page lightweight.
-         * Only restore Google Translate automatically if the user
-         * previously selected another language.
-         */
-        if (savedCode !== "en") {
-            const restoreTranslation = () => {
-                applyGoogleLanguage(
-                    savedCode
-                );
-            };
+    //     /*
+    //      * Keep the initial English page lightweight.
+    //      * Only restore Google Translate automatically if the user
+    //      * previously selected another language.
+    //      */
+    //     if (savedCode !== "en") {
+    //         const restoreTranslation = () => {
+    //             applyGoogleLanguage(
+    //                 savedCode
+    //             );
+    //         };
 
-            if (
-                "requestIdleCallback" in window
-            ) {
-                const idleId =
-                    window.requestIdleCallback(
-                        restoreTranslation,
-                        { timeout: 1500 }
-                    );
+    //         if (
+    //             "requestIdleCallback" in window
+    //         ) {
+    //             const idleId =
+    //                 window.requestIdleCallback(
+    //                     restoreTranslation,
+    //                     { timeout: 1500 }
+    //                 );
 
-                return () => {
-                    window.cancelIdleCallback?.(
-                        idleId
-                    );
-                };
-            }
+    //             return () => {
+    //                 window.cancelIdleCallback?.(
+    //                     idleId
+    //                 );
+    //             };
+    //         }
 
-            const timeoutId =
-                window.setTimeout(
-                    restoreTranslation,
-                    600
-                );
+    //         const timeoutId =
+    //             window.setTimeout(
+    //                 restoreTranslation,
+    //                 600
+    //             );
 
-            return () =>
-                window.clearTimeout(
-                    timeoutId
-                );
-        }
-    }, []);
+    //         return () =>
+    //             window.clearTimeout(
+    //                 timeoutId
+    //             );
+    //     }
+    // }, []);
 
-    const changeLanguage = async (
-        language
-    ) => {
-        setSelectedLanguage(
-            language
-        );
+    // const changeLanguage = async (
+    //     language
+    // ) => {
+    //     setSelectedLanguage(
+    //         language
+    //     );
 
-        setLanguageOpen(false);
+    //     setLanguageOpen(false);
 
-        localStorage.setItem(
-            LANGUAGE_STORAGE_KEY,
-            language.code
-        );
+    //     localStorage.setItem(
+    //         LANGUAGE_STORAGE_KEY,
+    //         language.code
+    //     );
 
-        await applyGoogleLanguage(
-            language.code
-        );
-    };
+    //     await applyGoogleLanguage(
+    //         language.code
+    //     );
+    // };
 
-    /* =========================================================
-       HIDE GOOGLE TRANSLATE CONTROLS / TOP BANNER
-       CSS only — no observer and no permanent timer.
-    ========================================================= */
 
-    useEffect(() => {
-        const styleId =
-            "toprange-google-translate-hide";
 
-        if (document.getElementById(styleId)) {
-            return;
-        }
+    // useEffect(() => {
+    //     const styleId =
+    //         "toprange-google-translate-hide";
 
-        const style =
-            document.createElement("style");
+    //     if (document.getElementById(styleId)) {
+    //         return;
+    //     }
 
-        style.id = styleId;
+    //     const style =
+    //         document.createElement("style");
 
-        style.innerHTML = `
-            html,
-            body {
-                top: 0 !important;
-            }
+    //     style.id = styleId;
 
-            body {
-                position: static !important;
-            }
+    //     style.innerHTML = `
+    //         html,
+    //         body {
+    //             top: 0 !important;
+    //         }
 
-            body > .skiptranslate {
-                display: none !important;
-            }
+    //         body {
+    //             position: static !important;
+    //         }
 
-            iframe.goog-te-banner-frame,
-            iframe.skiptranslate,
-            .goog-te-banner-frame,
-            .goog-te-banner-frame.skiptranslate {
-                display: none !important;
-                visibility: hidden !important;
-                height: 0 !important;
-                min-height: 0 !important;
-            }
+    //         body > .skiptranslate {
+    //             display: none !important;
+    //         }
 
-            #goog-gt-tt,
-            .goog-te-balloon-frame,
-            .goog-te-spinner-pos,
-            .goog-te-gadget-icon {
-                display: none !important;
-            }
+    //         iframe.goog-te-banner-frame,
+    //         iframe.skiptranslate,
+    //         .goog-te-banner-frame,
+    //         .goog-te-banner-frame.skiptranslate {
+    //             display: none !important;
+    //             visibility: hidden !important;
+    //             height: 0 !important;
+    //             min-height: 0 !important;
+    //         }
 
-            .goog-text-highlight {
-                background: transparent !important;
-                box-shadow: none !important;
-            }
+    //         #goog-gt-tt,
+    //         .goog-te-balloon-frame,
+    //         .goog-te-spinner-pos,
+    //         .goog-te-gadget-icon {
+    //             display: none !important;
+    //         }
 
-            #google_translate_element {
-                position: fixed !important;
-                left: -99999px !important;
-                top: -99999px !important;
-                width: 1px !important;
-                height: 1px !important;
-                overflow: hidden !important;
-                opacity: 0 !important;
-                pointer-events: none !important;
-            }
-        `;
+    //         .goog-text-highlight {
+    //             background: transparent !important;
+    //             box-shadow: none !important;
+    //         }
 
-        document.head.appendChild(
-            style
-        );
+    //         #google_translate_element {
+    //             position: fixed !important;
+    //             left: -99999px !important;
+    //             top: -99999px !important;
+    //             width: 1px !important;
+    //             height: 1px !important;
+    //             overflow: hidden !important;
+    //             opacity: 0 !important;
+    //             pointer-events: none !important;
+    //         }
+    //     `;
 
-        hideGoogleTranslateUi();
-    }, []);
+    //     document.head.appendChild(
+    //         style
+    //     );
+
+    //     hideGoogleTranslateUi();
+    // }, []);
 
 
     /* =========================================================
