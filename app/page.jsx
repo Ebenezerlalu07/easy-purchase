@@ -553,9 +553,9 @@ export default function ProductsPage() {
 
                     {/* Glows */}
 
-                    <div className="pointer-events-none absolute -right-40 -top-20 h-[600px] w-[600px] rounded-full bg-[#D8FF65]/10 blur-[170px]" />
+                    <div className="pointer-events-none absolute -right-40 -top-20 h-[600px] w-[600px] rounded-full bg-[#D8FF65]/10 blur-[40px] md:blur-[170px]" />
 
-                    <div className="pointer-events-none absolute -bottom-48 -left-40 h-[500px] w-[500px] rounded-full bg-[#C6772C]/10 blur-[150px]" />
+                    <div className="pointer-events-none absolute -bottom-48 -left-40 h-[500px] w-[500px] rounded-full bg-[#C6772C]/10 blur-[30px] md:blur-[150px]" />
 
                     <div className="relative z-10 mx-auto max-w-[1450px]">
 
@@ -603,7 +603,7 @@ export default function ProductsPage() {
 
                             {/* Quote Card */}
 
-                            <div className="rounded-[30px] border border-white/15 bg-black/25 p-7 shadow-[0_30px_80px_rgba(0,0,0,.25)] backdrop-blur-2xl">
+                            <div className="rounded-[30px] border border-white/15 bg-black/25 p-7 shadow-[0_30px_80px_rgba(0,0,0,.25)] backdrop-blur-sm md:backdrop-blur-2xl">
 
                                 <p className="text-[11px] font-semibold uppercase tracking-[0.17em] text-[#D8FF65]">
                                     Project Procurement
@@ -650,7 +650,7 @@ export default function ProductsPage() {
                 SEARCH
             ================================================= */}
 
-                        <div className="mt-14 flex flex-col gap-2 rounded-[24px] border border-white/15 bg-black/25 p-2 shadow-[0_20px_60px_rgba(0,0,0,.2)] backdrop-blur-xl md:flex-row">
+                        <div className="mt-14 flex flex-col gap-2 rounded-[24px] border border-white/15 bg-black/25 p-2 shadow-[0_20px_60px_rgba(0,0,0,.2)] backdrop-blur-sm md:backdrop-blur-xl md:flex-row">
 
                             <div className="flex flex-1 items-center gap-4 px-4">
 
