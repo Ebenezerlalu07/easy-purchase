@@ -1,7 +1,7 @@
 import { DM_Sans, Manrope } from "next/font/google";
 
 import "./globals.css";
-// import "./top-range.css";
+import "./top-range.css";
 
 import SiteChrome from "@/components/SiteChrome";
 import { AdminProvider } from "@/components/admin/AdminProvider";

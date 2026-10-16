@@ -1,3339 +1,3339 @@
-"use client";
+// "use client";
 
 
 
-import Link from "next/link";
+// import Link from "next/link";
 
-import {
+// import {
 
-    usePathname,
+//     usePathname,
 
-    useRouter,
+//     useRouter,
 
-} from "next/navigation";
+// } from "next/navigation";
 
 
 
-import {
+// import {
 
-    useEffect,
+//     useEffect,
 
-    useMemo,
+//     useMemo,
 
-    useState,
+//     useState,
 
-} from "react";
+// } from "react";
 
 
 
-import {
+// import {
 
-    ArrowRight,
+//     ArrowRight,
 
-    ArrowUpRight,
+//     ArrowUpRight,
 
-    Check,
+//     Check,
 
-    ChevronDown,
+//     ChevronDown,
 
-    ChevronRight,
+//     ChevronRight,
 
-    Globe2,
+//     Globe2,
 
-    Menu,
+//     Menu,
 
-    ShoppingBag,
+//     ShoppingBag,
 
-    Trash2,
+//     Trash2,
 
-    X,
+//     X,
 
-} from "lucide-react";
+// } from "lucide-react";
 
 
 
-const CART_STORAGE_KEY = "toprange_cart";
+// const CART_STORAGE_KEY = "toprange_cart";
 
-const LANGUAGE_STORAGE_KEY = "toprange_language";
+// const LANGUAGE_STORAGE_KEY = "toprange_language";
 
-const languages = [
-    { name: "English", native: "English", code: "en" },
-    { name: "Hindi", native: "हिन्दी", code: "hi" },
-    { name: "Urdu", native: "اردو", code: "ur" },
-    { name: "Telugu", native: "తెలుగు", code: "te" },
-];
+// const languages = [
+//     { name: "English", native: "English", code: "en" },
+//     { name: "Hindi", native: "हिन्दी", code: "hi" },
+//     { name: "Urdu", native: "اردو", code: "ur" },
+//     { name: "Telugu", native: "తెలుగు", code: "te" },
+// ];
 
 
 
-/* =========================================================
+// /* =========================================================
 
-   NAV ITEMS
+//    NAV ITEMS
 
-========================================================= */
+// ========================================================= */
 
 
 
-const navItems = [
-    {
-        name: "Home",
-        href: "/",
-    },
-    {
-        name: "Contact",
-        href: "/contact",
-    },
-];
+// const navItems = [
+//     {
+//         name: "Home",
+//         href: "/",
+//     },
+//     {
+//         name: "Contact",
+//         href: "/contact",
+//     },
+// ];
 
 
 
-/* =========================================================
+// /* =========================================================
 
-   NAVBAR
+//    NAVBAR
 
-========================================================= */
+// ========================================================= */
 
 
 
-export default function Navbar() {
+// export default function Navbar() {
 
-    const pathname = usePathname();
+//     const pathname = usePathname();
 
-    const router = useRouter();
+//     const router = useRouter();
 
 
 
-    const [menuOpen, setMenuOpen] = useState(false);
+//     const [menuOpen, setMenuOpen] = useState(false);
 
 
 
-    const [cartOpen, setCartOpen] = useState(false);
+//     const [cartOpen, setCartOpen] = useState(false);
 
 
 
-    const [cart, setCart] = useState([]);
+//     const [cart, setCart] = useState([]);
 
-    const [languageOpen, setLanguageOpen] =
-        useState(false);
+//     const [languageOpen, setLanguageOpen] =
+//         useState(false);
 
-    const [selectedLanguage, setSelectedLanguage] =
-        useState(languages[0]);
+//     const [selectedLanguage, setSelectedLanguage] =
+//         useState(languages[0]);
 
-    // Load the saved company logo from public site settings.
-    const [logoUrl, setLogoUrl] = useState("");
+//     // Load the saved company logo from public site settings.
+//     const [logoUrl, setLogoUrl] = useState("");
 
-    useEffect(() => {
-        let cancelled = false;
+//     useEffect(() => {
+//         let cancelled = false;
 
-        async function loadPublicSettings() {
-            try {
-                const response = await fetch("/api/settings?public=1");
+//         async function loadPublicSettings() {
+//             try {
+//                 const response = await fetch("/api/settings?public=1");
 
-                if (!response.ok) return;
+//                 if (!response.ok) return;
 
-                const data = await response.json();
+//                 const data = await response.json();
 
-                if (!cancelled && typeof data?.settings?.logoUrl === "string") {
-                    setLogoUrl(data.settings.logoUrl);
-                }
-            } catch (error) {
-                console.error("Unable to load navbar logo:", error);
-            }
-        }
+//                 if (!cancelled && typeof data?.settings?.logoUrl === "string") {
+//                     setLogoUrl(data.settings.logoUrl);
+//                 }
+//             } catch (error) {
+//                 console.error("Unable to load navbar logo:", error);
+//             }
+//         }
 
-        loadPublicSettings();
+//         loadPublicSettings();
 
-        return () => {
-            cancelled = true;
-        };
-    }, []);
+//         return () => {
+//             cancelled = true;
+//         };
+//     }, []);
 
 
 
-    /* =========================================================
-       LANGUAGE TRANSLATION — OPTIMIZED
-       - Google script is NOT loaded for normal English visitors.
-       - No permanent MutationObserver.
-       - No permanent setInterval.
-       - Translation loads only when required.
-    ========================================================= */
+//     /* =========================================================
+//        LANGUAGE TRANSLATION — OPTIMIZED
+//        - Google script is NOT loaded for normal English visitors.
+//        - No permanent MutationObserver.
+//        - No permanent setInterval.
+//        - Translation loads only when required.
+//     ========================================================= */
 
-    const hideGoogleTranslateUi = () => {
-        document.documentElement.style.top = "0px";
-        document.body.style.top = "0px";
-    };
+//     const hideGoogleTranslateUi = () => {
+//         document.documentElement.style.top = "0px";
+//         document.body.style.top = "0px";
+//     };
 
-    const initializeGoogleTranslate = () => {
-        if (
-            !window.google?.translate?.TranslateElement
-        ) {
-            return false;
-        }
+//     const initializeGoogleTranslate = () => {
+//         if (
+//             !window.google?.translate?.TranslateElement
+//         ) {
+//             return false;
+//         }
 
-        const host = document.getElementById(
-            "google_translate_element"
-        );
+//         const host = document.getElementById(
+//             "google_translate_element"
+//         );
 
-        if (host && !host.dataset.initialized) {
-            new window.google.translate.TranslateElement(
-                {
-                    pageLanguage: "en",
-                    includedLanguages: "en,hi,ur,te",
-                    autoDisplay: false,
-                },
-                "google_translate_element"
-            );
+//         if (host && !host.dataset.initialized) {
+//             new window.google.translate.TranslateElement(
+//                 {
+//                     pageLanguage: "en",
+//                     includedLanguages: "en,hi,ur,te",
+//                     autoDisplay: false,
+//                 },
+//                 "google_translate_element"
+//             );
 
-            host.dataset.initialized = "true";
-        }
+//             host.dataset.initialized = "true";
+//         }
 
-        hideGoogleTranslateUi();
-
-        return true;
-    };
+//         hideGoogleTranslateUi();
+
+//         return true;
+//     };
 
-    const loadGoogleTranslate = () => {
-        return new Promise((resolve, reject) => {
-            if (initializeGoogleTranslate()) {
-                resolve(true);
-                return;
-            }
-
-            const existingScript =
-                document.getElementById(
-                    "google-translate-script"
-                );
+//     const loadGoogleTranslate = () => {
+//         return new Promise((resolve, reject) => {
+//             if (initializeGoogleTranslate()) {
+//                 resolve(true);
+//                 return;
+//             }
+
+//             const existingScript =
+//                 document.getElementById(
+//                     "google-translate-script"
+//                 );
 
-            let finished = false;
-
-            const complete = () => {
-                if (finished) {
-                    return;
-                }
-
-                finished = true;
-
-                if (initializeGoogleTranslate()) {
-                    resolve(true);
-                } else {
-                    reject(
-                        new Error(
-                            "Google Translate failed to initialize."
-                        )
-                    );
-                }
-            };
-
-            window.topRangeGoogleTranslateInit =
-                complete;
-
-            if (existingScript) {
-                existingScript.addEventListener(
-                    "load",
-                    complete,
-                    { once: true }
-                );
-
-                existingScript.addEventListener(
-                    "error",
-                    () => {
-                        if (!finished) {
-                            finished = true;
-                            reject(
-                                new Error(
-                                    "Google Translate script failed to load."
-                                )
-                            );
-                        }
-                    },
-                    { once: true }
-                );
-
-                return;
-            }
-
-            const script =
-                document.createElement("script");
-
-            script.id =
-                "google-translate-script";
-
-            script.src =
-                "https://translate.google.com/translate_a/element.js?cb=topRangeGoogleTranslateInit";
-
-            script.async = true;
-            script.defer = true;
-
-            script.onerror = () => {
-                if (!finished) {
-                    finished = true;
-
-                    reject(
-                        new Error(
-                            "Google Translate script failed to load."
-                        )
-                    );
-                }
-            };
-
-            document.body.appendChild(script);
-        });
-    };
-
-    const applyGoogleLanguage = async (
-        languageCode
-    ) => {
-        if (languageCode === "en") {
-            const combo =
-                document.querySelector(
-                    ".goog-te-combo"
-                );
-
-            if (combo) {
-                combo.value = "en";
-
-                combo.dispatchEvent(
-                    new Event("change", {
-                        bubbles: true,
-                    })
-                );
-            }
-
-            hideGoogleTranslateUi();
-            return;
-        }
-
-        try {
-            await loadGoogleTranslate();
-
-            /*
-             * Google creates the select just after TranslateElement
-             * initialization. Retry briefly only for this user action.
-             * There is no permanent interval running in the background.
-             */
-            for (
-                let attempt = 0;
-                attempt < 12;
-                attempt += 1
-            ) {
-                const combo =
-                    document.querySelector(
-                        ".goog-te-combo"
-                    );
-
-                if (combo) {
-                    combo.value =
-                        languageCode;
-
-                    combo.dispatchEvent(
-                        new Event("change", {
-                            bubbles: true,
-                        })
-                    );
-
-                    hideGoogleTranslateUi();
-                    return;
-                }
-
-                await new Promise((resolve) =>
-                    window.setTimeout(
-                        resolve,
-                        100
-                    )
-                );
-            }
-
-            console.warn(
-                "Google Translate language selector was not ready."
-            );
-        } catch (error) {
-            console.error(
-                "Unable to load Google Translate:",
-                error
-            );
-        }
-    };
-
-    useEffect(() => {
-        const savedCode =
-            localStorage.getItem(
-                LANGUAGE_STORAGE_KEY
-            ) || "en";
-
-        const savedLanguage =
-            languages.find(
-                (language) =>
-                    language.code ===
-                    savedCode
-            ) || languages[0];
-
-        setSelectedLanguage(
-            savedLanguage
-        );
-
-        /*
-         * Keep the initial English page lightweight.
-         * Only restore Google Translate automatically if the user
-         * previously selected another language.
-         */
-        if (savedCode !== "en") {
-            const restoreTranslation = () => {
-                applyGoogleLanguage(
-                    savedCode
-                );
-            };
-
-            if (
-                "requestIdleCallback" in window
-            ) {
-                const idleId =
-                    window.requestIdleCallback(
-                        restoreTranslation,
-                        { timeout: 1500 }
-                    );
-
-                return () => {
-                    window.cancelIdleCallback?.(
-                        idleId
-                    );
-                };
-            }
-
-            const timeoutId =
-                window.setTimeout(
-                    restoreTranslation,
-                    600
-                );
-
-            return () =>
-                window.clearTimeout(
-                    timeoutId
-                );
-        }
-    }, []);
-
-    const changeLanguage = async (
-        language
-    ) => {
-        setSelectedLanguage(
-            language
-        );
-
-        setLanguageOpen(false);
-
-        localStorage.setItem(
-            LANGUAGE_STORAGE_KEY,
-            language.code
-        );
-
-        await applyGoogleLanguage(
-            language.code
-        );
-    };
-
-
-
-    useEffect(() => {
-        const styleId =
-            "toprange-google-translate-hide";
-
-        if (document.getElementById(styleId)) {
-            return;
-        }
-
-        const style =
-            document.createElement("style");
-
-        style.id = styleId;
-
-        style.innerHTML = `
-            html,
-            body {
-                top: 0 !important;
-            }
+//             let finished = false;
+
+//             const complete = () => {
+//                 if (finished) {
+//                     return;
+//                 }
+
+//                 finished = true;
+
+//                 if (initializeGoogleTranslate()) {
+//                     resolve(true);
+//                 } else {
+//                     reject(
+//                         new Error(
+//                             "Google Translate failed to initialize."
+//                         )
+//                     );
+//                 }
+//             };
+
+//             window.topRangeGoogleTranslateInit =
+//                 complete;
+
+//             if (existingScript) {
+//                 existingScript.addEventListener(
+//                     "load",
+//                     complete,
+//                     { once: true }
+//                 );
+
+//                 existingScript.addEventListener(
+//                     "error",
+//                     () => {
+//                         if (!finished) {
+//                             finished = true;
+//                             reject(
+//                                 new Error(
+//                                     "Google Translate script failed to load."
+//                                 )
+//                             );
+//                         }
+//                     },
+//                     { once: true }
+//                 );
+
+//                 return;
+//             }
+
+//             const script =
+//                 document.createElement("script");
+
+//             script.id =
+//                 "google-translate-script";
+
+//             script.src =
+//                 "https://translate.google.com/translate_a/element.js?cb=topRangeGoogleTranslateInit";
+
+//             script.async = true;
+//             script.defer = true;
+
+//             script.onerror = () => {
+//                 if (!finished) {
+//                     finished = true;
+
+//                     reject(
+//                         new Error(
+//                             "Google Translate script failed to load."
+//                         )
+//                     );
+//                 }
+//             };
+
+//             document.body.appendChild(script);
+//         });
+//     };
+
+//     const applyGoogleLanguage = async (
+//         languageCode
+//     ) => {
+//         if (languageCode === "en") {
+//             const combo =
+//                 document.querySelector(
+//                     ".goog-te-combo"
+//                 );
+
+//             if (combo) {
+//                 combo.value = "en";
+
+//                 combo.dispatchEvent(
+//                     new Event("change", {
+//                         bubbles: true,
+//                     })
+//                 );
+//             }
+
+//             hideGoogleTranslateUi();
+//             return;
+//         }
+
+//         try {
+//             await loadGoogleTranslate();
+
+//             /*
+//              * Google creates the select just after TranslateElement
+//              * initialization. Retry briefly only for this user action.
+//              * There is no permanent interval running in the background.
+//              */
+//             for (
+//                 let attempt = 0;
+//                 attempt < 12;
+//                 attempt += 1
+//             ) {
+//                 const combo =
+//                     document.querySelector(
+//                         ".goog-te-combo"
+//                     );
+
+//                 if (combo) {
+//                     combo.value =
+//                         languageCode;
+
+//                     combo.dispatchEvent(
+//                         new Event("change", {
+//                             bubbles: true,
+//                         })
+//                     );
+
+//                     hideGoogleTranslateUi();
+//                     return;
+//                 }
+
+//                 await new Promise((resolve) =>
+//                     window.setTimeout(
+//                         resolve,
+//                         100
+//                     )
+//                 );
+//             }
+
+//             console.warn(
+//                 "Google Translate language selector was not ready."
+//             );
+//         } catch (error) {
+//             console.error(
+//                 "Unable to load Google Translate:",
+//                 error
+//             );
+//         }
+//     };
+
+//     useEffect(() => {
+//         const savedCode =
+//             localStorage.getItem(
+//                 LANGUAGE_STORAGE_KEY
+//             ) || "en";
+
+//         const savedLanguage =
+//             languages.find(
+//                 (language) =>
+//                     language.code ===
+//                     savedCode
+//             ) || languages[0];
+
+//         setSelectedLanguage(
+//             savedLanguage
+//         );
+
+//         /*
+//          * Keep the initial English page lightweight.
+//          * Only restore Google Translate automatically if the user
+//          * previously selected another language.
+//          */
+//         if (savedCode !== "en") {
+//             const restoreTranslation = () => {
+//                 applyGoogleLanguage(
+//                     savedCode
+//                 );
+//             };
+
+//             if (
+//                 "requestIdleCallback" in window
+//             ) {
+//                 const idleId =
+//                     window.requestIdleCallback(
+//                         restoreTranslation,
+//                         { timeout: 1500 }
+//                     );
+
+//                 return () => {
+//                     window.cancelIdleCallback?.(
+//                         idleId
+//                     );
+//                 };
+//             }
+
+//             const timeoutId =
+//                 window.setTimeout(
+//                     restoreTranslation,
+//                     600
+//                 );
+
+//             return () =>
+//                 window.clearTimeout(
+//                     timeoutId
+//                 );
+//         }
+//     }, []);
+
+//     const changeLanguage = async (
+//         language
+//     ) => {
+//         setSelectedLanguage(
+//             language
+//         );
+
+//         setLanguageOpen(false);
+
+//         localStorage.setItem(
+//             LANGUAGE_STORAGE_KEY,
+//             language.code
+//         );
+
+//         await applyGoogleLanguage(
+//             language.code
+//         );
+//     };
+
+
+
+//     useEffect(() => {
+//         const styleId =
+//             "toprange-google-translate-hide";
+
+//         if (document.getElementById(styleId)) {
+//             return;
+//         }
+
+//         const style =
+//             document.createElement("style");
+
+//         style.id = styleId;
+
+//         style.innerHTML = `
+//             html,
+//             body {
+//                 top: 0 !important;
+//             }
 
-            body {
-                position: static !important;
-            }
+//             body {
+//                 position: static !important;
+//             }
 
-            body > .skiptranslate {
-                display: none !important;
-            }
+//             body > .skiptranslate {
+//                 display: none !important;
+//             }
 
-            iframe.goog-te-banner-frame,
-            iframe.skiptranslate,
-            .goog-te-banner-frame,
-            .goog-te-banner-frame.skiptranslate {
-                display: none !important;
-                visibility: hidden !important;
-                height: 0 !important;
-                min-height: 0 !important;
-            }
+//             iframe.goog-te-banner-frame,
+//             iframe.skiptranslate,
+//             .goog-te-banner-frame,
+//             .goog-te-banner-frame.skiptranslate {
+//                 display: none !important;
+//                 visibility: hidden !important;
+//                 height: 0 !important;
+//                 min-height: 0 !important;
+//             }
 
-            #goog-gt-tt,
-            .goog-te-balloon-frame,
-            .goog-te-spinner-pos,
-            .goog-te-gadget-icon {
-                display: none !important;
-            }
+//             #goog-gt-tt,
+//             .goog-te-balloon-frame,
+//             .goog-te-spinner-pos,
+//             .goog-te-gadget-icon {
+//                 display: none !important;
+//             }
 
-            .goog-text-highlight {
-                background: transparent !important;
-                box-shadow: none !important;
-            }
+//             .goog-text-highlight {
+//                 background: transparent !important;
+//                 box-shadow: none !important;
+//             }
 
-            #google_translate_element {
-                position: fixed !important;
-                left: -99999px !important;
-                top: -99999px !important;
-                width: 1px !important;
-                height: 1px !important;
-                overflow: hidden !important;
-                opacity: 0 !important;
-                pointer-events: none !important;
-            }
-        `;
+//             #google_translate_element {
+//                 position: fixed !important;
+//                 left: -99999px !important;
+//                 top: -99999px !important;
+//                 width: 1px !important;
+//                 height: 1px !important;
+//                 overflow: hidden !important;
+//                 opacity: 0 !important;
+//                 pointer-events: none !important;
+//             }
+//         `;
 
-        document.head.appendChild(
-            style
-        );
+//         document.head.appendChild(
+//             style
+//         );
 
-        hideGoogleTranslateUi();
-    }, []);
+//         hideGoogleTranslateUi();
+//     }, []);
 
 
-    /* =========================================================
+//     /* =========================================================
 
-       ACTIVE LINK
+//        ACTIVE LINK
 
-    ========================================================= */
+//     ========================================================= */
 
 
 
-    const isActive = (href) => {
-        return (
-            pathname === href ||
-            pathname.startsWith(`${href}/`) ||
-            (href === "/products" && pathname === "/")
-        );
-    };
+//     const isActive = (href) => {
+//         return (
+//             pathname === href ||
+//             pathname.startsWith(`${href}/`) ||
+//             (href === "/products" && pathname === "/")
+//         );
+//     };
 
 
 
-    /* =========================================================
+//     /* =========================================================
 
-       CLOSE MOBILE MENU
+//        CLOSE MOBILE MENU
 
-    ========================================================= */
+//     ========================================================= */
 
 
 
-    const closeMenu = () => {
+//     const closeMenu = () => {
 
-        setMenuOpen(false);
+//         setMenuOpen(false);
 
-    };
+//     };
 
 
 
-    /* =========================================================
+//     /* =========================================================
 
-       MOBILE NAVIGATION
+//        MOBILE NAVIGATION
 
 
 
-       Using router.push prevents problems where another
+//        Using router.push prevents problems where another
 
-       fixed/animated layer intercepts the mobile Link.
+//        fixed/animated layer intercepts the mobile Link.
 
-    ========================================================= */
+//     ========================================================= */
 
 
 
-    const handleMobileNavigate = (href) => {
+//     const handleMobileNavigate = (href) => {
 
-        setMenuOpen(false);
+//         setMenuOpen(false);
 
 
 
-        setCartOpen(false);
+//         setCartOpen(false);
 
 
 
-        /*
+//         /*
 
-         \* If already on same page,
+//          \* If already on same page,
 
-         \* just scroll back to the top.
+//          \* just scroll back to the top.
 
-         */
+//          */
 
-        if (pathname === href) {
+//         if (pathname === href) {
 
-            window.scrollTo({
+//             window.scrollTo({
 
-                top: 0,
+//                 top: 0,
 
-                behavior: "smooth",
+//                 behavior: "smooth",
 
-            });
+//             });
 
 
 
-            return;
+//             return;
 
-        }
+//         }
 
 
 
-        router.push(href);
+//         router.push(href);
 
-    };
+//     };
 
 
 
-    /* =========================================================
+//     /* =========================================================
 
-       READ SHARED CART
+//        READ SHARED CART
 
-    ========================================================= */
+//     ========================================================= */
 
 
 
-    const readCart = () => {
+//     const readCart = () => {
 
-        try {
+//         try {
 
-            const savedCart =
+//             const savedCart =
 
-                localStorage.getItem(
+//                 localStorage.getItem(
 
-                    CART_STORAGE_KEY
+//                     CART_STORAGE_KEY
 
-                );
+//                 );
 
 
 
-            if (!savedCart) {
+//             if (!savedCart) {
 
-                setCart([]);
+//                 setCart([]);
 
 
 
-                return;
+//                 return;
 
-            }
+//             }
 
 
 
-            const parsedCart =
+//             const parsedCart =
 
-                JSON.parse(savedCart);
+//                 JSON.parse(savedCart);
 
 
 
-            if (Array.isArray(parsedCart)) {
+//             if (Array.isArray(parsedCart)) {
 
-                setCart(parsedCart);
+//                 setCart(parsedCart);
 
-            } else {
+//             } else {
 
-                setCart([]);
+//                 setCart([]);
 
-            }
+//             }
 
-        } catch (error) {
+//         } catch (error) {
 
-            console.error(
+//             console.error(
 
-                "Unable to read cart:",
+//                 "Unable to read cart:",
 
-                error
+//                 error
 
-            );
+//             );
 
 
 
-            setCart([]);
+//             setCart([]);
 
-        }
+//         }
 
-    };
+//     };
 
 
 
-    /* =========================================================
+//     /* =========================================================
 
-       CART LISTENERS
+//        CART LISTENERS
 
-    ========================================================= */
+//     ========================================================= */
 
 
 
-    useEffect(() => {
+//     useEffect(() => {
 
-        readCart();
+//         readCart();
 
 
 
-        const handleStorage = (
+//         const handleStorage = (
 
-            event
+//             event
 
-        ) => {
+//         ) => {
 
-            if (
+//             if (
 
-                event.key ===
+//                 event.key ===
 
-                CART_STORAGE_KEY
+//                 CART_STORAGE_KEY
 
-            ) {
+//             ) {
 
-                readCart();
+//                 readCart();
 
-            }
+//             }
 
-        };
+//         };
 
 
 
-        const handleCartUpdate =
+//         const handleCartUpdate =
 
-            () => {
+//             () => {
 
-                readCart();
+//                 readCart();
 
-            };
+//             };
 
 
 
-        window.addEventListener(
+//         window.addEventListener(
 
-            "storage",
+//             "storage",
 
-            handleStorage
+//             handleStorage
 
-        );
+//         );
 
 
 
-        window.addEventListener(
+//         window.addEventListener(
 
-            "toprange-cart-updated",
+//             "toprange-cart-updated",
 
-            handleCartUpdate
+//             handleCartUpdate
 
-        );
+//         );
 
 
 
-        return () => {
+//         return () => {
 
-            window.removeEventListener(
+//             window.removeEventListener(
 
-                "storage",
+//                 "storage",
 
-                handleStorage
+//                 handleStorage
 
-            );
+//             );
 
 
 
-            window.removeEventListener(
+//             window.removeEventListener(
 
-                "toprange-cart-updated",
+//                 "toprange-cart-updated",
 
-                handleCartUpdate
+//                 handleCartUpdate
 
-            );
+//             );
 
-        };
+//         };
 
-    }, []);
+//     }, []);
 
 
 
-    /* =========================================================
+//     /* =========================================================
 
-       CLOSE MENUS AFTER ROUTE CHANGE
+//        CLOSE MENUS AFTER ROUTE CHANGE
 
-    ========================================================= */
+//     ========================================================= */
 
 
 
-    useEffect(() => {
+//     useEffect(() => {
 
-        setCartOpen(false);
+//         setCartOpen(false);
 
-        setMenuOpen(false);
+//         setMenuOpen(false);
 
-        setLanguageOpen(false);
+//         setLanguageOpen(false);
 
-    }, [pathname]);
+//     }, [pathname]);
 
 
 
-    /* =========================================================
+//     /* =========================================================
 
-       MOBILE BODY SCROLL LOCK
+//        MOBILE BODY SCROLL LOCK
 
-    ========================================================= */
+//     ========================================================= */
 
 
 
-    useEffect(() => {
+//     useEffect(() => {
 
-        if (!menuOpen) {
+//         if (!menuOpen) {
 
-            return;
+//             return;
 
-        }
+//         }
 
 
 
-        const previousOverflow =
+//         const previousOverflow =
 
-            document.body.style.overflow;
+//             document.body.style.overflow;
 
 
 
-        document.body.style.overflow =
+//         document.body.style.overflow =
 
-            "hidden";
+//             "hidden";
 
 
 
-        const handleEscape = (
+//         const handleEscape = (
 
-            event
+//             event
 
-        ) => {
+//         ) => {
 
-            if (event.key === "Escape") {
+//             if (event.key === "Escape") {
 
-                setMenuOpen(false);
+//                 setMenuOpen(false);
 
-            }
+//             }
 
-        };
+//         };
 
 
 
-        window.addEventListener(
+//         window.addEventListener(
 
-            "keydown",
+//             "keydown",
 
-            handleEscape
+//             handleEscape
 
-        );
+//         );
 
 
 
-        return () => {
+//         return () => {
 
-            document.body.style.overflow =
+//             document.body.style.overflow =
 
-                previousOverflow;
+//                 previousOverflow;
 
 
 
-            window.removeEventListener(
+//             window.removeEventListener(
 
-                "keydown",
+//                 "keydown",
 
-                handleEscape
+//                 handleEscape
 
-            );
+//             );
 
-        };
+//         };
 
-    }, [menuOpen]);
+//     }, [menuOpen]);
 
 
 
-    /* =========================================================
+//     /* =========================================================
 
-       CART COUNT
+//        CART COUNT
 
-    ========================================================= */
+//     ========================================================= */
 
 
 
-    const cartCount =
+//     const cartCount =
 
-        useMemo(() => {
+//         useMemo(() => {
 
-            return cart.reduce(
+//             return cart.reduce(
 
-                (total, item) =>
+//                 (total, item) =>
 
-                    total +
+//                     total +
 
-                    Number(
+//                     Number(
 
-                        item.quantity || 1
+//                         item.quantity || 1
 
-                    ),
+//                     ),
 
-                0
+//                 0
 
-            );
+//             );
 
-        }, [cart]);
+//         }, [cart]);
 
 
 
-    /* =========================================================
+//     /* =========================================================
 
-       CART TOTAL
+//        CART TOTAL
 
-    ========================================================= */
+//     ========================================================= */
 
 
 
-    const cartTotal =
+//     const cartTotal =
 
-        useMemo(() => {
+//         useMemo(() => {
 
-            return cart.reduce(
+//             return cart.reduce(
 
-                (total, item) =>
+//                 (total, item) =>
 
-                    total +
+//                     total +
 
-                    Number(
+//                     Number(
 
-                        item.price || 0
+//                         item.price || 0
 
-                    ) *
+//                     ) *
 
-                    Number(
+//                     Number(
 
-                        item.quantity || 1
+//                         item.quantity || 1
 
-                    ),
+//                     ),
 
-                0
+//                 0
 
-            );
+//             );
 
-        }, [cart]);
+//         }, [cart]);
 
 
 
-    /* =========================================================
+//     /* =========================================================
 
-       REMOVE PRODUCT
+//        REMOVE PRODUCT
 
-    ========================================================= */
+//     ========================================================= */
 
 
 
-    const removeProduct = (
+//     const removeProduct = (
 
-        id
+//         id
 
-    ) => {
+//     ) => {
 
-        const updatedCart =
+//         const updatedCart =
 
-            cart.filter(
+//             cart.filter(
 
-                (item) =>
+//                 (item) =>
 
-                    item.id !== id
+//                     item.id !== id
 
-            );
+//             );
 
 
 
-        setCart(updatedCart);
+//         setCart(updatedCart);
 
 
 
-        localStorage.setItem(
+//         localStorage.setItem(
 
-            CART_STORAGE_KEY,
+//             CART_STORAGE_KEY,
 
-            JSON.stringify(
+//             JSON.stringify(
 
-                updatedCart
+//                 updatedCart
 
-            )
+//             )
 
-        );
+//         );
 
 
 
-        window.dispatchEvent(
+//         window.dispatchEvent(
 
-            new Event(
+//             new Event(
 
-                "toprange-cart-updated"
+//                 "toprange-cart-updated"
 
-            )
+//             )
 
-        );
+//         );
 
-    };
+//     };
 
 
 
-    return (
+//     return (
 
-        <>
-            <div
-                id="google_translate_element"
-                className="fixed -left-[9999px] -top-[9999px] h-0 w-0 overflow-hidden opacity-0 pointer-events-none"
-                aria-hidden="true"
-            />
+//         <>
+//             <div
+//                 id="google_translate_element"
+//                 className="fixed -left-[9999px] -top-[9999px] h-0 w-0 overflow-hidden opacity-0 pointer-events-none"
+//                 aria-hidden="true"
+//             />
 
-            {/* =====================================================
+//             {/* =====================================================
 
-          NAVBAR
+//           NAVBAR
 
-      ====================================================== */}
+//       ====================================================== */}
 
 
 
-            <header
+//             <header
 
-                id="siteHeader"
+//                 id="siteHeader"
 
-                className="
+//                 className="
 
-          fixed
+//           fixed
 
-          left-0
+//           left-0
 
-          top-0
+//           top-0
 
-          z-[1000]
+//           z-[1000]
 
-          w-full
+//           w-full
 
-          px-4
+//           px-4
 
-          pt-4
+//           pt-4
 
-          md:px-7
+//           md:px-7
 
-        "
+//         "
 
-            >
+//             >
 
-                <nav
+//                 <nav
 
-                    id="mainNavbar"
+//                     id="mainNavbar"
 
-                    className="
+//                     className="
 
-            relative
+//             relative
 
-            z-[1002]
+//             z-[1002]
 
-            mx-auto
+//             mx-auto
 
-            flex
+//             flex
 
-            max-w-[1450px]
+//             max-w-[1450px]
 
-            items-center
+//             items-center
 
-            justify-between
+//             justify-between
 
-            rounded-full
+//             rounded-full
 
-            border
+//             border
 
-            border-white/15
+//             border-white/15
 
-            bg-black/25
+//             bg-black/25
 
-            px-4
+//             px-4
 
-            py-3
+//             py-3
 
-            shadow-2xl
+//             shadow-2xl
 
-            backdrop-blur-xl
+//             backdrop-blur-xl
 
-            md:px-5
+//             md:px-5
 
-          "
+//           "
 
-                >
+//                 >
 
-                    {/* =================================================
+//                     {/* =================================================
 
-              LOGO
+//               LOGO
 
-          ================================================== */}
+//           ================================================== */}
 
 
 
-                    <Link
+//                     <Link
 
-                        href="/"
+//                         href="/"
 
-                        aria-label="Top Range products"
+//                         aria-label="Top Range products"
 
-                        onClick={() => {
+//                         onClick={() => {
 
-                            closeMenu();
+//                             closeMenu();
 
 
 
-                            setCartOpen(false);
+//                             setCartOpen(false);
 
-                        }}
+//                         }}
 
-                        className="
+//                         className="
 
-              relative
+//               relative
 
-              z-10
+//               z-10
 
-              flex
+//               flex
 
-              items-center
+//               items-center
 
-              gap-3
+//               gap-3
 
-              text-white
+//               text-white
 
-            "
+//             "
 
-                    >
+//                     >
 
-                        <div className="flex h-10 items-center">
+//                         <div className="flex h-10 items-center">
 
-                            <img
+//                             <img
 
-                                src={logoUrl || "/Assets/Logo.png"}
+//                                 src={logoUrl || "/Assets/Logo.png"}
 
-                                alt="Top Range Building Materials"
+//                                 alt="Top Range Building Materials"
 
-                                className="
+//                                 className="
 
-                  h-10
+//                   h-10
 
-                  w-auto
+//                   w-auto
 
-                  object-contain
+//                   object-contain
 
-                "
+//                 "
 
-                            />
+//                             />
 
-                        </div>
+//                         </div>
 
-                    </Link>
+//                     </Link>
 
 
 
-                    {/* =================================================
+//                     {/* =================================================
 
-              DESKTOP NAVIGATION
+//               DESKTOP NAVIGATION
 
-          ================================================== */}
+//           ================================================== */}
 
 
 
-                    <div
+//                     <div
 
-                        className="
+//                         className="
 
-              absolute
+//               absolute
 
-              left-1/2
+//               left-1/2
 
-              hidden
+//               hidden
 
-              -translate-x-1/2
+//               -translate-x-1/2
 
-              items-center
+//               items-center
 
-              gap-1
+//               gap-1
 
-              rounded-full
+//               rounded-full
 
-              border
+//               border
 
-              border-white/10
+//               border-white/10
 
-              bg-white/10
+//               bg-white/10
 
-              p-1
+//               p-1
 
-              backdrop-blur-xl
+//               backdrop-blur-xl
 
-              lg:flex
+//               lg:flex
 
-            "
+//             "
 
-                    >
+//                     >
 
-                        {navItems.map(
+//                         {navItems.map(
 
-                            (item) => (
+//                             (item) => (
 
-                                <Link
+//                                 <Link
 
-                                    key={
+//                                     key={
 
-                                        item.name
+//                                         item.name
 
-                                    }
+//                                     }
 
-                                    href={
+//                                     href={
 
-                                        item.href
+//                                         item.href
 
-                                    }
+//                                     }
 
-                                    className={`
+//                                     className={`
 
-                    nav-link
+//                     nav-link
 
-                    rounded-full
+//                     rounded-full
 
-                    px-5
+//                     px-5
 
-                    py-2.5
+//                     py-2.5
 
-                    text-sm
+//                     text-sm
 
-                    font-medium
+//                     font-medium
 
-                    transition-all
+//                     transition-all
 
-                    duration-300
+//                     duration-300
 
 
 
-                    ${isActive(
+//                     ${isActive(
 
-                                        item.href
+//                                         item.href
 
-                                    )
+//                                     )
 
-                                            ? "active1 bg-white/10 text-white"
+//                                             ? "active1 bg-white/10 text-white"
 
-                                            : "text-white/75 hover:bg-white/[0.06] hover:text-white"
+//                                             : "text-white/75 hover:bg-white/[0.06] hover:text-white"
 
-                                        }
+//                                         }
 
-                  `}
+//                   `}
 
-                                >
+//                                 >
 
-                                    {
+//                                     {
 
-                                        item.name
+//                                         item.name
 
-                                    }
+//                                     }
 
-                                </Link>
+//                                 </Link>
 
-                            )
+//                             )
 
-                        )}
+//                         )}
 
-                    </div>
+//                     </div>
 
 
 
-                    {/* =================================================
+//                     {/* =================================================
 
-              RIGHT
+//               RIGHT
 
-          ================================================== */}
+//           ================================================== */}
 
 
 
-                    <div
+//                     <div
 
-                        className="
+//                         className="
 
-              relative
+//               relative
 
-              z-10
+//               z-10
 
-              flex
+//               flex
 
-              items-center
+//               items-center
 
-              gap-2
+//               gap-2
 
-            "
+//             "
 
-                    >
+//                     >
 
-                        {/* =================================================
+//                         {/* =================================================
 
-                DESKTOP CART
+//                 DESKTOP CART
 
-            ================================================== */}
+//             ================================================== */}
 
 
 
-                        <div className="relative hidden md:block">
+//                         <div className="relative hidden md:block">
 
-                            <button
+//                             <button
 
-                                type="button"
+//                                 type="button"
 
-                                aria-label="Open cart"
+//                                 aria-label="Open cart"
 
-                                aria-expanded={
+//                                 aria-expanded={
 
-                                    cartOpen
+//                                     cartOpen
 
-                                }
+//                                 }
 
-                                onClick={() => {
+//                                 onClick={() => {
 
-                                    setCartOpen(
+//                                     setCartOpen(
 
-                                        (
+//                                         (
 
-                                            previous
+//                                             previous
 
-                                        ) =>
+//                                         ) =>
 
-                                            !previous
+//                                             !previous
 
-                                    );
+//                                     );
 
 
 
-                                    setMenuOpen(
+//                                     setMenuOpen(
 
-                                        false
+//                                         false
 
-                                    );
+//                                     );
 
-                                }}
+//                                 }}
 
-                                className={`
+//                                 className={`
 
-                  group
+//                   group
 
-                  relative
+//                   relative
 
-                  flex
+//                   flex
 
-                  h-[46px]
+//                   h-[46px]
 
-                  items-center
+//                   items-center
 
-                  gap-2.5
+//                   gap-2.5
 
-                  rounded-full
+//                   rounded-full
 
-                  border
+//                   border
 
-                  px-5
+//                   px-5
 
-                  text-sm
+//                   text-sm
 
-                  font-semibold
+//                   font-semibold
 
-                  backdrop-blur-xl
+//                   backdrop-blur-xl
 
-                  transition-all
+//                   transition-all
 
-                  duration-300
+//                   duration-300
 
 
 
-                  ${cartOpen
+//                   ${cartOpen
 
-                                        ? "border-white bg-white text-[#101411]"
+//                                         ? "border-white bg-white text-[#101411]"
 
-                                        : "border-white/15 bg-white/10 text-white hover:bg-white hover:text-[#101411]"
+//                                         : "border-white/15 bg-white/10 text-white hover:bg-white hover:text-[#101411]"
 
-                                    }
+//                                     }
 
-                `}
+//                 `}
 
-                            >
+//                             >
 
-                                <ShoppingBag
+//                                 <ShoppingBag
 
-                                    size={
+//                                     size={
 
-                                        16
+//                                         16
 
-                                    }
+//                                     }
 
-                                    strokeWidth={
+//                                     strokeWidth={
 
-                                        2
+//                                         2
 
-                                    }
+//                                     }
 
-                                />
+//                                 />
 
 
 
-                                <span>
+//                                 <span>
 
-                                    Cart
+//                                     Cart
 
-                                </span>
+//                                 </span>
 
 
 
-                                {cartCount >
+//                                 {cartCount >
 
-                                    0 && (
+//                                     0 && (
 
-                                        <span
+//                                         <span
 
-                                            className="
+//                                             className="
 
-                      flex
+//                       flex
 
-                      h-[22px]
+//                       h-[22px]
 
-                      min-w-[22px]
+//                       min-w-[22px]
 
-                      items-center
+//                       items-center
 
-                      justify-center
+//                       justify-center
 
-                      rounded-full
+//                       rounded-full
 
-                      bg-[#D8FF65]
+//                       bg-[#D8FF65]
 
-                      px-1.5
+//                       px-1.5
 
-                      text-[10px]
+//                       text-[10px]
 
-                      font-bold
+//                       font-bold
 
-                      text-[#101411]
+//                       text-[#101411]
 
-                    "
+//                     "
 
-                                        >
+//                                         >
 
-                                            {
+//                                             {
 
-                                                cartCount
+//                                                 cartCount
 
-                                            }
+//                                             }
 
-                                        </span>
+//                                         </span>
 
-                                    )}
+//                                     )}
 
-                            </button>
+//                             </button>
 
 
 
-                            {/* =============================================
+//                             {/* =============================================
 
-                  CART DROPDOWN
+//                   CART DROPDOWN
 
-              ============================================== */}
+//               ============================================== */}
 
 
 
-                            {cartOpen && (
+//                             {cartOpen && (
 
-                                <div
+//                                 <div
 
-                                    className="
+//                                     className="
 
-                    absolute
+//                     absolute
 
-                    right-0
+//                     right-0
 
-                    top-[calc(100%+14px)]
+//                     top-[calc(100%+14px)]
 
-                    z-[1100]
+//                     z-[1100]
 
-                    w-[390px]
+//                     w-[390px]
 
-                    overflow-hidden
+//                     overflow-hidden
 
-                    rounded-[28px]
+//                     rounded-[28px]
 
-                    border
+//                     border
 
-                    border-black/[0.07]
+//                     border-black/[0.07]
 
-                    bg-[#F4F5EF]
+//                     bg-[#F4F5EF]
 
-                    text-[#101411]
+//                     text-[#101411]
 
-                    shadow-[0_30px_100px_rgba(0,0,0,.25)]
+//                     shadow-[0_30px_100px_rgba(0,0,0,.25)]
 
-                  "
+//                   "
 
-                                >
+//                                 >
 
-                                    {/* Header */}
+//                                     {/* Header */}
 
 
 
-                                    <div
+//                                     <div
 
-                                        className="
+//                                         className="
 
-                      flex
+//                       flex
 
-                      items-center
+//                       items-center
 
-                      justify-between
+//                       justify-between
 
-                      border-b
+//                       border-b
 
-                      border-black/[0.07]
+//                       border-black/[0.07]
 
-                      px-5
+//                       px-5
 
-                      py-5
+//                       py-5
 
-                    "
+//                     "
 
-                                    >
+//                                     >
 
-                                        <div>
+//                                         <div>
 
-                                            <p
+//                                             <p
 
-                                                className="
+//                                                 className="
 
-                          text-[9px]
+//                           text-[9px]
 
-                          font-semibold
+//                           font-semibold
 
-                          uppercase
+//                           uppercase
 
-                          tracking-[0.17em]
+//                           tracking-[0.17em]
 
-                          text-[#6A716B]
+//                           text-[#6A716B]
 
-                        "
+//                         "
 
-                                            >
+//                                             >
 
-                                                Product
+//                                                 Product
 
-                                                Enquiry
+//                                                 Enquiry
 
-                                            </p>
+//                                             </p>
 
 
 
-                                            <h3
+//                                             <h3
 
-                                                className="
+//                                                 className="
 
-                          mt-1
+//                           mt-1
 
-                          text-[20px]
+//                           text-[20px]
 
-                          font-semibold
+//                           font-semibold
 
-                          tracking-[-0.025em]
+//                           tracking-[-0.025em]
 
-                        "
+//                         "
 
-                                            >
+//                                             >
 
-                                                Your
+//                                                 Your
 
-                                                Cart
+//                                                 Cart
 
-                                            </h3>
+//                                             </h3>
 
-                                        </div>
+//                                         </div>
 
 
 
-                                        <button
+//                                         <button
 
-                                            type="button"
+//                                             type="button"
 
-                                            aria-label="Close cart"
+//                                             aria-label="Close cart"
 
-                                            onClick={() =>
+//                                             onClick={() =>
 
-                                                setCartOpen(
+//                                                 setCartOpen(
 
-                                                    false
+//                                                     false
 
-                                                )
+//                                                 )
 
-                                            }
+//                                             }
 
-                                            className="
+//                                             className="
 
-                        flex
+//                         flex
 
-                        h-9
+//                         h-9
 
-                        w-9
+//                         w-9
 
-                        items-center
+//                         items-center
 
-                        justify-center
+//                         justify-center
 
-                        rounded-full
+//                         rounded-full
 
-                        bg-white
+//                         bg-white
 
-                        transition
+//                         transition
 
-                        hover:bg-[#101411]
+//                         hover:bg-[#101411]
 
-                        hover:text-white
+//                         hover:text-white
 
-                      "
+//                       "
 
-                                        >
+//                                         >
 
-                                            <X
+//                                             <X
 
-                                                className="
+//                                                 className="
 
-                          h-3.5
+//                           h-3.5
 
-                          w-3.5
+//                           w-3.5
 
-                        "
+//                         "
 
-                                            />
+//                                             />
 
-                                        </button>
+//                                         </button>
 
-                                    </div>
+//                                     </div>
 
 
 
-                                    {/* EMPTY */}
+//                                     {/* EMPTY */}
 
 
 
-                                    {cart.length ===
+//                                     {cart.length ===
 
-                                        0 ? (
+//                                         0 ? (
 
-                                        <div
+//                                         <div
 
-                                            className="
+//                                             className="
 
-                        px-6
+//                         px-6
 
-                        py-12
+//                         py-12
 
-                        text-center
+//                         text-center
 
-                      "
+//                       "
 
-                                        >
+//                                         >
 
-                                            <span
+//                                             <span
 
-                                                className="
+//                                                 className="
 
-                          mx-auto
+//                           mx-auto
 
-                          flex
+//                           flex
 
-                          h-14
+//                           h-14
 
-                          w-14
+//                           w-14
 
-                          items-center
+//                           items-center
 
-                          justify-center
+//                           justify-center
 
-                          rounded-full
+//                           rounded-full
 
-                          bg-white
+//                           bg-white
 
-                        "
+//                         "
 
-                                            >
+//                                             >
 
-                                                <ShoppingBag
+//                                                 <ShoppingBag
 
-                                                    className="
+//                                                     className="
 
-                            h-5
+//                             h-5
 
-                            w-5
+//                             w-5
 
-                            text-[#101411]
+//                             text-[#101411]
 
-                          "
+//                           "
 
-                                                />
+//                                                 />
 
-                                            </span>
+//                                             </span>
 
 
 
-                                            <h4 className="mt-4 text-[17px] font-semibold">
+//                                             <h4 className="mt-4 text-[17px] font-semibold">
 
-                                                Your
+//                                                 Your
 
-                                                cart
+//                                                 cart
 
-                                                is
+//                                                 is
 
-                                                empty
+//                                                 empty
 
-                                            </h4>
+//                                             </h4>
 
 
 
-                                            <p
+//                                             <p
 
-                                                className="
+//                                                 className="
 
-                          mt-2
+//                           mt-2
 
-                          text-[12px]
+//                           text-[12px]
 
-                          leading-5
+//                           leading-5
 
-                          text-[#686F69]
+//                           text-[#686F69]
 
-                        "
+//                         "
 
-                                            >
+//                                             >
 
-                                                Add
+//                                                 Add
 
-                                                products
+//                                                 products
 
-                                                from
+//                                                 from
 
-                                                the
+//                                                 the
 
-                                                catalogue
+//                                                 catalogue
 
-                                                to
+//                                                 to
 
-                                                request
+//                                                 request
 
-                                                a
+//                                                 a
 
-                                                quotation.
+//                                                 quotation.
 
-                                            </p>
+//                                             </p>
 
 
 
-                                            <Link
+//                                             <Link
 
-                                                href="/products"
+//                                                 href="/products"
 
-                                                onClick={() =>
+//                                                 onClick={() =>
 
-                                                    setCartOpen(
+//                                                     setCartOpen(
 
-                                                        false
+//                                                         false
 
-                                                    )
+//                                                     )
 
-                                                }
+//                                                 }
 
-                                                className="
+//                                                 className="
 
-                          mt-5
+//                           mt-5
 
-                          inline-flex
+//                           inline-flex
 
-                          items-center
+//                           items-center
 
-                          gap-2
+//                           gap-2
 
-                          rounded-full
+//                           rounded-full
 
-                          bg-[#101411]
+//                           bg-[#101411]
 
-                          px-5
+//                           px-5
 
-                          py-3
+//                           py-3
 
-                          text-[12px]
+//                           text-[12px]
 
-                          font-semibold
+//                           font-semibold
 
-                          text-white
+//                           text-white
 
-                        "
+//                         "
 
-                                            >
+//                                             >
 
-                                                Browse
+//                                                 Browse
 
-                                                Products
+//                                                 Products
 
 
 
-                                                <ArrowUpRight
+//                                                 <ArrowUpRight
 
-                                                    className="
+//                                                     className="
 
-                            h-3.5
+//                             h-3.5
 
-                            w-3.5
+//                             w-3.5
 
-                          "
+//                           "
 
-                                                />
+//                                                 />
 
-                                            </Link>
+//                                             </Link>
 
-                                        </div>
+//                                         </div>
 
-                                    ) : (
+//                                     ) : (
 
-                                        <>
+//                                         <>
 
-                                            {/* PRODUCTS */}
+//                                             {/* PRODUCTS */}
 
 
 
-                                            <div
+//                                             <div
 
-                                                className="
+//                                                 className="
 
-                          max-h-[390px]
+//                           max-h-[390px]
 
-                          space-y-2
+//                           space-y-2
 
-                          overflow-y-auto
+//                           overflow-y-auto
 
-                          p-4
+//                           p-4
 
-                        "
+//                         "
 
-                                            >
+//                                             >
 
-                                                {cart.map(
+//                                                 {cart.map(
 
-                                                    (
+//                                                     (
 
-                                                        item
+//                                                         item
 
-                                                    ) => (
+//                                                     ) => (
 
-                                                        <NavbarCartItem
+//                                                         <NavbarCartItem
 
-                                                            key={
+//                                                             key={
 
-                                                                item.id
+//                                                                 item.id
 
-                                                            }
+//                                                             }
 
-                                                            item={
+//                                                             item={
 
-                                                                item
+//                                                                 item
 
-                                                            }
+//                                                             }
 
-                                                            removeProduct={
+//                                                             removeProduct={
 
-                                                                removeProduct
+//                                                                 removeProduct
 
-                                                            }
+//                                                             }
 
-                                                        />
+//                                                         />
 
-                                                    )
+//                                                     )
 
-                                                )}
+//                                                 )}
 
-                                            </div>
+//                                             </div>
 
 
 
-                                            {/* TOTAL */}
+//                                             {/* TOTAL */}
 
 
 
-                                            <div
+//                                             <div
 
-                                                className="
+//                                                 className="
 
-                          border-t
+//                           border-t
 
-                          border-black/[0.07]
+//                           border-black/[0.07]
 
-                          bg-white
+//                           bg-white
 
-                          p-5
+//                           p-5
 
-                        "
+//                         "
 
-                                            >
+//                                             >
 
-                                                <div className="flex items-center justify-between gap-5">
+//                                                 <div className="flex items-center justify-between gap-5">
 
-                                                    <div>
+//                                                     <div>
 
-                                                        <p
+//                                                         <p
 
-                                                            className="
+//                                                             className="
 
-                                text-[9px]
+//                                 text-[9px]
 
-                                font-semibold
+//                                 font-semibold
 
-                                uppercase
+//                                 uppercase
 
-                                tracking-[0.13em]
+//                                 tracking-[0.13em]
 
-                                text-[#707770]
+//                                 text-[#707770]
 
-                              "
+//                               "
 
-                                                        >
+//                                                         >
 
-                                                            Estimated
+//                                                             Estimated
 
-                                                            Total
+//                                                             Total
 
-                                                        </p>
+//                                                         </p>
 
 
 
-                                                        <p
+//                                                         <p
 
-                                                            className="
+//                                                             className="
 
-                                mt-1
+//                                 mt-1
 
-                                text-[22px]
+//                                 text-[22px]
 
-                                font-bold
+//                                 font-bold
 
-                                tracking-[-0.025em]
+//                                 tracking-[-0.025em]
 
-                                text-[#101411]
+//                                 text-[#101411]
 
-                              "
+//                               "
 
-                                                        >
+//                                                         >
 
-                                                            AED{" "}
+//                                                             AED{" "}
 
 
 
-                                                            {cartTotal.toLocaleString(
+//                                                             {cartTotal.toLocaleString(
 
-                                                                undefined,
+//                                                                 undefined,
 
-                                                                {
+//                                                                 {
 
-                                                                    minimumFractionDigits:
+//                                                                     minimumFractionDigits:
 
-                                                                        2,
+//                                                                         2,
 
 
 
-                                                                    maximumFractionDigits:
+//                                                                     maximumFractionDigits:
 
-                                                                        2,
+//                                                                         2,
 
-                                                                }
+//                                                                 }
 
-                                                            )}
+//                                                             )}
 
-                                                        </p>
+//                                                         </p>
 
-                                                    </div>
+//                                                     </div>
 
 
 
-                                                    <span
+//                                                     <span
 
-                                                        className="
+//                                                         className="
 
-                              rounded-full
+//                               rounded-full
 
-                              bg-[#F4F5EF]
+//                               bg-[#F4F5EF]
 
-                              px-3
+//                               px-3
 
-                              py-2
+//                               py-2
 
-                              text-[10px]
+//                               text-[10px]
 
-                              font-bold
+//                               font-bold
 
-                              text-[#4F5650]
+//                               text-[#4F5650]
 
-                            "
+//                             "
 
-                                                    >
+//                                                     >
 
-                                                        {
+//                                                         {
 
-                                                            cartCount
+//                                                             cartCount
 
-                                                        }{" "}
+//                                                         }{" "}
 
-                                                        item
+//                                                         item
 
-                                                        {cartCount !==
+//                                                         {cartCount !==
 
-                                                            1
+//                                                             1
 
-                                                            ? "s"
+//                                                             ? "s"
 
-                                                            : ""}
+//                                                             : ""}
 
-                                                    </span>
+//                                                     </span>
 
-                                                </div>
+//                                                 </div>
 
 
 
-                                                <Link
+//                                                 <Link
 
-                                                    href="/cart"
+//                                                     href="/cart"
 
-                                                    onClick={() =>
+//                                                     onClick={() =>
 
-                                                        setCartOpen(
+//                                                         setCartOpen(
 
-                                                            false
+//                                                             false
 
-                                                        )
+//                                                         )
 
-                                                    }
+//                                                     }
 
-                                                    className="
+//                                                     className="
 
-                            group
+//                             group
 
-                            mt-5
+//                             mt-5
 
-                            flex
+//                             flex
 
-                            h-[54px]
+//                             h-[54px]
 
-                            w-full
+//                             w-full
 
-                            items-center
+//                             items-center
 
-                            justify-between
+//                             justify-between
 
-                            rounded-full
+//                             rounded-full
 
-                            bg-[#101411]
+//                             bg-[#101411]
 
-                            pl-6
+//                             pl-6
 
-                            pr-2
+//                             pr-2
 
-                            text-[13px]
+//                             text-[13px]
 
-                            font-semibold
+//                             font-semibold
 
-                            text-white
+//                             text-white
 
-                          "
+//                           "
 
-                                                >
+//                                                 >
 
-                                                    View
+//                                                     View
 
-                                                    Cart
+//                                                     Cart
 
 
 
-                                                    <span
+//                                                     <span
 
-                                                        className="
+//                                                         className="
 
-                              flex
+//                               flex
 
-                              h-10
+//                               h-10
 
-                              w-10
+//                               w-10
 
-                              items-center
+//                               items-center
 
-                              justify-center
+//                               justify-center
 
-                              rounded-full
+//                               rounded-full
 
-                              bg-[#D8FF65]
+//                               bg-[#D8FF65]
 
-                              text-black
+//                               text-black
 
-                              transition-transform
+//                               transition-transform
 
-                              duration-300
+//                               duration-300
 
-                              group-hover:translate-x-0.5
+//                               group-hover:translate-x-0.5
 
-                            "
+//                             "
 
-                                                    >
+//                                                     >
 
-                                                        <ArrowRight className="h-4 w-4" />
+//                                                         <ArrowRight className="h-4 w-4" />
 
-                                                    </span>
+//                                                     </span>
 
-                                                </Link>
+//                                                 </Link>
 
-                                            </div>
+//                                             </div>
 
-                                        </>
+//                                         </>
 
-                                    )}
+//                                     )}
 
-                                </div>
+//                                 </div>
 
-                            )}
+//                             )}
 
-                        </div>
+//                         </div>
 
 
 
-                        {/* =================================================
-                LANGUAGE
-            ================================================== */}
+//                         {/* =================================================
+//                 LANGUAGE
+//             ================================================== */}
 
-                        <div className="relative hidden md:block">
+//                         <div className="relative hidden md:block">
 
-                            <button
-                                type="button"
-                                aria-expanded={languageOpen}
-                                aria-label="Select language"
-                                onClick={() => {
-                                    setLanguageOpen(
-                                        (previous) =>
-                                            !previous
-                                    );
+//                             <button
+//                                 type="button"
+//                                 aria-expanded={languageOpen}
+//                                 aria-label="Select language"
+//                                 onClick={() => {
+//                                     setLanguageOpen(
+//                                         (previous) =>
+//                                             !previous
+//                                     );
 
-                                    setCartOpen(false);
-                                }}
-                                className="
-                group
-                flex
-                h-[46px]
-                items-center
-                gap-2
-                rounded-full
-                bg-[#D8FF65]
-                px-5
-                text-sm
-                font-semibold
-                text-[#101411]
-                transition-all
-                duration-300
-                hover:scale-[1.03]
-                hover:bg-white
-              "
-                            >
-                                <Globe2
-                                    size={16}
-                                    strokeWidth={2}
-                                />
+//                                     setCartOpen(false);
+//                                 }}
+//                                 className="
+//                 group
+//                 flex
+//                 h-[46px]
+//                 items-center
+//                 gap-2
+//                 rounded-full
+//                 bg-[#D8FF65]
+//                 px-5
+//                 text-sm
+//                 font-semibold
+//                 text-[#101411]
+//                 transition-all
+//                 duration-300
+//                 hover:scale-[1.03]
+//                 hover:bg-white
+//               "
+//                             >
+//                                 <Globe2
+//                                     size={16}
+//                                     strokeWidth={2}
+//                                 />
 
-                                <span>
-                                    {selectedLanguage.name}
-                                </span>
+//                                 <span>
+//                                     {selectedLanguage.name}
+//                                 </span>
 
-                                <ChevronDown
-                                    size={15}
-                                    strokeWidth={2}
-                                    className={`transition-transform duration-300 ${languageOpen
-                                        ? "rotate-180"
-                                        : ""
-                                        }`}
-                                />
-                            </button>
+//                                 <ChevronDown
+//                                     size={15}
+//                                     strokeWidth={2}
+//                                     className={`transition-transform duration-300 ${languageOpen
+//                                         ? "rotate-180"
+//                                         : ""
+//                                         }`}
+//                                 />
+//                             </button>
 
-                            {languageOpen && (
-                                <>
-                                    <button
-                                        type="button"
-                                        aria-label="Close language selector"
-                                        onClick={() =>
-                                            setLanguageOpen(
-                                                false
-                                            )
-                                        }
-                                        className="fixed inset-0 z-[1090] cursor-default"
-                                    />
+//                             {languageOpen && (
+//                                 <>
+//                                     <button
+//                                         type="button"
+//                                         aria-label="Close language selector"
+//                                         onClick={() =>
+//                                             setLanguageOpen(
+//                                                 false
+//                                             )
+//                                         }
+//                                         className="fixed inset-0 z-[1090] cursor-default"
+//                                     />
 
-                                    <div
-                                        className="
-                    absolute
-                    right-0
-                    top-[calc(100%+14px)]
-                    z-[1100]
-                    w-[250px]
-                    overflow-hidden
-                    rounded-[24px]
-                    border
-                    border-black/[0.07]
-                    bg-[#F4F5EF]
-                    p-2
-                    text-[#101411]
-                    shadow-[0_30px_100px_rgba(0,0,0,.25)]
-                  "
-                                    >
-                                        <div className="border-b border-black/[0.07] px-3 pb-3 pt-2">
-                                            <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-[#6A716B]">
-                                                Language
-                                            </p>
+//                                     <div
+//                                         className="
+//                     absolute
+//                     right-0
+//                     top-[calc(100%+14px)]
+//                     z-[1100]
+//                     w-[250px]
+//                     overflow-hidden
+//                     rounded-[24px]
+//                     border
+//                     border-black/[0.07]
+//                     bg-[#F4F5EF]
+//                     p-2
+//                     text-[#101411]
+//                     shadow-[0_30px_100px_rgba(0,0,0,.25)]
+//                   "
+//                                     >
+//                                         <div className="border-b border-black/[0.07] px-3 pb-3 pt-2">
+//                                             <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-[#6A716B]">
+//                                                 Language
+//                                             </p>
 
-                                            <p className="mt-1 text-[12px] font-semibold text-[#101411]">
-                                                Select your language
-                                            </p>
-                                        </div>
+//                                             <p className="mt-1 text-[12px] font-semibold text-[#101411]">
+//                                                 Select your language
+//                                             </p>
+//                                         </div>
 
-                                        <div className="mt-2 space-y-1">
-                                            {languages.map(
-                                                (language) => {
-                                                    const active =
-                                                        selectedLanguage.code ===
-                                                        language.code;
+//                                         <div className="mt-2 space-y-1">
+//                                             {languages.map(
+//                                                 (language) => {
+//                                                     const active =
+//                                                         selectedLanguage.code ===
+//                                                         language.code;
 
-                                                    return (
-                                                        <button
-                                                            key={
-                                                                language.code
-                                                            }
-                                                            type="button"
-                                                            onClick={() =>
-                                                                changeLanguage(
-                                                                    language
-                                                                )
-                                                            }
-                                                            className={`
-                                flex
-                                w-full
-                                items-center
-                                justify-between
-                                gap-3
-                                rounded-[15px]
-                                px-3
-                                py-3
-                                text-left
-                                transition
+//                                                     return (
+//                                                         <button
+//                                                             key={
+//                                                                 language.code
+//                                                             }
+//                                                             type="button"
+//                                                             onClick={() =>
+//                                                                 changeLanguage(
+//                                                                     language
+//                                                                 )
+//                                                             }
+//                                                             className={`
+//                                 flex
+//                                 w-full
+//                                 items-center
+//                                 justify-between
+//                                 gap-3
+//                                 rounded-[15px]
+//                                 px-3
+//                                 py-3
+//                                 text-left
+//                                 transition
 
-                                ${active
-                                                                    ? "bg-[#D8FF65] text-[#101411]"
-                                                                    : "text-[#4F5650] hover:bg-white"
-                                                                }
-                              `}
-                                                        >
-                                                            <div className="min-w-0">
-                                                                <p className="text-[12px] font-semibold">
-                                                                    {language.name}
-                                                                </p>
+//                                 ${active
+//                                                                     ? "bg-[#D8FF65] text-[#101411]"
+//                                                                     : "text-[#4F5650] hover:bg-white"
+//                                                                 }
+//                               `}
+//                                                         >
+//                                                             <div className="min-w-0">
+//                                                                 <p className="text-[12px] font-semibold">
+//                                                                     {language.name}
+//                                                                 </p>
 
-                                                                <p className="mt-0.5 text-[10px] font-medium text-[#717871]">
-                                                                    {language.native}
-                                                                </p>
-                                                            </div>
+//                                                                 <p className="mt-0.5 text-[10px] font-medium text-[#717871]">
+//                                                                     {language.native}
+//                                                                 </p>
+//                                                             </div>
 
-                                                            {active && (
-                                                                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#101411] text-[#D8FF65]">
-                                                                    <Check className="h-3.5 w-3.5" />
-                                                                </span>
-                                                            )}
-                                                        </button>
-                                                    );
-                                                }
-                                            )}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
+//                                                             {active && (
+//                                                                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#101411] text-[#D8FF65]">
+//                                                                     <Check className="h-3.5 w-3.5" />
+//                                                                 </span>
+//                                                             )}
+//                                                         </button>
+//                                                     );
+//                                                 }
+//                                             )}
+//                                         </div>
+//                                     </div>
+//                                 </>
+//                             )}
 
-                        </div>
+//                         </div>
 
 
-                        {/* =================================================
+//                         {/* =================================================
 
-                MOBILE MENU BUTTON
+//                 MOBILE MENU BUTTON
 
-            ================================================== */}
+//             ================================================== */}
 
 
 
-                        <button
+//                         <button
 
-                            type="button"
+//                             type="button"
 
-                            aria-expanded={
+//                             aria-expanded={
 
-                                menuOpen
+//                                 menuOpen
 
-                            }
+//                             }
 
-                            aria-controls="mobileNavigation"
+//                             aria-controls="mobileNavigation"
 
-                            aria-label={
+//                             aria-label={
 
-                                menuOpen
+//                                 menuOpen
 
-                                    ? "Close navigation"
+//                                     ? "Close navigation"
 
-                                    : "Open navigation"
+//                                     : "Open navigation"
 
-                            }
+//                             }
 
-                            onClick={() => {
+//                             onClick={() => {
 
-                                setMenuOpen(
+//                                 setMenuOpen(
 
-                                    (
+//                                     (
 
-                                        previous
+//                                         previous
 
-                                    ) =>
+//                                     ) =>
 
-                                        !previous
+//                                         !previous
 
-                                );
+//                                 );
 
 
 
-                                setCartOpen(
+//                                 setCartOpen(
 
-                                    false
+//                                     false
 
-                                );
+//                                 );
 
-                            }}
+//                             }}
 
-                            className="
+//                             className="
 
-                relative
+//                 relative
 
-                z-[1004]
+//                 z-[1004]
 
-                flex
+//                 flex
 
-                h-11
+//                 h-11
 
-                w-11
+//                 w-11
 
-                items-center
+//                 items-center
 
-                justify-center
+//                 justify-center
 
-                rounded-full
+//                 rounded-full
 
-                border
+//                 border
 
-                border-white/15
+//                 border-white/15
 
-                bg-white/10
+//                 bg-white/10
 
-                text-white
+//                 text-white
 
-                transition
+//                 transition
 
-                hover:bg-white/20
+//                 hover:bg-white/20
 
-                lg:hidden
+//                 lg:hidden
 
-              "
+//               "
 
-                        >
+//                         >
 
-                            {menuOpen ? (
+//                             {menuOpen ? (
 
-                                <X
+//                                 <X
 
-                                    size={
+//                                     size={
 
-                                        20
+//                                         20
 
-                                    }
+//                                     }
 
-                                />
+//                                 />
 
-                            ) : (
+//                             ) : (
 
-                                <Menu
+//                                 <Menu
 
-                                    size={
+//                                     size={
 
-                                        20
+//                                         20
 
-                                    }
+//                                     }
 
-                                />
+//                                 />
 
-                            )}
+//                             )}
 
-                        </button>
+//                         </button>
 
-                    </div>
+//                     </div>
 
-                </nav>
+//                 </nav>
 
-            </header>
+//             </header>
 
 
 
-            {/* =====================================================
+//             {/* =====================================================
 
-          MOBILE BACKDROP
+//           MOBILE BACKDROP
 
-      ====================================================== */}
+//       ====================================================== */}
 
 
 
-            <button
+//             <button
 
-                type="button"
+//                 type="button"
 
-                aria-label="Close navigation"
+//                 aria-label="Close navigation"
 
-                onClick={
+//                 onClick={
 
-                    closeMenu
+//                     closeMenu
 
-                }
+//                 }
 
-                className={`
+//                 className={`
 
-          fixed
+//           fixed
 
-          inset-0
+//           inset-0
 
-          z-[998]
+//           z-[998]
 
-          bg-black/55
+//           bg-black/55
 
-          backdrop-blur-[3px]
+//           backdrop-blur-[3px]
 
-          transition-opacity
+//           transition-opacity
 
-          duration-300
+//           duration-300
 
-          lg:hidden
+//           lg:hidden
 
 
 
-          ${menuOpen
+//           ${menuOpen
 
-                        ? "pointer-events-auto opacity-100"
+//                         ? "pointer-events-auto opacity-100"
 
-                        : "pointer-events-none opacity-0"
+//                         : "pointer-events-none opacity-0"
 
-                    }
+//                     }
 
-        `}
+//         `}
 
-            />
+//             />
 
 
 
-            {/* =====================================================
+//             {/* =====================================================
 
-          MOBILE NAVIGATION
+//           MOBILE NAVIGATION
 
 
 
-          Important:
+//           Important:
 
-          This is OUTSIDE the header.
+//           This is OUTSIDE the header.
 
-          It uses fixed positioning and explicit pointer-events.
+//           It uses fixed positioning and explicit pointer-events.
 
-      ====================================================== */}
+//       ====================================================== */}
 
 
 
-            <div
+//             <div
 
-                id="mobileNavigation"
+//                 id="mobileNavigation"
 
-                className={`
+//                 className={`
 
-          fixed
+//           fixed
 
-          left-4
+//           left-4
 
-          right-4
+//           right-4
 
-          top-[84px]
+//           top-[84px]
 
-          z-[1001]
+//           z-[1001]
 
-          overflow-hidden
+//           overflow-hidden
 
-          rounded-[28px]
+//           rounded-[28px]
 
-          border
+//           border
 
-          border-white/10
+//           border-white/10
 
-          bg-[#101411]/95
+//           bg-[#101411]/95
 
-          shadow-[0_28px_90px_rgba(0,0,0,.45)]
+//           shadow-[0_28px_90px_rgba(0,0,0,.45)]
 
-          backdrop-blur-2xl
+//           backdrop-blur-2xl
 
-          transition-all
+//           transition-all
 
-          duration-300
+//           duration-300
 
-          md:left-7
+//           md:left-7
 
-          md:right-7
+//           md:right-7
 
-          lg:hidden
+//           lg:hidden
 
 
 
-          ${menuOpen
+//           ${menuOpen
 
-                        ? `
+//                         ? `
 
-                pointer-events-auto
+//                 pointer-events-auto
 
-                visible
+//                 visible
 
-                translate-y-0
+//                 translate-y-0
 
-                opacity-100
+//                 opacity-100
 
-              `
+//               `
 
-                        : `
+//                         : `
 
-                pointer-events-none
+//                 pointer-events-none
 
-                invisible
+//                 invisible
 
-                -translate-y-3
+//                 -translate-y-3
 
-                opacity-0
+//                 opacity-0
 
-              `
+//               `
 
-                    }
+//                     }
 
-        `}
+//         `}
 
-            >
+//             >
 
-                <div className="p-4 sm:p-5">
+//                 <div className="p-4 sm:p-5">
 
 
 
-                    {/* =================================================
+//                     {/* =================================================
 
-              MOBILE LINKS
+//               MOBILE LINKS
 
-          ================================================== */}
+//           ================================================== */}
 
 
 
-                    <div
+//                     <div
 
-                        className="
+//                         className="
 
-              overflow-hidden
+//               overflow-hidden
 
-              rounded-[20px]
+//               rounded-[20px]
 
-              border
+//               border
 
-              border-white/[0.08]
+//               border-white/[0.08]
 
-              bg-white/[0.035]
+//               bg-white/[0.035]
 
-            "
+//             "
 
-                    >
+//                     >
 
-                        {navItems.map(
+//                         {navItems.map(
 
-                            (
+//                             (
 
-                                item,
+//                                 item,
 
-                                index
+//                                 index
 
-                            ) => (
+//                             ) => (
 
-                                <button
+//                                 <button
 
-                                    key={
+//                                     key={
 
-                                        item.name
+//                                         item.name
 
-                                    }
+//                                     }
 
-                                    type="button"
+//                                     type="button"
 
-                                    onClick={() =>
+//                                     onClick={() =>
 
-                                        handleMobileNavigate(
+//                                         handleMobileNavigate(
 
-                                            item.href
+//                                             item.href
 
-                                        )
+//                                         )
 
-                                    }
+//                                     }
 
-                                    className={`
+//                                     className={`
 
-                    group
+//                     group
 
-                    flex
+//                     flex
 
-                    w-full
+//                     w-full
 
-                    items-center
+//                     items-center
 
-                    justify-between
+//                     justify-between
 
-                    px-5
+//                     px-5
 
-                    py-4
+//                     py-4
 
-                    text-left
+//                     text-left
 
-                    text-[15px]
+//                     text-[15px]
 
-                    font-medium
+//                     font-medium
 
-                    transition-colors
+//                     transition-colors
 
-                    duration-200
+//                     duration-200
 
 
 
-                    ${index !==
+//                     ${index !==
 
-                                            navItems.length -
+//                                             navItems.length -
 
-                                            1
+//                                             1
 
-                                            ? "border-b border-white/[0.08]"
+//                                             ? "border-b border-white/[0.08]"
 
-                                            : ""
+//                                             : ""
 
-                                        }
+//                                         }
 
 
 
-                    ${isActive(
+//                     ${isActive(
 
-                                            item.href
+//                                             item.href
 
-                                        )
+//                                         )
 
-                                            ? "bg-white/[0.05] text-[#D8FF65]"
+//                                             ? "bg-white/[0.05] text-[#D8FF65]"
 
-                                            : "text-white/75 hover:bg-white/[0.05] hover:text-white"
+//                                             : "text-white/75 hover:bg-white/[0.05] hover:text-white"
 
-                                        }
+//                                         }
 
-                  `}
+//                   `}
 
-                                >
+//                                 >
 
-                                    <span>
+//                                     <span>
 
-                                        {
+//                                         {
 
-                                            item.name
+//                                             item.name
 
-                                        }
+//                                         }
 
-                                    </span>
+//                                     </span>
 
 
 
-                                    <span
+//                                     <span
 
-                                        className={`
+//                                         className={`
 
-                      flex
+//                       flex
 
-                      h-8
+//                       h-8
 
-                      w-8
+//                       w-8
 
-                      items-center
+//                       items-center
 
-                      justify-center
+//                       justify-center
 
-                      rounded-full
+//                       rounded-full
 
-                      transition-all
+//                       transition-all
 
-                      duration-200
+//                       duration-200
 
 
 
-                      ${isActive(
+//                       ${isActive(
 
-                                            item.href
+//                                             item.href
 
-                                        )
+//                                         )
 
-                                                ? "bg-[#D8FF65] text-[#101411]"
+//                                                 ? "bg-[#D8FF65] text-[#101411]"
 
-                                                : "bg-white/[0.06] text-white/55 group-hover:bg-white/10 group-hover:text-white"
+//                                                 : "bg-white/[0.06] text-white/55 group-hover:bg-white/10 group-hover:text-white"
 
-                                            }
+//                                             }
 
-                    `}
+//                     `}
 
-                                    >
+//                                     >
 
-                                        <ChevronRight
+//                                         <ChevronRight
 
-                                            className="
+//                                             className="
 
-                        h-4
+//                         h-4
 
-                        w-4
+//                         w-4
 
-                      "
+//                       "
 
-                                        />
+//                                         />
 
-                                    </span>
+//                                     </span>
 
-                                </button>
+//                                 </button>
 
-                            )
+//                             )
 
-                        )}
+//                         )}
 
-                    </div>
+//                     </div>
 
 
 
-                    {/* =================================================
+//                     {/* =================================================
 
-              CART + LANGUAGE MOBILE
+//               CART + LANGUAGE MOBILE
 
-          ================================================== */}
+//           ================================================== */}
 
 
 
-                    <div
+//                     <div
 
-                        className="
+//                         className="
 
-              mt-3
+//               mt-3
 
-              grid
+//               grid
 
-              grid-cols-2
+//               grid-cols-2
 
-              gap-2
+//               gap-2
 
-            "
+//             "
 
-                    >
+//                     >
 
-                        {/* CART */}
+//                         {/* CART */}
 
 
 
-                        <button
+//                         <button
 
-                            type="button"
+//                             type="button"
 
-                            onClick={() =>
+//                             onClick={() =>
 
-                                handleMobileNavigate(
+//                                 handleMobileNavigate(
 
-                                    "/cart"
+//                                     "/cart"
 
-                                )
+//                                 )
 
-                            }
+//                             }
 
-                            className="
+//                             className="
 
-                relative
+//                 relative
 
-                flex
+//                 flex
 
-                min-w-0
+//                 min-w-0
 
-                items-center
+//                 items-center
 
-                justify-between
+//                 justify-between
 
-                rounded-[18px]
+//                 rounded-[18px]
 
-                border
+//                 border
 
-                border-white/10
+//                 border-white/10
 
-                bg-white/[0.06]
+//                 bg-white/[0.06]
 
-                px-4
+//                 px-4
 
-                py-4
+//                 py-4
 
-                text-sm
+//                 text-sm
 
-                font-semibold
+//                 font-semibold
 
-                text-white
+//                 text-white
 
-                transition
+//                 transition
 
-                hover:bg-white/10
+//                 hover:bg-white/10
 
-              "
+//               "
 
-                        >
+//                         >
 
-                            <span
+//                             <span
 
-                                className="
+//                                 className="
 
-                  flex
+//                   flex
 
-                  min-w-0
+//                   min-w-0
 
-                  items-center
+//                   items-center
 
-                  gap-2
+//                   gap-2
 
-                "
+//                 "
 
-                            >
+//                             >
 
-                                <ShoppingBag
+//                                 <ShoppingBag
 
-                                    className="
+//                                     className="
 
-                    h-4
+//                     h-4
 
-                    w-4
+//                     w-4
 
-                    shrink-0
+//                     shrink-0
 
-                  "
+//                   "
 
-                                />
+//                                 />
 
 
 
-                                <span>
+//                                 <span>
 
-                                    Cart
+//                                     Cart
 
-                                </span>
+//                                 </span>
 
-                            </span>
+//                             </span>
 
 
 
-                            {cartCount >
+//                             {cartCount >
 
-                                0 && (
+//                                 0 && (
 
-                                    <span
+//                                     <span
 
-                                        className="
+//                                         className="
 
-                    flex
+//                     flex
 
-                    h-6
+//                     h-6
 
-                    min-w-6
+//                     min-w-6
 
-                    items-center
+//                     items-center
 
-                    justify-center
+//                     justify-center
 
-                    rounded-full
+//                     rounded-full
 
-                    bg-[#D8FF65]
+//                     bg-[#D8FF65]
 
-                    px-1.5
+//                     px-1.5
 
-                    text-[10px]
+//                     text-[10px]
 
-                    font-bold
+//                     font-bold
 
-                    text-black
+//                     text-black
 
-                  "
+//                   "
 
-                                    >
+//                                     >
 
-                                        {
+//                                         {
 
-                                            cartCount
+//                                             cartCount
 
-                                        }
+//                                         }
 
-                                    </span>
+//                                     </span>
 
-                                )}
+//                                 )}
 
-                        </button>
+//                         </button>
 
 
 
-                        {/* LANGUAGE */}
+//                         {/* LANGUAGE */}
 
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setLanguageOpen(
-                                    (previous) =>
-                                        !previous
-                                )
-                            }
-                            className="
-                flex
-                min-w-0
-                items-center
-                justify-between
-                rounded-[18px]
-                bg-[#D8FF65]
-                px-4
-                py-4
-                text-sm
-                font-semibold
-                text-[#101411]
-                transition
-                hover:bg-white
-              "
-                        >
-                            <span className="flex min-w-0 items-center gap-2">
-                                <Globe2 className="h-4 w-4 shrink-0" />
+//                         <button
+//                             type="button"
+//                             onClick={() =>
+//                                 setLanguageOpen(
+//                                     (previous) =>
+//                                         !previous
+//                                 )
+//                             }
+//                             className="
+//                 flex
+//                 min-w-0
+//                 items-center
+//                 justify-between
+//                 rounded-[18px]
+//                 bg-[#D8FF65]
+//                 px-4
+//                 py-4
+//                 text-sm
+//                 font-semibold
+//                 text-[#101411]
+//                 transition
+//                 hover:bg-white
+//               "
+//                         >
+//                             <span className="flex min-w-0 items-center gap-2">
+//                                 <Globe2 className="h-4 w-4 shrink-0" />
 
-                                <span className="truncate">
-                                    {selectedLanguage.name}
-                                </span>
-                            </span>
+//                                 <span className="truncate">
+//                                     {selectedLanguage.name}
+//                                 </span>
+//                             </span>
 
-                            <ChevronDown
-                                className={`h-4 w-4 shrink-0 transition-transform duration-300 ${languageOpen
-                                    ? "rotate-180"
-                                    : ""
-                                    }`}
-                            />
-                        </button>
+//                             <ChevronDown
+//                                 className={`h-4 w-4 shrink-0 transition-transform duration-300 ${languageOpen
+//                                     ? "rotate-180"
+//                                     : ""
+//                                     }`}
+//                             />
+//                         </button>
 
-                    </div>
+//                     </div>
 
-                    {languageOpen && (
-                        <div className="mt-2 grid grid-cols-2 gap-2 rounded-[20px] border border-white/[0.08] bg-white/[0.035] p-2">
-                            {languages.map(
-                                (language) => {
-                                    const active =
-                                        selectedLanguage.code ===
-                                        language.code;
+//                     {languageOpen && (
+//                         <div className="mt-2 grid grid-cols-2 gap-2 rounded-[20px] border border-white/[0.08] bg-white/[0.035] p-2">
+//                             {languages.map(
+//                                 (language) => {
+//                                     const active =
+//                                         selectedLanguage.code ===
+//                                         language.code;
 
-                                    return (
-                                        <button
-                                            key={language.code}
-                                            type="button"
-                                            onClick={() =>
-                                                changeLanguage(
-                                                    language
-                                                )
-                                            }
-                                            className={`
-                        flex
-                        min-w-0
-                        items-center
-                        justify-between
-                        gap-2
-                        rounded-[15px]
-                        px-4
-                        py-3
-                        text-left
-                        transition
+//                                     return (
+//                                         <button
+//                                             key={language.code}
+//                                             type="button"
+//                                             onClick={() =>
+//                                                 changeLanguage(
+//                                                     language
+//                                                 )
+//                                             }
+//                                             className={`
+//                         flex
+//                         min-w-0
+//                         items-center
+//                         justify-between
+//                         gap-2
+//                         rounded-[15px]
+//                         px-4
+//                         py-3
+//                         text-left
+//                         transition
 
-                        ${active
-                                                    ? "bg-[#D8FF65] text-[#101411]"
-                                                    : "bg-white/[0.06] text-white hover:bg-white/10"
-                                                }
-                      `}
-                                        >
-                                            <div className="min-w-0">
-                                                <p className="truncate text-[12px] font-semibold">
-                                                    {language.name}
-                                                </p>
+//                         ${active
+//                                                     ? "bg-[#D8FF65] text-[#101411]"
+//                                                     : "bg-white/[0.06] text-white hover:bg-white/10"
+//                                                 }
+//                       `}
+//                                         >
+//                                             <div className="min-w-0">
+//                                                 <p className="truncate text-[12px] font-semibold">
+//                                                     {language.name}
+//                                                 </p>
 
-                                                <p
-                                                    className={`mt-0.5 truncate text-[10px] ${active
-                                                        ? "text-[#596159]"
-                                                        : "text-white/55"
-                                                        }`}
-                                                >
-                                                    {language.native}
-                                                </p>
-                                            </div>
+//                                                 <p
+//                                                     className={`mt-0.5 truncate text-[10px] ${active
+//                                                         ? "text-[#596159]"
+//                                                         : "text-white/55"
+//                                                         }`}
+//                                                 >
+//                                                     {language.native}
+//                                                 </p>
+//                                             </div>
 
-                                            {active && (
-                                                <Check className="h-3.5 w-3.5 shrink-0" />
-                                            )}
-                                        </button>
-                                    );
-                                }
-                            )}
-                        </div>
-                    )}
+//                                             {active && (
+//                                                 <Check className="h-3.5 w-3.5 shrink-0" />
+//                                             )}
+//                                         </button>
+//                                     );
+//                                 }
+//                             )}
+//                         </div>
+//                     )}
 
-                </div>
+//                 </div>
 
-            </div>
+//             </div>
 
-        </>
+//         </>
 
-    );
+//     );
 
-}
+// }
 
 
 
-/* =========================================================
+// /* =========================================================
 
-   NAVBAR CART ITEM
+//    NAVBAR CART ITEM
 
-========================================================= */
+// ========================================================= */
 
 
 
-function NavbarCartItem({
+// function NavbarCartItem({
 
-    item,
+//     item,
 
-    removeProduct,
+//     removeProduct,
 
-}) {
+// }) {
 
-    const quantity =
+//     const quantity =
 
-        Number(
+//         Number(
 
-            item.quantity || 1
+//             item.quantity || 1
 
-        );
+//         );
 
 
 
-    const itemTotal =
+//     const itemTotal =
 
-        Number(
+//         Number(
 
-            item.price || 0
+//             item.price || 0
 
-        ) * quantity;
+//         ) * quantity;
 
 
 
-    return (
+//     return (
 
-        <div
+//         <div
 
-            className="
+//             className="
 
-        rounded-[18px]
+//         rounded-[18px]
 
-        border
+//         border
 
-        border-black/[0.06]
+//         border-black/[0.06]
 
-        bg-white
+//         bg-white
 
-        p-3
+//         p-3
 
-      "
+//       "
 
-        >
+//         >
 
-            <div className="flex">
+//             <div className="flex">
 
 
 
-                {/* CONTENT */}
+//                 {/* CONTENT */}
 
 
 
-                <div
+//                 <div
 
-                    className="
+//                     className="
 
-            min-w-0
+//             min-w-0
 
-            flex-1
+//             flex-1
 
-          "
+//           "
 
-                >
+//                 >
 
-                    <div
+//                     <div
 
-                        className="
+//                         className="
 
-              flex
+//               flex
 
-              items-start
+//               items-start
 
-              justify-between
+//               justify-between
 
-              gap-3
+//               gap-3
 
-            "
+//             "
 
-                    >
+//                     >
 
-                        <div className="min-w-0">
+//                         <div className="min-w-0">
 
-                            <p
+//                             <p
 
-                                className="
+//                                 className="
 
-                  text-[9px]
+//                   text-[9px]
 
-                  font-semibold
+//                   font-semibold
 
-                  uppercase
+//                   uppercase
 
-                  tracking-[0.11em]
+//                   tracking-[0.11em]
 
-                  text-[#687069]
+//                   text-[#687069]
 
-                "
+//                 "
 
-                            >
+//                             >
 
-                                {item.brand ||
+//                                 {item.brand ||
 
-                                    "Top Range"}
+//                                     "Top Range"}
 
-                            </p>
+//                             </p>
 
 
 
-                            <p
+//                             <p
 
-                                className="
+//                                 className="
 
-                  mt-1
+//                   mt-1
 
-                  truncate
+//                   truncate
 
-                  text-[13px]
+//                   text-[13px]
 
-                  font-semibold
+//                   font-semibold
 
-                  leading-5
+//                   leading-5
 
-                  text-[#101411]
+//                   text-[#101411]
 
-                "
+//                 "
 
-                            >
+//                             >
 
-                                {item.name ||
+//                                 {item.name ||
 
-                                    "Product"}
+//                                     "Product"}
 
-                            </p>
+//                             </p>
 
-                        </div>
+//                         </div>
 
 
 
-                        <button
+//                         <button
 
-                            type="button"
+//                             type="button"
 
-                            aria-label={`Remove ${item.name ||
+//                             aria-label={`Remove ${item.name ||
 
-                                "product"
+//                                 "product"
 
-                                }`}
+//                                 }`}
 
-                            onClick={() =>
+//                             onClick={() =>
 
-                                removeProduct(
+//                                 removeProduct(
 
-                                    item.id
+//                                     item.id
 
-                                )
+//                                 )
 
-                            }
+//                             }
 
-                            className="
+//                             className="
 
-                flex
+//                 flex
 
-                h-7
+//                 h-7
 
-                w-7
+//                 w-7
 
-                shrink-0
+//                 shrink-0
 
-                items-center
+//                 items-center
 
-                justify-center
+//                 justify-center
 
-                rounded-full
+//                 rounded-full
 
-                bg-[#F4F5EF]
+//                 bg-[#F4F5EF]
 
-                text-[#747B75]
+//                 text-[#747B75]
 
-                transition
+//                 transition
 
-                hover:bg-red-50
+//                 hover:bg-red-50
 
-                hover:text-red-500
+//                 hover:text-red-500
 
-              "
+//               "
 
-                        >
+//                         >
 
-                            <Trash2
+//                             <Trash2
 
-                                className="
+//                                 className="
 
-                  h-3
+//                   h-3
 
-                  w-3
+//                   w-3
 
-                "
+//                 "
 
-                            />
+//                             />
 
-                        </button>
+//                         </button>
 
-                    </div>
+//                     </div>
 
 
 
-                    <div
+//                     <div
 
-                        className="
+//                         className="
 
-              mt-2
+//               mt-2
 
-              flex
+//               flex
 
-              items-end
+//               items-end
 
-              justify-between
+//               justify-between
 
-            "
+//             "
 
-                    >
+//                     >
 
-                        <p
+//                         <p
 
-                            className="
+//                             className="
 
-                text-[10px]
+//                 text-[10px]
 
-                font-medium
+//                 font-medium
 
-                text-[#6B726C]
+//                 text-[#6B726C]
 
-              "
+//               "
 
-                        >
+//                         >
 
-                            Qty{" "}
+//                             Qty{" "}
 
 
 
-                            <span
+//                             <span
 
-                                className="
+//                                 className="
 
-                  font-bold
+//                   font-bold
 
-                  text-[#101411]
+//                   text-[#101411]
 
-                "
+//                 "
 
-                            >
+//                             >
 
-                                {
+//                                 {
 
-                                    quantity
+//                                     quantity
 
-                                }
+//                                 }
 
-                            </span>
+//                             </span>
 
-                        </p>
+//                         </p>
 
 
 
-                        <p
+//                         <p
 
-                            className="
+//                             className="
 
-                text-[13px]
+//                 text-[13px]
 
-                font-bold
+//                 font-bold
 
-                text-[#101411]
+//                 text-[#101411]
 
-              "
+//               "
 
-                        >
+//                         >
 
-                            AED{" "}
+//                             AED{" "}
 
 
 
-                            {itemTotal.toLocaleString(
+//                             {itemTotal.toLocaleString(
 
-                                undefined,
+//                                 undefined,
 
-                                {
+//                                 {
 
-                                    minimumFractionDigits:
+//                                     minimumFractionDigits:
 
-                                        2,
+//                                         2,
 
 
 
-                                    maximumFractionDigits:
+//                                     maximumFractionDigits:
 
-                                        2,
+//                                         2,
 
-                                }
+//                                 }
 
-                            )}
+//                             )}
 
-                        </p>
+//                         </p>
 
-                    </div>
+//                     </div>
 
-                </div>
+//                 </div>
 
-            </div>
+//             </div>
 
-        </div>
+//         </div>
 
-    );
+//     );
 
-}
+// }
