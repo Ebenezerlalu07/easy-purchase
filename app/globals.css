@@ -30,6 +30,7 @@ body {
    GLOBAL SMOOTH SCROLL
 ========================================= */
 
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 90px;
