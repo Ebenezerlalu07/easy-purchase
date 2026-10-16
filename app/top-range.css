@@ -2896,3 +2896,61 @@ button {
     }
 
 }
+
+/* =========================================================
+   MOBILE / IOS PERFORMANCE OPTIMIZATION
+========================================================= */
+
+@media (max-width: 767px) {
+
+    .glass,
+    .custom-select-menu,
+    .footer-v3-box,
+    .circle-arrow {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .card-glow,
+    .ambient-glow,
+    .footer-v3-light {
+        display: none !important;
+    }
+
+    .marquee-track {
+        animation: none !important;
+        transform: none !important;
+    }
+
+    .footer-v3-live-dot {
+        animation: none !important;
+        box-shadow: none !important;
+    }
+
+    [data-parallax],
+    [data-float],
+    [data-magnetic],
+    [data-tilt],
+    .hero-bg,
+    #siteHeader {
+        will-change: auto !important;
+    }
+
+    [data-image-reveal] {
+        clip-path: none !important;
+        will-change: auto !important;
+    }
+
+    [data-image-reveal] img {
+        transform: none !important;
+    }
+
+    [data-reveal],
+    [data-reveal-left],
+    [data-reveal-right],
+    .reveal-line-inner {
+        opacity: 1 !important;
+        transform: none !important;
+        will-change: auto !important;
+    }
+}
