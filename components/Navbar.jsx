@@ -32,13 +32,10 @@ import {
 
     ArrowUpRight,
 
-    Check,
 
-    ChevronDown,
 
     ChevronRight,
 
-    Globe2,
 
     Menu,
 
@@ -53,17 +50,6 @@ import {
 
 
 const CART_STORAGE_KEY = "toprange_cart";
-
-const LANGUAGE_STORAGE_KEY = "toprange_language";
-
-const languages = [
-    { name: "English", native: "English", code: "en" },
-    { name: "Hindi", native: "हिन्दी", code: "hi" },
-    { name: "Urdu", native: "اردو", code: "ur" },
-    { name: "Telugu", native: "తెలుగు", code: "te" },
-];
-
-
 
 /* =========================================================
 
@@ -111,13 +97,6 @@ export default function Navbar() {
 
 
     const [cart, setCart] = useState([]);
-
-    const [languageOpen, setLanguageOpen] =
-        useState(false);
-
-    const [selectedLanguage, setSelectedLanguage] =
-        useState(languages[0]);
-
     // Load the saved company logo from public site settings.
     const [logoUrl, setLogoUrl] = useState("");
 
@@ -150,358 +129,6 @@ export default function Navbar() {
 
 
     /* =========================================================
-       LANGUAGE TRANSLATION — OPTIMIZED
-       - Google script is NOT loaded for normal English visitors.
-       - No permanent MutationObserver.
-       - No permanent setInterval.
-       - Translation loads only when required.
-    ========================================================= */
-
-    const hideGoogleTranslateUi = () => {
-        document.documentElement.style.top = "0px";
-        document.body.style.top = "0px";
-    };
-
-    const initializeGoogleTranslate = () => {
-        if (
-            !window.google?.translate?.TranslateElement
-        ) {
-            return false;
-        }
-
-        const host = document.getElementById(
-            "google_translate_element"
-        );
-
-        if (host && !host.dataset.initialized) {
-            new window.google.translate.TranslateElement(
-                {
-                    pageLanguage: "en",
-                    includedLanguages: "en,hi,ur,te",
-                    autoDisplay: false,
-                },
-                "google_translate_element"
-            );
-
-            host.dataset.initialized = "true";
-        }
-
-        hideGoogleTranslateUi();
-
-        return true;
-    };
-
-    const loadGoogleTranslate = () => {
-        return new Promise((resolve, reject) => {
-            if (initializeGoogleTranslate()) {
-                resolve(true);
-                return;
-            }
-
-            const existingScript =
-                document.getElementById(
-                    "google-translate-script"
-                );
-
-            let finished = false;
-
-            const complete = () => {
-                if (finished) {
-                    return;
-                }
-
-                finished = true;
-
-                if (initializeGoogleTranslate()) {
-                    resolve(true);
-                } else {
-                    reject(
-                        new Error(
-                            "Google Translate failed to initialize."
-                        )
-                    );
-                }
-            };
-
-            window.topRangeGoogleTranslateInit =
-                complete;
-
-            if (existingScript) {
-                existingScript.addEventListener(
-                    "load",
-                    complete,
-                    { once: true }
-                );
-
-                existingScript.addEventListener(
-                    "error",
-                    () => {
-                        if (!finished) {
-                            finished = true;
-                            reject(
-                                new Error(
-                                    "Google Translate script failed to load."
-                                )
-                            );
-                        }
-                    },
-                    { once: true }
-                );
-
-                return;
-            }
-
-            const script =
-                document.createElement("script");
-
-            script.id =
-                "google-translate-script";
-
-            script.src =
-                "https://translate.google.com/translate_a/element.js?cb=topRangeGoogleTranslateInit";
-
-            script.async = true;
-            script.defer = true;
-
-            script.onerror = () => {
-                if (!finished) {
-                    finished = true;
-
-                    reject(
-                        new Error(
-                            "Google Translate script failed to load."
-                        )
-                    );
-                }
-            };
-
-            document.body.appendChild(script);
-        });
-    };
-
-    const applyGoogleLanguage = async (
-        languageCode
-    ) => {
-        if (languageCode === "en") {
-            const combo =
-                document.querySelector(
-                    ".goog-te-combo"
-                );
-
-            if (combo) {
-                combo.value = "en";
-
-                combo.dispatchEvent(
-                    new Event("change", {
-                        bubbles: true,
-                    })
-                );
-            }
-
-            hideGoogleTranslateUi();
-            return;
-        }
-
-        try {
-            await loadGoogleTranslate();
-
-            /*
-             * Google creates the select just after TranslateElement
-             * initialization. Retry briefly only for this user action.
-             * There is no permanent interval running in the background.
-             */
-            for (
-                let attempt = 0;
-                attempt < 12;
-                attempt += 1
-            ) {
-                const combo =
-                    document.querySelector(
-                        ".goog-te-combo"
-                    );
-
-                if (combo) {
-                    combo.value =
-                        languageCode;
-
-                    combo.dispatchEvent(
-                        new Event("change", {
-                            bubbles: true,
-                        })
-                    );
-
-                    hideGoogleTranslateUi();
-                    return;
-                }
-
-                await new Promise((resolve) =>
-                    window.setTimeout(
-                        resolve,
-                        100
-                    )
-                );
-            }
-
-            console.warn(
-                "Google Translate language selector was not ready."
-            );
-        } catch (error) {
-            console.error(
-                "Unable to load Google Translate:",
-                error
-            );
-        }
-    };
-
-    useEffect(() => {
-        const savedCode =
-            localStorage.getItem(
-                LANGUAGE_STORAGE_KEY
-            ) || "en";
-
-        const savedLanguage =
-            languages.find(
-                (language) =>
-                    language.code ===
-                    savedCode
-            ) || languages[0];
-
-        setSelectedLanguage(
-            savedLanguage
-        );
-
-        /*
-         * Keep the initial English page lightweight.
-         * Only restore Google Translate automatically if the user
-         * previously selected another language.
-         */
-        if (savedCode !== "en") {
-            const restoreTranslation = () => {
-                applyGoogleLanguage(
-                    savedCode
-                );
-            };
-
-            if (
-                "requestIdleCallback" in window
-            ) {
-                const idleId =
-                    window.requestIdleCallback(
-                        restoreTranslation,
-                        { timeout: 1500 }
-                    );
-
-                return () => {
-                    window.cancelIdleCallback?.(
-                        idleId
-                    );
-                };
-            }
-
-            const timeoutId =
-                window.setTimeout(
-                    restoreTranslation,
-                    600
-                );
-
-            return () =>
-                window.clearTimeout(
-                    timeoutId
-                );
-        }
-    }, []);
-
-    const changeLanguage = async (
-        language
-    ) => {
-        setSelectedLanguage(
-            language
-        );
-
-        setLanguageOpen(false);
-
-        localStorage.setItem(
-            LANGUAGE_STORAGE_KEY,
-            language.code
-        );
-
-        await applyGoogleLanguage(
-            language.code
-        );
-    };
-
-
-
-    useEffect(() => {
-        const styleId =
-            "toprange-google-translate-hide";
-
-        if (document.getElementById(styleId)) {
-            return;
-        }
-
-        const style =
-            document.createElement("style");
-
-        style.id = styleId;
-
-        style.innerHTML = `
-            html,
-            body {
-                top: 0 !important;
-            }
-
-            body {
-                position: static !important;
-            }
-
-            body > .skiptranslate {
-                display: none !important;
-            }
-
-            iframe.goog-te-banner-frame,
-            iframe.skiptranslate,
-            .goog-te-banner-frame,
-            .goog-te-banner-frame.skiptranslate {
-                display: none !important;
-                visibility: hidden !important;
-                height: 0 !important;
-                min-height: 0 !important;
-            }
-
-            #goog-gt-tt,
-            .goog-te-balloon-frame,
-            .goog-te-spinner-pos,
-            .goog-te-gadget-icon {
-                display: none !important;
-            }
-
-            .goog-text-highlight {
-                background: transparent !important;
-                box-shadow: none !important;
-            }
-
-            #google_translate_element {
-                position: fixed !important;
-                left: -99999px !important;
-                top: -99999px !important;
-                width: 1px !important;
-                height: 1px !important;
-                overflow: hidden !important;
-                opacity: 0 !important;
-                pointer-events: none !important;
-            }
-        `;
-
-        document.head.appendChild(
-            style
-        );
-
-        hideGoogleTranslateUi();
-    }, []);
-
-
-    /* =========================================================
 
        ACTIVE LINK
 
@@ -510,11 +137,11 @@ export default function Navbar() {
 
 
     const isActive = (href) => {
-        return (
-            pathname === href ||
-            pathname.startsWith(`${href}/`) ||
-            (href === "/products" && pathname === "/")
-        );
+        if (href === "/") {
+            return pathname === "/";
+        }
+
+        return pathname === href || pathname.startsWith(`${href}/`);
     };
 
 
@@ -573,7 +200,7 @@ export default function Navbar() {
 
                 top: 0,
 
-                behavior: "smooth",
+                behavior: "auto",
 
             });
 
@@ -767,7 +394,6 @@ export default function Navbar() {
 
         setMenuOpen(false);
 
-        setLanguageOpen(false);
 
     }, [pathname]);
 
@@ -982,12 +608,6 @@ export default function Navbar() {
     return (
 
         <>
-            <div
-                id="google_translate_element"
-                className="fixed -left-[9999px] -top-[9999px] h-0 w-0 overflow-hidden opacity-0 pointer-events-none"
-                aria-hidden="true"
-            />
-
             {/* =====================================================
 
           NAVBAR
@@ -1048,15 +668,13 @@ export default function Navbar() {
 
             border-white/15
 
-            bg-black/25
+            bg-[#101411]
 
             px-4
 
             py-3
 
-            shadow-2xl
-
-            backdrop-blur-xl
+            shadow-[0_8px_24px_rgba(0,0,0,.16)]
 
             md:px-5
 
@@ -1162,11 +780,9 @@ export default function Navbar() {
 
               border-white/10
 
-              bg-white/10
+              bg-[#1A201C]
 
               p-1
-
-              backdrop-blur-xl
 
               lg:flex
 
@@ -1218,9 +834,9 @@ export default function Navbar() {
 
                                     )
 
-                                            ? "active1 bg-white/10 text-white"
+                                            ? "active1 bg-[#1A201C] text-white"
 
-                                            : "text-white/75 hover:bg-white/[0.06] hover:text-white"
+                                            : "text-white/75 hover:bg-[#1A201C] hover:text-white"
 
                                         }
 
@@ -1340,11 +956,9 @@ export default function Navbar() {
 
                   font-semibold
 
-                  backdrop-blur-xl
+                  transition-colors
 
-                  transition-all
-
-                  duration-300
+                  duration-200
 
 
 
@@ -1352,7 +966,7 @@ export default function Navbar() {
 
                                         ? "border-white bg-white text-[#101411]"
 
-                                        : "border-white/15 bg-white/10 text-white hover:bg-white hover:text-[#101411]"
+                                        : "border-white/15 bg-[#1A201C] text-white hover:bg-white hover:text-[#101411]"
 
                                     }
 
@@ -1470,7 +1084,7 @@ export default function Navbar() {
 
                     text-[#101411]
 
-                    shadow-[0_30px_100px_rgba(0,0,0,.25)]
+                    shadow-[0_16px_40px_rgba(0,0,0,.18)]
 
                   "
 
@@ -2105,164 +1719,6 @@ export default function Navbar() {
 
 
                         {/* =================================================
-                LANGUAGE
-            ================================================== */}
-
-                        <div className="relative hidden md:block">
-
-                            <button
-                                type="button"
-                                aria-expanded={languageOpen}
-                                aria-label="Select language"
-                                onClick={() => {
-                                    setLanguageOpen(
-                                        (previous) =>
-                                            !previous
-                                    );
-
-                                    setCartOpen(false);
-                                }}
-                                className="
-                group
-                flex
-                h-[46px]
-                items-center
-                gap-2
-                rounded-full
-                bg-[#D8FF65]
-                px-5
-                text-sm
-                font-semibold
-                text-[#101411]
-                transition-all
-                duration-300
-                hover:scale-[1.03]
-                hover:bg-white
-              "
-                            >
-                                <Globe2
-                                    size={16}
-                                    strokeWidth={2}
-                                />
-
-                                <span>
-                                    {selectedLanguage.name}
-                                </span>
-
-                                <ChevronDown
-                                    size={15}
-                                    strokeWidth={2}
-                                    className={`transition-transform duration-300 ${languageOpen
-                                        ? "rotate-180"
-                                        : ""
-                                        }`}
-                                />
-                            </button>
-
-                            {languageOpen && (
-                                <>
-                                    <button
-                                        type="button"
-                                        aria-label="Close language selector"
-                                        onClick={() =>
-                                            setLanguageOpen(
-                                                false
-                                            )
-                                        }
-                                        className="fixed inset-0 z-[1090] cursor-default"
-                                    />
-
-                                    <div
-                                        className="
-                    absolute
-                    right-0
-                    top-[calc(100%+14px)]
-                    z-[1100]
-                    w-[250px]
-                    overflow-hidden
-                    rounded-[24px]
-                    border
-                    border-black/[0.07]
-                    bg-[#F4F5EF]
-                    p-2
-                    text-[#101411]
-                    shadow-[0_30px_100px_rgba(0,0,0,.25)]
-                  "
-                                    >
-                                        <div className="border-b border-black/[0.07] px-3 pb-3 pt-2">
-                                            <p className="text-[9px] font-semibold uppercase tracking-[0.17em] text-[#6A716B]">
-                                                Language
-                                            </p>
-
-                                            <p className="mt-1 text-[12px] font-semibold text-[#101411]">
-                                                Select your language
-                                            </p>
-                                        </div>
-
-                                        <div className="mt-2 space-y-1">
-                                            {languages.map(
-                                                (language) => {
-                                                    const active =
-                                                        selectedLanguage.code ===
-                                                        language.code;
-
-                                                    return (
-                                                        <button
-                                                            key={
-                                                                language.code
-                                                            }
-                                                            type="button"
-                                                            onClick={() =>
-                                                                changeLanguage(
-                                                                    language
-                                                                )
-                                                            }
-                                                            className={`
-                                flex
-                                w-full
-                                items-center
-                                justify-between
-                                gap-3
-                                rounded-[15px]
-                                px-3
-                                py-3
-                                text-left
-                                transition
-
-                                ${active
-                                                                    ? "bg-[#D8FF65] text-[#101411]"
-                                                                    : "text-[#4F5650] hover:bg-white"
-                                                                }
-                              `}
-                                                        >
-                                                            <div className="min-w-0">
-                                                                <p className="text-[12px] font-semibold">
-                                                                    {language.name}
-                                                                </p>
-
-                                                                <p className="mt-0.5 text-[10px] font-medium text-[#717871]">
-                                                                    {language.native}
-                                                                </p>
-                                                            </div>
-
-                                                            {active && (
-                                                                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#101411] text-[#D8FF65]">
-                                                                    <Check className="h-3.5 w-3.5" />
-                                                                </span>
-                                                            )}
-                                                        </button>
-                                                    );
-                                                }
-                                            )}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                        </div>
-
-
-                        {/* =================================================
 
                 MOBILE MENU BUTTON
 
@@ -2344,7 +1800,7 @@ export default function Navbar() {
 
                 transition
 
-                hover:bg-white/20
+                hover:bg-[#252D28]
 
                 lg:hidden
 
@@ -2416,13 +1872,11 @@ export default function Navbar() {
 
           z-[998]
 
-          bg-black/55
-
-          backdrop-blur-[3px]
+          bg-black/70
 
           transition-opacity
 
-          duration-300
+          duration-150
 
           lg:hidden
 
@@ -2482,15 +1936,13 @@ export default function Navbar() {
 
           border-white/10
 
-          bg-[#101411]/95
+          bg-[#101411]
 
-          shadow-[0_28px_90px_rgba(0,0,0,.45)]
+          shadow-[0_16px_40px_rgba(0,0,0,.24)]
 
-          backdrop-blur-2xl
+          transition-[opacity,transform,visibility]
 
-          transition-all
-
-          duration-300
+          duration-150
 
           md:left-7
 
@@ -2556,7 +2008,7 @@ export default function Navbar() {
 
               border-white/[0.08]
 
-              bg-white/[0.035]
+              bg-[#151A17]
 
             "
 
@@ -2640,9 +2092,9 @@ export default function Navbar() {
 
                                         )
 
-                                            ? "bg-white/[0.05] text-[#D8FF65]"
+                                            ? "bg-[#1A201C] text-[#D8FF65]"
 
-                                            : "text-white/75 hover:bg-white/[0.05] hover:text-white"
+                                            : "text-white/75 hover:bg-[#1A201C] hover:text-white"
 
                                         }
 
@@ -2726,7 +2178,7 @@ export default function Navbar() {
 
                     {/* =================================================
 
-              CART + LANGUAGE MOBILE
+              CART MOBILE
 
           ================================================== */}
 
@@ -2740,7 +2192,7 @@ export default function Navbar() {
 
               grid
 
-              grid-cols-2
+              grid-cols-1
 
               gap-2
 
@@ -2894,109 +2346,7 @@ export default function Navbar() {
 
 
 
-                        {/* LANGUAGE */}
-
-                        <button
-                            type="button"
-                            onClick={() =>
-                                setLanguageOpen(
-                                    (previous) =>
-                                        !previous
-                                )
-                            }
-                            className="
-                flex
-                min-w-0
-                items-center
-                justify-between
-                rounded-[18px]
-                bg-[#D8FF65]
-                px-4
-                py-4
-                text-sm
-                font-semibold
-                text-[#101411]
-                transition
-                hover:bg-white
-              "
-                        >
-                            <span className="flex min-w-0 items-center gap-2">
-                                <Globe2 className="h-4 w-4 shrink-0" />
-
-                                <span className="truncate">
-                                    {selectedLanguage.name}
-                                </span>
-                            </span>
-
-                            <ChevronDown
-                                className={`h-4 w-4 shrink-0 transition-transform duration-300 ${languageOpen
-                                    ? "rotate-180"
-                                    : ""
-                                    }`}
-                            />
-                        </button>
-
                     </div>
-
-                    {languageOpen && (
-                        <div className="mt-2 grid grid-cols-2 gap-2 rounded-[20px] border border-white/[0.08] bg-white/[0.035] p-2">
-                            {languages.map(
-                                (language) => {
-                                    const active =
-                                        selectedLanguage.code ===
-                                        language.code;
-
-                                    return (
-                                        <button
-                                            key={language.code}
-                                            type="button"
-                                            onClick={() =>
-                                                changeLanguage(
-                                                    language
-                                                )
-                                            }
-                                            className={`
-                        flex
-                        min-w-0
-                        items-center
-                        justify-between
-                        gap-2
-                        rounded-[15px]
-                        px-4
-                        py-3
-                        text-left
-                        transition
-
-                        ${active
-                                                    ? "bg-[#D8FF65] text-[#101411]"
-                                                    : "bg-white/[0.06] text-white hover:bg-white/10"
-                                                }
-                      `}
-                                        >
-                                            <div className="min-w-0">
-                                                <p className="truncate text-[12px] font-semibold">
-                                                    {language.name}
-                                                </p>
-
-                                                <p
-                                                    className={`mt-0.5 truncate text-[10px] ${active
-                                                        ? "text-[#596159]"
-                                                        : "text-white/55"
-                                                        }`}
-                                                >
-                                                    {language.native}
-                                                </p>
-                                            </div>
-
-                                            {active && (
-                                                <Check className="h-3.5 w-3.5 shrink-0" />
-                                            )}
-                                        </button>
-                                    );
-                                }
-                            )}
-                        </div>
-                    )}
 
                 </div>
 
