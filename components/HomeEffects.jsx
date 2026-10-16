@@ -137,159 +137,33 @@ export default function HomeEffects() {
                 if (categoryValue) params.set("category", categoryValue);
                 if (brandValue) params.set("brand", brandValue);
 
-                const query = params.toString();
-                router.push(query ? `/products?${query}` : "/products");
-            };
+                const params =
+                    new URLSearchParams();
 
-            listen(heroSearchBtn, "click", runHeroProductSearch);
-            listen(heroProductSearch, "keydown", (event) => {
-                if (event.key === "Enter") {
-                    event.preventDefault();
-                    runHeroProductSearch();
+                if (searchValue) {
+                    params.set("search", searchValue);
                 }
-            });
-        };
 
-        const init = async () => {
-            initDropdowns();
+                if (categoryValue) {
+                    params.set(
+                        "category",
+                        categoryValue
+                    );
+                }
 
-            const reduceMotion = window.matchMedia(
-                "(prefers-reduced-motion: reduce)",
-            ).matches;
+                if (brandValue) {
+                    params.set("brand", brandValue);
+                }
 
-            const [{ gsap }, scrollTriggerModule] = await Promise.all([
-                import("gsap"),
-                import("gsap/ScrollTrigger"),
-            ]);
+                const query =
+                    params.toString();
 
-            if (disposed) return;
-
-            const ScrollTrigger = scrollTriggerModule.ScrollTrigger;
-            gsap.registerPlugin(ScrollTrigger);
-
-            /* =====================================================
-               HERO WORD SLIDER
-               Stable on font load, resize, tab restore and route remount.
-            ====================================================== */
-
-            const wordSlider = document.getElementById("wordSlider");
-
-            if (wordSlider) {
-                const wordRows = Array.from(
-                    wordSlider.querySelectorAll(".hero-word-row"),
+                router.push(
+                    query
+                        ? `/products?${query}`
+                        : "/products"
                 );
-
-                const firstText = wordRows[0]?.textContent?.trim() || "";
-                const lastText =
-                    wordRows[wordRows.length - 1]?.textContent?.trim() || "";
-
-                const hasLoopClone =
-                    wordRows.length > 1 &&
-                    firstText &&
-                    firstText === lastText;
-
-                const realWordCount = hasLoopClone
-                    ? wordRows.length - 1
-                    : wordRows.length;
-
-                let currentWord = 0;
-                let wordTween = null;
-                let resizeFrame = null;
-
-                const getWordStep = () => {
-                    const firstRow = wordRows[0];
-
-                    if (!firstRow) return 0;
-
-                    return firstRow.getBoundingClientRect().height;
-                };
-
-                const setWordPosition = (index = currentWord) => {
-                    const step = getWordStep();
-
-                    if (!step) return;
-
-                    gsap.set(wordSlider, {
-                        y: -(index * step),
-                        opacity: 1,
-                        visibility: "visible",
-                    });
-                };
-
-                const resetWordSlider = () => {
-                    currentWord = 0;
-                    wordTween?.kill();
-                    gsap.killTweensOf(wordSlider);
-
-                    gsap.set(wordSlider, {
-                        y: 0,
-                        opacity: 1,
-                        visibility: "visible",
-                    });
-                };
-
-                resetWordSlider();
-
-                const syncWordSlider = () => {
-                    if (resizeFrame) {
-                        cancelAnimationFrame(resizeFrame);
-                    }
-
-                    resizeFrame = requestAnimationFrame(() => {
-                        if (disposed) return;
-
-                        wordTween?.kill();
-
-                        if (currentWord >= realWordCount) {
-                            currentWord = 0;
-                        }
-
-                        setWordPosition(currentWord);
-                    });
-                };
-
-                if (!reduceMotion && realWordCount > 1) {
-                    wordTimer = window.setInterval(() => {
-                        if (disposed || document.hidden) return;
-
-                        const step = getWordStep();
-                        if (!step) return;
-
-                        currentWord += 1;
-
-                        if (!hasLoopClone && currentWord >= realWordCount) {
-                            currentWord = 0;
-                        }
-
-                        wordTween?.kill();
-
-                        wordTween = gsap.to(wordSlider, {
-                            y: -(currentWord * step),
-                            duration: 0.72,
-                            ease: "power3.inOut",
-                            overwrite: "auto",
-                            onComplete: () => {
-                                if (
-                                    hasLoopClone &&
-                                    currentWord === realWordCount
-                                ) {
-                                    currentWord = 0;
-                                    gsap.set(wordSlider, { y: 0 });
-                                }
-                            },
-                        });
-                    }, 2500);
-                }
-
-                const handleVisibilityChange = () => {
-                    if (document.visibilityState === "visible") {
-                        syncWordSlider();
-                    }
-                };
-
-                listen(window, "resize", syncWordSlider, {
-                    passive: true,
-                });
+            };
 
                 listen(
                     document,

@@ -366,9 +366,11 @@ export default function Navbar() {
                     savedCode
             ) || languages[0];
 
-        setSelectedLanguage(
-            savedLanguage
-        );
+        // Restore the saved selection after the current render commits.
+        // This avoids a synchronous state update inside the effect.
+        const languageFrame = window.requestAnimationFrame(() => {
+            setSelectedLanguage(savedLanguage);
+        });
 
         /*
          * Keep the initial English page lightweight.
@@ -392,6 +394,7 @@ export default function Navbar() {
                     );
 
                 return () => {
+                    window.cancelAnimationFrame(languageFrame);
                     window.cancelIdleCallback?.(
                         idleId
                     );
@@ -404,11 +407,15 @@ export default function Navbar() {
                     600
                 );
 
-            return () =>
-                window.clearTimeout(
-                    timeoutId
-                );
+            return () => {
+                window.cancelAnimationFrame(languageFrame);
+                window.clearTimeout(timeoutId);
+            };
         }
+
+        return () => {
+            window.cancelAnimationFrame(languageFrame);
+        };
     }, []);
 
     const changeLanguage = async (
@@ -513,7 +520,7 @@ export default function Navbar() {
         return (
             pathname === href ||
             pathname.startsWith(`${href}/`) ||
-            (href === "/products" && pathname === "/")
+            (href === "/" && pathname === "/")
         );
     };
 
@@ -552,10 +559,8 @@ export default function Navbar() {
     const handleMobileNavigate = (href) => {
 
         setMenuOpen(false);
-
-
-
         setCartOpen(false);
+        setLanguageOpen(false);
 
 
 
@@ -671,7 +676,10 @@ export default function Navbar() {
 
     useEffect(() => {
 
-        readCart();
+        // Read persisted cart data after the initial render commits.
+        const cartFrame = window.requestAnimationFrame(() => {
+            readCart();
+        });
 
 
 
@@ -729,6 +737,8 @@ export default function Navbar() {
 
         return () => {
 
+            window.cancelAnimationFrame(cartFrame);
+
             window.removeEventListener(
 
                 "storage",
@@ -750,26 +760,6 @@ export default function Navbar() {
         };
 
     }, []);
-
-
-
-    /* =========================================================
-
-       CLOSE MENUS AFTER ROUTE CHANGE
-
-    ========================================================= */
-
-
-
-    useEffect(() => {
-
-        setCartOpen(false);
-
-        setMenuOpen(false);
-
-        setLanguageOpen(false);
-
-    }, [pathname]);
 
 
 
@@ -1081,10 +1071,8 @@ export default function Navbar() {
                         onClick={() => {
 
                             closeMenu();
-
-
-
                             setCartOpen(false);
+                            setLanguageOpen(false);
 
                         }}
 
@@ -1191,6 +1179,12 @@ export default function Navbar() {
                                         item.href
 
                                     }
+
+                                    onClick={() => {
+                                        setCartOpen(false);
+                                        setMenuOpen(false);
+                                        setLanguageOpen(false);
+                                    }}
 
                                     className={`
 
@@ -1734,7 +1728,7 @@ export default function Navbar() {
 
                                             <Link
 
-                                                href="/products"
+                                                href="/"
 
                                                 onClick={() =>
 
