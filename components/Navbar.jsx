@@ -155,141 +155,141 @@ export default function Navbar() {
        LANGUAGE TRANSLATION
     ========================================================= */
 
-    useEffect(() => {
-        const savedCode =
-            localStorage.getItem(
-                LANGUAGE_STORAGE_KEY
-            ) || "en";
+    // useEffect(() => {
+    //     const savedCode =
+    //         localStorage.getItem(
+    //             LANGUAGE_STORAGE_KEY
+    //         ) || "en";
 
-        const savedLanguage =
-            languages.find(
-                (language) =>
-                    language.code === savedCode
-            ) || languages[0];
+    //     const savedLanguage =
+    //         languages.find(
+    //             (language) =>
+    //                 language.code === savedCode
+    //         ) || languages[0];
 
-        setSelectedLanguage(savedLanguage);
+    //     setSelectedLanguage(savedLanguage);
 
-        const applySavedLanguage = () => {
-            let attempts = 0;
+    //     const applySavedLanguage = () => {
+    //         let attempts = 0;
 
-            const timer = window.setInterval(() => {
-                const combo =
-                    document.querySelector(
-                        ".goog-te-combo"
-                    );
+    //         const timer = window.setInterval(() => {
+    //             const combo =
+    //                 document.querySelector(
+    //                     ".goog-te-combo"
+    //                 );
 
-                if (combo) {
-                    combo.value = savedCode;
-                    combo.dispatchEvent(
-                        new Event("change")
-                    );
+    //             if (combo) {
+    //                 combo.value = savedCode;
+    //                 combo.dispatchEvent(
+    //                     new Event("change")
+    //                 );
 
-                    window.clearInterval(timer);
-                    return;
-                }
+    //                 window.clearInterval(timer);
+    //                 return;
+    //             }
 
-                attempts += 1;
+    //             attempts += 1;
 
-                if (attempts >= 30) {
-                    window.clearInterval(timer);
-                }
-            }, 150);
-        };
+    //             if (attempts >= 30) {
+    //                 window.clearInterval(timer);
+    //             }
+    //         }, 150);
+    //     };
 
-        window.topRangeGoogleTranslateInit =
-            () => {
-                if (
-                    !window.google?.translate
-                        ?.TranslateElement
-                ) {
-                    return;
-                }
+    //     window.topRangeGoogleTranslateInit =
+    //         () => {
+    //             if (
+    //                 !window.google?.translate
+    //                     ?.TranslateElement
+    //             ) {
+    //                 return;
+    //             }
 
-                const host =
-                    document.getElementById(
-                        "google_translate_element"
-                    );
+    //             const host =
+    //                 document.getElementById(
+    //                     "google_translate_element"
+    //                 );
 
-                if (
-                    host &&
-                    !host.dataset.initialized
-                ) {
-                    new window.google.translate.TranslateElement(
-                        {
-                            pageLanguage: "en",
-                            includedLanguages:
-                                "en,hi,ur,te",
-                            autoDisplay: false,
-                        },
-                        "google_translate_element"
-                    );
+    //             if (
+    //                 host &&
+    //                 !host.dataset.initialized
+    //             ) {
+    //                 new window.google.translate.TranslateElement(
+    //                     {
+    //                         pageLanguage: "en",
+    //                         includedLanguages:
+    //                             "en,hi,ur,te",
+    //                         autoDisplay: false,
+    //                     },
+    //                     "google_translate_element"
+    //                 );
 
-                    host.dataset.initialized =
-                        "true";
-                }
+    //                 host.dataset.initialized =
+    //                     "true";
+    //             }
 
-                applySavedLanguage();
-            };
+    //             applySavedLanguage();
+    //         };
 
-        if (
-            window.google?.translate
-                ?.TranslateElement
-        ) {
-            window.topRangeGoogleTranslateInit();
-        } else if (
-            !document.getElementById(
-                "google-translate-script"
-            )
-        ) {
-            const script =
-                document.createElement("script");
+    //     if (
+    //         window.google?.translate
+    //             ?.TranslateElement
+    //     ) {
+    //         window.topRangeGoogleTranslateInit();
+    //     } else if (
+    //         !document.getElementById(
+    //             "google-translate-script"
+    //         )
+    //     ) {
+    //         const script =
+    //             document.createElement("script");
 
-            script.id =
-                "google-translate-script";
+    //         script.id =
+    //             "google-translate-script";
 
-            script.src =
-                "https://translate.google.com/translate_a/element.js?cb=topRangeGoogleTranslateInit";
+    //         script.src =
+    //             "https://translate.google.com/translate_a/element.js?cb=topRangeGoogleTranslateInit";
 
-            script.async = true;
+    //         script.async = true;
 
-            document.body.appendChild(script);
-        }
-    }, []);
+    //         document.body.appendChild(script);
+    //     }
+    // }, []);
 
-    const changeLanguage = (language) => {
-        setSelectedLanguage(language);
-        setLanguageOpen(false);
+    // const changeLanguage = (language) => {
+    //     setSelectedLanguage(language);
+    //     setLanguageOpen(false);
 
-        localStorage.setItem(
-            LANGUAGE_STORAGE_KEY,
-            language.code
-        );
+    //     localStorage.setItem(
+    //         LANGUAGE_STORAGE_KEY,
+    //         language.code
+    //     );
 
-        let attempts = 0;
+    //     let attempts = 0;
 
-        const timer = window.setInterval(() => {
-            const combo =
-                document.querySelector(
-                    ".goog-te-combo"
-                );
+    //     const timer = window.setInterval(() => {
+    //         const combo =
+    //             document.querySelector(
+    //                 ".goog-te-combo"
+    //             );
 
-            if (combo) {
-                combo.value = language.code;
-                combo.dispatchEvent(
-                    new Event("change")
-                );
+    //         if (combo) {
+    //             combo.value = language.code;
+    //             combo.dispatchEvent(
+    //                 new Event("change")
+    //             );
 
-                window.clearInterval(timer);
-                return;
-            }
+    //             window.clearInterval(timer);
+    //             return;
+    //         }
 
-            attempts += 1;
+    //         attempts += 1;
 
-            if (attempts >= 30) {
-                window.clearInterval(timer);
-            }
-        }, 100);
-    };
+    //         if (attempts >= 30) {
+    //             window.clearInterval(timer);
+    //         }
+    //     }, 100);
+    // };
 
     /* =========================================================
        HIDE GOOGLE TRANSLATE CONTROLS / TOP BANNER
@@ -2030,7 +2030,7 @@ export default function Navbar() {
                 LANGUAGE
             ================================================== */}
 
-                        <div className="relative hidden md:block">
+                        {/* <div className="relative hidden md:block">
 
                             <button
                                 type="button"
@@ -2181,7 +2181,7 @@ export default function Navbar() {
                                 </>
                             )}
 
-                        </div>
+                        </div> */}
 
 
                         {/* =================================================
