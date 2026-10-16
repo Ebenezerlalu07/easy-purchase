@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   try {
-    const products = await readProducts();
+    const products = await readProducts({ activeOnly: true });
     const activeProducts = products
       .filter((product) => String(product.status || "Active").toLowerCase() === "active")
       .map((product) => ({
