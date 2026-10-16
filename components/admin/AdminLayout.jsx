@@ -67,11 +67,11 @@ const navigation = [
                 href: "/admin/admins",
                 icon: UserRoundCog,
             },
-            {
-                name: "Settings",
-                href: "/admin/settings",
-                icon: Settings,
-            },
+            // {
+            //     name: "Settings",
+            //     href: "/admin/settings",
+            //     icon: Settings,
+            // },
         ],
     },
 ];
