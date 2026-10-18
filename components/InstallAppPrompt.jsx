@@ -150,8 +150,22 @@ export default function InstallAppPrompt() {
 
                 <div className="mt-4">
                     {isIOS ? (
-                        <div className="rounded-[16px] bg-white/[0.06] px-4 py-3 text-[12px] font-medium text-white/80">
-                            Share → Add to Home Screen
+                        <div className="space-y-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    alert(
+                                        "To install Easy Purchase on iPhone:\n\n1. Tap the Share button in Safari\n2. Select 'Add to Home Screen'\n3. Tap Add",
+                                    );
+                                }}
+                                className="w-full rounded-full bg-[#D8FF65] px-5 py-3.5 text-[13px] font-semibold text-[#101411]"
+                            >
+                                Install App
+                            </button>
+
+                            <div className="rounded-[16px] bg-white/[0.06] px-4 py-3 text-center text-[12px] font-medium text-white/80">
+                                Share → Add to Home Screen
+                            </div>
                         </div>
                     ) : (
                         <button
