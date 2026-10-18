@@ -44,6 +44,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+#siteHeader {
+  padding-top: max(16px,
+      env(safe-area-inset-top));
+}
+
 /* Smooth scrolling for supported browsers */
 * {
   box-sizing: border-box;
@@ -138,3 +143,50 @@ body {
 }
 
 
+/* Country selector */
+.quote-phone-input .PhoneInput {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+}
+
+/* Country flag */
+.quote-phone-input .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.quote-phone-input .PhoneInputCountryIcon {
+  width: 25px;
+  height: 18px;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+/* Dropdown arrow */
+.quote-phone-input .PhoneInputCountrySelectArrow {
+  width: 7px;
+  height: 7px;
+  opacity: 0.6;
+  margin-left: 8px;
+}
+
+/* Phone input */
+.quote-phone-input .PhoneInputInput {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #202521;
+}
+
+.quote-phone-input .PhoneInputInput::placeholder {
+  color: rgba(0, 0, 0, 0.3);
+}

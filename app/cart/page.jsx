@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+
 import {
   ArrowLeft,
   ArrowRight,
@@ -1070,15 +1073,15 @@ function QuoteModal({ cart = [], onClose }) {
   const autoDescription =
     cart.length > 0
       ? cart
-          .map(
-            (item, index) => `${index + 1}. ${item.name}
+        .map(
+          (item, index) => `${index + 1}. ${item.name}
 SKU: ${item.sku}
 Brand: ${item.brand}
 Category: ${item.category}
 Quantity: ${item.quantity}
 Unit Price: AED ${item.price}`,
-          )
-          .join("\n\n")
+        )
+        .join("\n\n")
       : "";
 
   /* =====================================================
@@ -1297,152 +1300,166 @@ Unit Price: AED ${item.price}`,
             ================================================= */}
 
             {submitMessage ? (
-  <div
-    className="mt-8 rounded-[24px] border border-[#D8FF65]/60 bg-white p-6 text-center sm:p-10"
-    role="status"
-    aria-live="polite"
-  >
-    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411]">
-      <Check className="h-7 w-7" />
-    </div>
+              <div
+                className="mt-8 rounded-[24px] border border-[#D8FF65]/60 bg-white p-6 text-center sm:p-10"
+                role="status"
+                aria-live="polite"
+              >
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411]">
+                  <Check className="h-7 w-7" />
+                </div>
 
-    <h3 className="mt-5 text-[25px] font-semibold tracking-tight text-[#101411] sm:text-[30px]">
-      Quotation Request Submitted
-    </h3>
+                <h3 className="mt-5 text-[25px] font-semibold tracking-tight text-[#101411] sm:text-[30px]">
+                  Quotation Request Submitted
+                </h3>
 
-    <p className="mx-auto mt-3 max-w-xl text-[14px] leading-7 text-[#626963]">
-      Thank you. Your quotation request has been submitted successfully.
-      Our team will review your requirements.
-    </p>
+                <p className="mx-auto mt-3 max-w-xl text-[14px] leading-7 text-[#626963]">
+                  Thank you. Your quotation request has been submitted successfully.
+                  Our team will review your requirements.
+                </p>
 
-    <p className="mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-[#F4F5EF] px-5 py-3 text-[13px] text-[#303630]">
-      <span className="font-medium">Reference:</span>
-      <strong>
-        {submitMessage.match(/Request (.*?) submitted/)?.[1] || "Saved"}
-      </strong>
-    </p>
+                <p className="mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-[#F4F5EF] px-5 py-3 text-[13px] text-[#303630]">
+                  <span className="font-medium">Reference:</span>
+                  <strong>
+                    {submitMessage.match(/Request (.*?) submitted/)?.[1] || "Saved"}
+                  </strong>
+                </p>
 
-    <div>
-      <button
-        type="button"
-        onClick={onClose}
-        className="mt-7 rounded-full bg-[#101411] px-8 py-3.5 text-[13px] font-semibold text-white transition hover:bg-[#1B211D]"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-) : (
-  <>
-            <form onSubmit={submit} className="mt-9">
-              <div className="grid min-w-0 gap-x-5 gap-y-6 lg:grid-cols-2">
-                <QuoteField
-                  label="Company Name"
-                  name="company"
-                  value={form.company}
-                  onChange={update}
-                  placeholder="Company name"
-                  required
-                />
+                <div>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="mt-7 rounded-full bg-[#101411] px-8 py-3.5 text-[13px] font-semibold text-white transition hover:bg-[#1B211D]"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <form onSubmit={submit} className="mt-9">
+                  <div className="grid min-w-0 gap-x-5 gap-y-6 lg:grid-cols-2">
+                    <QuoteField
+                      label="Company Name"
+                      name="company"
+                      value={form.company}
+                      onChange={update}
+                      placeholder="Company name"
+                      required
+                    />
 
-                <QuoteField
-                  label="Contact Person"
-                  name="contactName"
-                  value={form.contactName}
-                  onChange={update}
-                  placeholder="Full name"
-                  required
-                />
+                    <QuoteField
+                      label="Contact Person"
+                      name="contactName"
+                      value={form.contactName}
+                      onChange={update}
+                      placeholder="Full name"
+                      required
+                    />
 
-                <QuoteField
-                  label="Email"
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={update}
-                  placeholder="name@company.com"
-                  required
-                />
+                    <QuoteField
+                      label="Email"
+                      name="email"
+                      type="email"
+                      value={form.email}
+                      onChange={update}
+                      placeholder="name@company.com"
+                      required
+                    />
 
-                <QuoteField
-                  label="Phone"
-                  name="phone"
-                  type="tel"
-                  value={form.phone}
-                  onChange={update}
-                  placeholder="+971"
-                  required
-                />
+                    <div className="min-w-0">
+                      <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+                        Phone <span className="text-red-500">*</span>
+                      </label>
 
-                {/* AUTO PRODUCT */}
+                      <div className="quote-phone-input flex min-h-[58px] items-center rounded-[18px] border border-black/[0.10] bg-white px-5 transition-all hover:border-black/20 focus-within:border-[#101411]/30 focus-within:ring-4 focus-within:ring-[#D8FF65]/20">
+                        <PhoneInput
+                          international
+                          countryCallingCodeEditable={false}
+                          defaultCountry="AE"
+                          value={form.phone}
+                          onChange={(value) =>
+                            setForm((prev) => ({
+                              ...prev,
+                              phone: value || "",
+                            }))
+                          }
+                          placeholder="Enter phone number"
+                          required
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
 
-                <QuoteField
-                  label="Product"
-                  name="products"
-                  value={form.products}
-                  onChange={update}
-                  placeholder="Product name"
-                />
+                    {/* AUTO PRODUCT */}
 
-                {/* AUTO QUANTITY */}
+                    <QuoteField
+                      label="Product"
+                      name="products"
+                      value={form.products}
+                      onChange={update}
+                      placeholder="Product name"
+                    />
 
-                <QuoteField
-                  label="Quantity"
-                  name="quantity"
-                  type="number"
-                  value={form.quantity}
-                  onChange={update}
-                  placeholder="Required quantity"
-                />
+                    {/* AUTO QUANTITY */}
 
-                {/* PREMIUM CATEGORY */}
+                    <QuoteField
+                      label="Quantity"
+                      name="quantity"
+                      type="number"
+                      value={form.quantity}
+                      onChange={update}
+                      placeholder="Required quantity"
+                    />
 
-                <PremiumQuoteDropdown
-                  label="Category"
-                  value={form.category}
-                  placeholder="Select category"
-                  options={[
-                    "Power Tools",
-                    "Hand Tools",
-                    "Electrical",
-                    "Plumbing",
-                    "Hardware",
-                    "Fasteners",
-                    "Safety",
-                    "Paint & Adhesives",
-                    "Construction Materials",
-                    "HVAC",
-                    "Multiple Categories",
-                  ]}
-                  onChange={(value) => updateSelect("category", value)}
-                />
+                    {/* PREMIUM CATEGORY */}
 
-                {/* PREMIUM BRAND */}
+                    <PremiumQuoteDropdown
+                      label="Category"
+                      value={form.category}
+                      placeholder="Select category"
+                      options={[
+                        "Power Tools",
+                        "Hand Tools",
+                        "Electrical",
+                        "Plumbing",
+                        "Hardware",
+                        "Fasteners",
+                        "Safety",
+                        "Paint & Adhesives",
+                        "Construction Materials",
+                        "HVAC",
+                        "Multiple Categories",
+                      ]}
+                      onChange={(value) => updateSelect("category", value)}
+                    />
 
-                <PremiumQuoteDropdown
-                  label="Preferred Brand"
-                  value={form.brand}
-                  placeholder="Select preferred brand"
-                  options={[
-                    "DeWalt",
-                    "Bosch",
-                    "Stanley",
-                    "3M",
-                    "Sika",
-                    "Fischer",
-                    "Hepworth",
-                    "Mueller",
-                    "Dormakaba",
-                    "Fluke",
-                    "No Preference",
-                    "Multiple Brands",
-                  ]}
-                  onChange={(value) => updateSelect("brand", value)}
-                />
+                    {/* PREMIUM BRAND */}
 
-                {/* Reference Number */}
+                    <PremiumQuoteDropdown
+                      label="Preferred Brand"
+                      value={form.brand}
+                      placeholder="Select preferred brand"
+                      options={[
+                        "DeWalt",
+                        "Bosch",
+                        "Stanley",
+                        "3M",
+                        "Sika",
+                        "Fischer",
+                        "Hepworth",
+                        "Mueller",
+                        "Dormakaba",
+                        "Fluke",
+                        "No Preference",
+                        "Multiple Brands",
+                      ]}
+                      onChange={(value) => updateSelect("brand", value)}
+                    />
 
-                {/* <QuoteField
+                    {/* Reference Number */}
+
+                    {/* <QuoteField
                   label="Ref Number"
                   name="refNumber"
                   value={form.refNumber}
@@ -1450,64 +1467,64 @@ Unit Price: AED ${item.price}`,
                   placeholder="Enter reference number"
                 /> */}
 
-                {/* Delivery */}
+                    {/* Delivery */}
 
-                <div className="lg:col-span-2">
-                  <QuoteField
-                    label="Delivery Location"
-                    name="deliveryLocation"
-                    value={form.deliveryLocation}
-                    onChange={update}
-                    placeholder="Dubai, Ajman, Sharjah, Abu Dhabi..."
-                    required
-                  />
-                </div>
-              </div>
+                    <div className="lg:col-span-2">
+                      <QuoteField
+                        label="Delivery Location"
+                        name="deliveryLocation"
+                        value={form.deliveryLocation}
+                        onChange={update}
+                        placeholder="Dubai, Ajman, Sharjah, Abu Dhabi..."
+                        required
+                      />
+                    </div>
+                  </div>
 
-              {/* Description */}
+                  {/* Description */}
 
-              <div className="mt-6">
-                <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
-                  Description / Requirement
-                </label>
+                  <div className="mt-6">
+                    <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+                      Description / Requirement
+                    </label>
 
-                <textarea
-                  rows={7}
-                  name="description"
-                  value={form.description}
-                  onChange={update}
-                  placeholder="Product specifications and requirements..."
-                  className="w-full resize-none rounded-[18px] border border-black/[0.10] bg-white p-5 text-[14px] leading-7 text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20"
-                />
-              </div>
+                    <textarea
+                      rows={7}
+                      name="description"
+                      value={form.description}
+                      onChange={update}
+                      placeholder="Product specifications and requirements..."
+                      className="w-full resize-none rounded-[18px] border border-black/[0.10] bg-white p-5 text-[14px] leading-7 text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20"
+                    />
+                  </div>
 
-              {/* Footer */}
+                  {/* Footer */}
 
-              <div className="mt-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                <p className="max-w-md text-[11px] leading-5 text-[#737A74]">
-                  Product information is automatically fetched from your cart.
-                  You can edit the details before submitting.
-                </p>
+                  <div className="mt-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <p className="max-w-md text-[11px] leading-5 text-[#737A74]">
+                      Product information is automatically fetched from your cart.
+                      You can edit the details before submitting.
+                    </p>
 
-                <button
-                  type="submit"
-                  disabled={submitting || Boolean(submitMessage)}
-                  className="group flex h-[58px] w-full items-center justify-between gap-7 rounded-full bg-[#101411] pl-7 pr-2 text-[14px] font-semibold text-white transition hover:bg-[#1B211D] lg:w-auto lg:min-w-[200px]"
-                >
-                  {submitting
-                    ? "Submitting..."
-                    : submitMessage
-                      ? "Submitted"
-                      : "Submit Quote"}
+                    <button
+                      type="submit"
+                      disabled={submitting || Boolean(submitMessage)}
+                      className="group flex h-[58px] w-full items-center justify-between gap-7 rounded-full bg-[#101411] pl-7 pr-2 text-[14px] font-semibold text-white transition hover:bg-[#1B211D] lg:w-auto lg:min-w-[200px]"
+                    >
+                      {submitting
+                        ? "Submitting..."
+                        : submitMessage
+                          ? "Submitted"
+                          : "Request Quotation"}
 
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
-                    <ArrowUpRight className="h-4 w-4" />
-                  </span>
-                </button>
-              </div>
-            </form>
-             </>
-)}
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
+                        <ArrowUpRight className="h-4 w-4" />
+                      </span>
+                    </button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -1592,10 +1609,9 @@ function PremiumQuoteDropdown({
           transition-all
           duration-300
 
-          ${
-            open
-              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
-              : "border-black/[0.10] hover:border-black/20"
+          ${open
+            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
+            : "border-black/[0.10] hover:border-black/20"
           }
         `}
       >
@@ -1625,10 +1641,9 @@ function PremiumQuoteDropdown({
             transition-all
             duration-300
 
-            ${
-              open
-                ? "rotate-180 bg-[#D8FF65] text-[#101411]"
-                : "bg-[#F1F3ED] text-[#535A54]"
+            ${open
+              ? "rotate-180 bg-[#D8FF65] text-[#101411]"
+              : "bg-[#F1F3ED] text-[#535A54]"
             }
           `}
         >
@@ -1672,11 +1687,10 @@ function PremiumQuoteDropdown({
                       transition-all
                       duration-200
 
-                      ${
-                        selected
-                          ? "bg-[#D8FF65] text-[#101411]"
-                          : "text-[#454B46] hover:bg-[#F1F3ED]"
-                      }
+                      ${selected
+                      ? "bg-[#D8FF65] text-[#101411]"
+                      : "text-[#454B46] hover:bg-[#F1F3ED]"
+                    }
                     `}
                 >
                   <span className="text-[13px] font-semibold">{option}</span>

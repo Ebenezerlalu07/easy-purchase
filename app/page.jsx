@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 import {
   ArrowLeft,
@@ -920,8 +922,8 @@ export default function ProductsPage() {
 
                             <p
                               className={`mt-1 text-[11px] font-bold ${product.stock <= 15
-                                  ? "text-[#B66B19]"
-                                  : "text-[#34733D]"
+                                ? "text-[#B66B19]"
+                                : "text-[#34733D]"
                                 }`}
                             >
                               {product.stock <= 0
@@ -1938,15 +1940,29 @@ Unit Price: AED ${item.price}`,
                     required
                   />
 
-                  <QuoteField
-                    label="Phone"
-                    name="phone"
-                    type="tel"
-                    value={form.phone}
-                    onChange={update}
-                    placeholder="+971"
-                    required
-                  />
+                  <div className="min-w-0">
+                    <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+                      Phone <span className="text-red-500">*</span>
+                    </label>
+
+                    <div className="quote-phone-input flex min-h-[58px] items-center rounded-[18px] border border-black/[0.10] bg-white px-5 transition-all hover:border-black/20 focus-within:border-[#101411]/30 focus-within:ring-4 focus-within:ring-[#D8FF65]/20">
+                      <PhoneInput
+                        international
+                        countryCallingCodeEditable={false}
+                        defaultCountry="AE"
+                        value={form.phone}
+                        onChange={(value) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            phone: value || "",
+                          }))
+                        }
+                        placeholder="Enter phone number"
+                        required
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
 
                   {/* AUTO PRODUCT */}
 
@@ -2076,7 +2092,7 @@ Unit Price: AED ${item.price}`,
                       disabled={submitting}
                       className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white  hover:bg-[#1B211D] disabled:cursor-wait disabled:opacity-60 sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
                     >
-                      {submitting ? "Submitting…" : "Submit Quote"}
+                      {submitting ? "Submitting…" : "Request Quotation"}
 
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411]   ">
                         <ArrowUpRight className="h-4 w-4" />
