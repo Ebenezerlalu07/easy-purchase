@@ -1,9 +1,10 @@
 export default function manifest() {
     return {
-        name: "Top Range Building Materials",
-        short_name: "Top Range",
+        name: "Easy Purchase",
+        short_name: "Easy Purchase",
+
         description:
-            "Building materials catalogue and quotation platform.",
+            "Quality construction materials, reliable supply and quotation solutions.",
 
         start_url: "/",
         scope: "/",
@@ -12,22 +13,13 @@ export default function manifest() {
         background_color: "#07100D",
         theme_color: "#07100D",
 
+        orientation: "portrait",
+
         icons: [
             {
-                src: "/icons/icon-192.png",
-                sizes: "192x192",
-                type: "image/png",
-            },
-            {
-                src: "/icons/icon-512.png",
+                src: "/icons/icon.png",
                 sizes: "512x512",
                 type: "image/png",
-            },
-            {
-                src: "/icons/icon-512-maskable.png",
-                sizes: "512x512",
-                type: "image/png",
-                purpose: "maskable",
             },
         ],
     };

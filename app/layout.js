@@ -20,7 +20,7 @@ const manrope = Manrope({
 });
 
 export const metadata = {
-  title: "Top Range Building Materials",
+  title: "Easy Purchase",
 
   description:
     "Quality construction materials, reliable supply and quotation solutions.",
@@ -30,18 +30,18 @@ export const metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Top Range",
+    title: "Easy Purchase",
   },
 
   icons: {
     icon: [
       {
-        url: "/icons/icon.png",
+        url: "/public/icons/icon.png",
         sizes: "192x192",
         type: "image/png",
       },
       {
-        url: "/icons/icon.png",
+        url: "/public/icons/icon.png",
         sizes: "512x512",
         type: "image/png",
       },
@@ -49,7 +49,7 @@ export const metadata = {
 
     apple: [
       {
-        url: "/icons/icon.png",
+        url: "/public/icons/icon.png",
         sizes: "192x192",
         type: "image/png",
       },
