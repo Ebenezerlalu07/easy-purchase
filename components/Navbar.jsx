@@ -259,160 +259,158 @@ export default function Navbar() {
                 aria-hidden="true"
             />
 
-<header
-  id="siteHeader"
-  className="fixed left-0 top-0 z-[1000] w-full px-4 md:px-7"
-  style={{
-    paddingTop: "max(16px, env(safe-area-inset-top))",
-  }}
->
-  <nav className="mx-auto flex max-w-[1450px] items-center justify-between rounded-full border border-white/10 bg-[#101411] px-4 py-3 shadow-[0_8px_24px_rgba(0,0,0,.18)] md:px-5">
-    <Link
-      href="/"
-      aria-label="Easy Purchase"
-      onClick={() => setMenuOpen(false)}
-      className="flex items-center"
-    >
-      <img
-        src="/Assets/Logo.png"
-        alt="Easy Purchase"
-        width="160"
-        height="40"
-        loading="eager"
-        decoding="async"
-        className="h-10 w-auto object-contain"
-      />
-    </Link>
+            <header
+                id="siteHeader"
+                className="fixed left-0 top-0 z-[1000] w-full px-4 md:px-7"
+                style={{
+                    paddingTop: "max(16px, env(safe-area-inset-top))",
+                }}
+            >
+                <nav className="mx-auto flex max-w-[1450px] items-center justify-between rounded-full border border-white/10 bg-[#101411] px-4 py-3 md:px-5">
+                    <Link
+                        href="/"
+                        aria-label="Easy Purchase"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center"
+                    >
+                        <img
+                            src="/Assets/Logo.png"
+                            alt="Easy Purchase"
+                            width="160"
+                            height="40"
+                            loading="eager"
+                            decoding="async"
+                            className="h-10 w-auto object-contain"
+                        />
+                    </Link>
 
-    <div className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] p-1 lg:flex">
-      {navItems.map((item) => (
-        <Link
-          key={item.name}
-          href={item.href}
-          className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium ${
-            isActive(item.href)
-              ? "bg-white/10 text-white"
-              : "text-white/75 hover:bg-white/[0.06] hover:text-white"
-          }`}
-        >
-          <span>{item.name}</span>
+                    <div className="hidden items-center gap-1 rounded-full border border-white/10 bg-[#171C18] p-1 lg:flex">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={`flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium ${isActive(item.href)
+                                        ? "bg-[#242B25] text-white"
+                                        : "text-white/75 hover:bg-[#202621] hover:text-white"
+                                    }`}
+                            >
+                                <span>{item.name}</span>
 
-          <ArrowUpRight
-            className="h-3.5 w-3.5"
-            strokeWidth={2}
-          />
-        </Link>
-      ))}
-    </div>
+                                <ArrowUpRight
+                                    className="h-3.5 w-3.5"
+                                    strokeWidth={2}
+                                />
+                            </Link>
+                        ))}
+                    </div>
 
-    <div className="flex items-center gap-2">
-      <Link
-        href="/cart"
-        aria-label="Open cart"
-        className="relative hidden h-[46px] items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.06] px-5 text-sm font-semibold text-white hover:bg-white hover:text-[#101411] md:flex"
-      >
-        <ShoppingBag
-          className="h-4 w-4"
-          strokeWidth={2}
-        />
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href="/cart"
+                            aria-label="Open cart"
+                            className="relative hidden h-[46px] items-center gap-2.5 rounded-full border border-white/15 bg-[#171C18] px-5 text-sm font-semibold text-white hover:bg-white hover:text-[#101411] md:flex"
+                        >
+                            <ShoppingBag
+                                className="h-4 w-4"
+                                strokeWidth={2}
+                            />
 
-        <span>Cart</span>
+                            <span>Cart</span>
 
-        {cartCount > 0 && (
-          <span className="flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#D8FF65] px-1.5 text-[10px] font-bold text-[#101411]">
-            {cartCount}
-          </span>
-        )}
-      </Link>
+                            {cartCount > 0 && (
+                                <span className="flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#D8FF65] px-1.5 text-[10px] font-bold text-[#101411]">
+                                    {cartCount}
+                                </span>
+                            )}
+                        </Link>
 
-      <div className="relative hidden md:block">
-        <button
-          type="button"
-          aria-label="Select language"
-          aria-expanded={languageOpen}
-          onClick={() =>
-            setLanguageOpen((previous) => !previous)
-          }
-          className="flex h-[46px] items-center gap-2 rounded-full bg-[#D8FF65] px-5 text-sm font-semibold text-[#101411]"
-        >
-          <Globe2
-            className="h-4 w-4"
-            strokeWidth={2}
-          />
+                        <div className="relative hidden md:block">
+                            <button
+                                type="button"
+                                aria-label="Select language"
+                                aria-expanded={languageOpen}
+                                onClick={() =>
+                                    setLanguageOpen((previous) => !previous)
+                                }
+                                className="flex h-[46px] items-center gap-2 rounded-full bg-[#D8FF65] px-5 text-sm font-semibold text-[#101411]"
+                            >
+                                <Globe2
+                                    className="h-4 w-4"
+                                    strokeWidth={2}
+                                />
 
-          <span>{selectedLanguage.name}</span>
+                                <span>{selectedLanguage.name}</span>
 
-          <ChevronDown
-            className="h-4 w-4"
-            strokeWidth={2}
-          />
-        </button>
+                                <ChevronDown
+                                    className="h-4 w-4"
+                                    strokeWidth={2}
+                                />
+                            </button>
 
-        {languageOpen && (
-          <div className="absolute right-0 top-[calc(100%+12px)] z-[1100] w-[230px] overflow-hidden rounded-[22px] border border-black/[0.07] bg-[#F4F5EF] p-2 text-[#101411] shadow-[0_18px_45px_rgba(0,0,0,.22)]">
-            {languages.map((language) => {
-              const active =
-                selectedLanguage.code === language.code;
+                            {languageOpen && (
+                                <div className="absolute right-0 top-[calc(100%+12px)] z-[1100] w-[230px] overflow-hidden rounded-[22px] border border-black/[0.07] bg-[#F4F5EF] p-2 text-[#101411] shadow-[0_18px_45px_rgba(0,0,0,.22)]">
+                                    {languages.map((language) => {
+                                        const active =
+                                            selectedLanguage.code === language.code;
 
-              return (
-                <button
-                  key={language.code}
-                  type="button"
-                  onClick={() =>
-                    changeLanguage(language)
-                  }
-                  className={`flex w-full items-center justify-between rounded-[14px] px-3.5 py-3 text-left ${
-                    active
-                      ? "bg-[#D8FF65]"
-                      : "hover:bg-white"
-                  }`}
-                >
-                  <div>
-                    <p className="text-[12px] font-semibold">
-                      {language.name}
-                    </p>
+                                        return (
+                                            <button
+                                                key={language.code}
+                                                type="button"
+                                                onClick={() =>
+                                                    changeLanguage(language)
+                                                }
+                                                className={`flex w-full items-center justify-between rounded-[14px] px-3.5 py-3 text-left ${active
+                                                        ? "bg-[#D8FF65]"
+                                                        : "hover:bg-white"
+                                                    }`}
+                                            >
+                                                <div>
+                                                    <p className="text-[12px] font-semibold">
+                                                        {language.name}
+                                                    </p>
 
-                    <p className="mt-0.5 text-[10px] text-[#687069]">
-                      {language.native}
-                    </p>
-                  </div>
+                                                    <p className="mt-0.5 text-[10px] text-[#687069]">
+                                                        {language.native}
+                                                    </p>
+                                                </div>
 
-                  {active && (
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#101411] text-[#D8FF65]">
-                      <Check className="h-3.5 w-3.5" />
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                                                {active && (
+                                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#101411] text-[#D8FF65]">
+                                                        <Check className="h-3.5 w-3.5" />
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
 
-      <button
-        type="button"
-        aria-expanded={menuOpen}
-        aria-controls="mobileNavigation"
-        aria-label={
-          menuOpen
-            ? "Close navigation"
-            : "Open navigation"
-        }
-        onClick={() => {
-          setMenuOpen((previous) => !previous);
-          setLanguageOpen(false);
-        }}
-        className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-white lg:hidden"
-      >
-        {menuOpen ? (
-          <X size={20} />
-        ) : (
-          <Menu size={20} />
-        )}
-      </button>
-    </div>
-  </nav>
-</header>
+                        <button
+                            type="button"
+                            aria-expanded={menuOpen}
+                            aria-controls="mobileNavigation"
+                            aria-label={
+                                menuOpen
+                                    ? "Close navigation"
+                                    : "Open navigation"
+                            }
+                            onClick={() => {
+                                setMenuOpen((previous) => !previous);
+                                setLanguageOpen(false);
+                            }}
+                            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-[#171C18] text-white lg:hidden"
+                        >
+                            {menuOpen ? (
+                                <X size={20} />
+                            ) : (
+                                <Menu size={20} />
+                            )}
+                        </button>
+                    </div>
+                </nav>
+            </header>
 
             {menuOpen && (
                 <>
