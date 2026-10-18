@@ -49,6 +49,8 @@ body {
       env(safe-area-inset-top));
 }
 
+
+
 /* Smooth scrolling for supported browsers */
 * {
   box-sizing: border-box;
