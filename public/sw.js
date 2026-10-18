@@ -3,7 +3,7 @@ const CACHE_NAME = "toprange-v1";
 const STATIC_FILES = [
     "/",
     "/contact",
-    "/Assets/Logo.png",
+    "/Assets/icon.png",
 ];
 
 self.addEventListener("install", (event) => {

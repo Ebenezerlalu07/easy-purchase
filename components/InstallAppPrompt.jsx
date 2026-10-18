@@ -119,7 +119,7 @@ export default function InstallAppPrompt() {
 
                     <div className="min-w-0 flex-1">
                         <p className="text-[15px] font-semibold text-white">
-                            Add Top Range to your phone
+                            Add Easy Purchase to your phone
                         </p>
 
                         {isIOS ? (
@@ -132,7 +132,7 @@ export default function InstallAppPrompt() {
                             </p>
                         ) : (
                             <p className="mt-1 text-[12px] leading-5 text-white/60">
-                                Install Top Range for a faster
+                                Install Easy Purchase for a faster
                                 app-like experience.
                             </p>
                         )}
