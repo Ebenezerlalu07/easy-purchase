@@ -22,7 +22,7 @@ export default function manifest() {
                 type: "image/png",
             },
             {
-                src: "/icons/easy-purchase-android-maskable-512.png",
+                src: "/icons/easy-purchase-android-512.png",
                 sizes: "512x512",
                 type: "image/png",
                 purpose: "maskable",
