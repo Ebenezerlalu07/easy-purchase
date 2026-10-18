@@ -3,9 +3,6 @@ export default function manifest() {
         name: "Easy Purchase",
         short_name: "Easy Purchase",
 
-        description:
-            "Quality construction materials, reliable supply and quotation solutions.",
-
         start_url: "/",
         scope: "/",
         display: "standalone",
@@ -13,13 +10,22 @@ export default function manifest() {
         background_color: "#07100D",
         theme_color: "#07100D",
 
-        orientation: "portrait",
-
         icons: [
             {
-                src: "/icons/icon.png",
+                src: "/icons/easy-purchase-android-192.png",
+                sizes: "192x192",
+                type: "image/png",
+            },
+            {
+                src: "/icons/easy-purchase-android-512.png",
                 sizes: "512x512",
                 type: "image/png",
+            },
+            {
+                src: "/icons/easy-purchase-android-maskable-512.png",
+                sizes: "512x512",
+                type: "image/png",
+                purpose: "maskable",
             },
         ],
     };
