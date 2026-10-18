@@ -36,12 +36,12 @@ export const metadata = {
   icons: {
     icon: [
       {
-        url: "/public/icons/easy-purchase-android-192.png",
+        url: "/public/icons/App logo.png",
         sizes: "192x192",
         type: "image/png",
       },
       {
-        url: "/public/icons/easy-purchase-android-512.png",
+        url: "/public/icons/App logo.png",
         sizes: "512x512",
         type: "image/png",
       },
@@ -49,7 +49,7 @@ export const metadata = {
 
     apple: [
       {
-        url: "/public/icons/icon.png",
+        url: "/public/icons/App logo.png",
         sizes: "192x192",
         type: "image/png",
       },

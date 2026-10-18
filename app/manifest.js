@@ -12,12 +12,12 @@ export default function manifest() {
 
         icons: [
             {
-                src: "/icons/easy-purchase-android-192.png",
+                src: "/icons/App logo.png",
                 sizes: "192x192",
                 type: "image/png",
             },
             {
-                src: "/icons/easy-purchase-android-512.png",
+                src: "/icons/App logo.png",
                 sizes: "512x512",
                 type: "image/png",
             },
