@@ -393,13 +393,13 @@ export default function ProductsPage() {
         return current.map((item) =>
           String(item.id) === String(product.id)
             ? {
-              ...item,
-              ...product,
-              quantity: Math.min(
-                Number(product.stock),
-                Number(item.quantity || 1) + 1,
-              ),
-            }
+                ...item,
+                ...product,
+                quantity: Math.min(
+                  Number(product.stock),
+                  Number(item.quantity || 1) + 1,
+                ),
+              }
             : item,
         );
       }
@@ -414,12 +414,12 @@ export default function ProductsPage() {
         .map((item) =>
           item.id === id
             ? {
-              ...item,
-              quantity: Math.min(
-                Number(item.stock || 0),
-                Math.max(0, Number(item.quantity || 1) + amount),
-              ),
-            }
+                ...item,
+                quantity: Math.min(
+                  Number(item.stock || 0),
+                  Math.max(0, Number(item.quantity || 1) + amount),
+                ),
+              }
             : item,
         )
         .filter((item) => item.quantity > 0),
@@ -672,10 +672,11 @@ export default function ProductsPage() {
 
 
 
-                      ${category === item
-                      ? "bg-[#101411] text-white"
-                      : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
-                    }
+                      ${
+                        category === item
+                          ? "bg-[#101411] text-white"
+                          : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
+                      }
                     `}
                 >
                   {item}
@@ -921,10 +922,11 @@ export default function ProductsPage() {
                             </p>
 
                             <p
-                              className={`mt-1 text-[11px] font-bold ${product.stock <= 15
-                                ? "text-[#B66B19]"
-                                : "text-[#34733D]"
-                                }`}
+                              className={`mt-1 text-[11px] font-bold ${
+                                product.stock <= 15
+                                  ? "text-[#B66B19]"
+                                  : "text-[#34733D]"
+                              }`}
                             >
                               {product.stock <= 0
                                 ? "Out of Stock"
@@ -973,12 +975,13 @@ export default function ProductsPage() {
 
 
 
-                                ${product.stock <= 0
-                                ? "cursor-not-allowed bg-black/10 text-black/40"
-                                : added
-                                  ? "bg-[#D8FF65] text-[#101411]"
-                                  : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
-                              }
+                                ${
+                                  product.stock <= 0
+                                    ? "cursor-not-allowed bg-black/10 text-black/40"
+                                    : added
+                                      ? "bg-[#D8FF65] text-[#101411]"
+                                      : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
+                                }
                               `}
                           >
                             {product.stock <= 0 ? (
@@ -1048,7 +1051,6 @@ export default function ProductsPage() {
 
         <section className="px-5 pb-20 md:px-10 lg:px-14">
           <div className="relative mx-auto max-w-[1450px] overflow-hidden rounded-[38px] bg-[#101411] text-white shadow-[0_14px_38px_rgba(0,0,0,.10)]">
-
             <div className="relative grid lg:grid-cols-[1.08fr_.92fr]">
               {/* Left */}
 
@@ -1363,14 +1365,16 @@ function FilterDropdown({
 
 
 
-          ${open
-            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
-            : "border-black/[0.09] hover:border-black/20"
+          ${
+            open
+              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
+              : "border-black/[0.09] hover:border-black/20"
           }
 
-          ${compact
-            ? "h-[50px] min-w-[190px] rounded-full px-5"
-            : "h-[54px] w-full rounded-[15px] px-4"
+          ${
+            compact
+              ? "h-[50px] min-w-[190px] rounded-full px-5"
+              : "h-[54px] w-full rounded-[15px] px-4"
           }
         `}
       >
@@ -1379,8 +1383,7 @@ function FilterDropdown({
         </span>
 
         <ChevronDown
-          className={`h-4 w-4 shrink-0  ${open ? "rotate-180" : ""
-            }`}
+          className={`h-4 w-4 shrink-0  ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -1407,10 +1410,11 @@ function FilterDropdown({
                   font-medium
 
 
-                  ${value === option
-                  ? "bg-[#D8FF65] text-[#101411]"
-                  : "text-[#454B46] hover:bg-[#F2F4EE]"
-                }
+                  ${
+                    value === option
+                      ? "bg-[#D8FF65] text-[#101411]"
+                      : "text-[#454B46] hover:bg-[#F2F4EE]"
+                  }
                 `}
             >
               {option}
@@ -1512,10 +1516,11 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
                   font-bold
 
 
-                  ${currentPage === page
-                  ? "bg-[#101411] text-white"
-                  : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
-                }
+                  ${
+                    currentPage === page
+                      ? "bg-[#101411] text-white"
+                      : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
+                  }
                 `}
             >
               {page}
@@ -1616,15 +1621,15 @@ function QuoteModal({ cart = [], onClose }) {
   const autoDescription =
     cart.length > 0
       ? cart
-        .map(
-          (item, index) => `${index + 1}. ${item.name}
+          .map(
+            (item, index) => `${index + 1}. ${item.name}
 SKU: ${item.sku}
 Brand: ${item.brand}
 Category: ${item.category}
 Quantity: ${item.quantity}
 Unit Price: AED ${item.price}`,
-        )
-        .join("\n\n")
+          )
+          .join("\n\n")
       : "";
 
   /* =====================================================
@@ -1642,6 +1647,7 @@ Unit Price: AED ${item.price}`,
     category: autoCategory,
 
     brand: autoBrand,
+    size: "",
 
     quantity: totalQuantity > 0 ? String(totalQuantity) : "",
 
@@ -1697,6 +1703,7 @@ Unit Price: AED ${item.price}`,
       sku: String(item.sku ?? item.productSku ?? ""),
       brand: String(item.brand ?? ""),
       category: String(item.category ?? ""),
+      size: form.size || "",
       unit: String(item.unit ?? item.unitName ?? "Unit"),
       quantity: Number(item.quantity ?? item.qty ?? 1),
       price: Number(item.price ?? item.unitPrice ?? item.sellingPrice ?? 0),
@@ -1988,7 +1995,7 @@ Unit Price: AED ${item.price}`,
                   <QuoteField
                     label="Size"
                     name="size"
-                    value={form.size}
+                    value={form.size ?? ""}
                     onChange={update}
                     placeholder="Enter size"
                   />
@@ -2011,9 +2018,7 @@ Unit Price: AED ${item.price}`,
                       "HVAC",
                       "Multiple Categories",
                     ]}
-                    onChange={(value) =>
-                      updateSelect("category", value)
-                    }
+                    onChange={(value) => updateSelect("category", value)}
                   />
 
                   {/* BRAND */}
@@ -2035,9 +2040,7 @@ Unit Price: AED ${item.price}`,
                       "No Preference",
                       "Multiple Brands",
                     ]}
-                    onChange={(value) =>
-                      updateSelect("brand", value)
-                    }
+                    onChange={(value) => updateSelect("brand", value)}
                   />
 
                   {/* DELIVERY LOCATION */}
@@ -2078,10 +2081,7 @@ Unit Price: AED ${item.price}`,
 
                   <div className="w-full lg:w-auto">
                     {submitError && (
-                      <p
-                        className="mb-3 text-sm text-red-600"
-                        role="alert"
-                      >
+                      <p className="mb-3 text-sm text-red-600" role="alert">
                         {submitError}
                       </p>
                     )}
@@ -2091,9 +2091,7 @@ Unit Price: AED ${item.price}`,
                       disabled={submitting}
                       className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white hover:bg-[#1B211D] disabled:cursor-wait disabled:opacity-60 sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
                     >
-                      {submitting
-                        ? "Submitting…"
-                        : "Request Quotation"}
+                      {submitting ? "Submitting…" : "Request Quotation"}
 
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411]">
                         <ArrowUpRight className="h-4 w-4" />
@@ -2190,9 +2188,10 @@ function PremiumQuoteDropdown({
 
 
 
-          ${open
-            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
-            : "border-black/[0.10] hover:border-black/20"
+          ${
+            open
+              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
+              : "border-black/[0.10] hover:border-black/20"
           }
         `}
       >
@@ -2222,9 +2221,10 @@ function PremiumQuoteDropdown({
 
 
 
-            ${open
-              ? "rotate-180 bg-[#D8FF65] text-[#101411]"
-              : "bg-[#F1F3ED] text-[#535A54]"
+            ${
+              open
+                ? "rotate-180 bg-[#D8FF65] text-[#101411]"
+                : "bg-[#F1F3ED] text-[#535A54]"
             }
           `}
         >
@@ -2268,10 +2268,11 @@ function PremiumQuoteDropdown({
 
 
 
-                      ${selected
-                      ? "bg-[#D8FF65] text-[#101411]"
-                      : "text-[#454B46] hover:bg-[#F1F3ED]"
-                    }
+                      ${
+                        selected
+                          ? "bg-[#D8FF65] text-[#101411]"
+                          : "text-[#454B46] hover:bg-[#F1F3ED]"
+                      }
                     `}
                 >
                   <span className="text-[13px] font-semibold">{option}</span>
