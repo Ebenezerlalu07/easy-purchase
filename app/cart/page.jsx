@@ -1337,8 +1337,8 @@ Unit Price: AED ${item.price}`,
               </div>
             ) : (
               <>
-                <form onSubmit={submit} className="mt-9">
-                  <div className="grid min-w-0 gap-x-5 gap-y-6 lg:grid-cols-2">
+                <form onSubmit={submit} className="mt-7 sm:mt-9">
+                  <div className="grid min-w-0 gap-x-5 gap-y-5 lg:grid-cols-2 lg:gap-y-6">
                     <QuoteField
                       label="Company Name"
                       name="company"
@@ -1367,6 +1367,7 @@ Unit Price: AED ${item.price}`,
                       required
                     />
 
+                    {/* PHONE */}
                     <div className="min-w-0">
                       <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
                         Phone <span className="text-red-500">*</span>
@@ -1391,8 +1392,7 @@ Unit Price: AED ${item.price}`,
                       </div>
                     </div>
 
-                    {/* AUTO PRODUCT */}
-
+                    {/* PRODUCT */}
                     <QuoteField
                       label="Product"
                       name="products"
@@ -1401,8 +1401,7 @@ Unit Price: AED ${item.price}`,
                       placeholder="Product name"
                     />
 
-                    {/* AUTO QUANTITY */}
-
+                    {/* QUANTITY */}
                     <QuoteField
                       label="Quantity"
                       name="quantity"
@@ -1412,8 +1411,16 @@ Unit Price: AED ${item.price}`,
                       placeholder="Required quantity"
                     />
 
-                    {/* PREMIUM CATEGORY */}
+                    {/* SIZE - OPTIONAL */}
+                    <QuoteField
+                      label="Size"
+                      name="size"
+                      value={form.size}
+                      onChange={update}
+                      placeholder="Enter size"
+                    />
 
+                    {/* CATEGORY */}
                     <PremiumQuoteDropdown
                       label="Category"
                       value={form.category}
@@ -1431,11 +1438,12 @@ Unit Price: AED ${item.price}`,
                         "HVAC",
                         "Multiple Categories",
                       ]}
-                      onChange={(value) => updateSelect("category", value)}
+                      onChange={(value) =>
+                        updateSelect("category", value)
+                      }
                     />
 
-                    {/* PREMIUM BRAND */}
-
+                    {/* BRAND */}
                     <PremiumQuoteDropdown
                       label="Preferred Brand"
                       value={form.brand}
@@ -1454,21 +1462,12 @@ Unit Price: AED ${item.price}`,
                         "No Preference",
                         "Multiple Brands",
                       ]}
-                      onChange={(value) => updateSelect("brand", value)}
+                      onChange={(value) =>
+                        updateSelect("brand", value)
+                      }
                     />
 
-                    {/* Reference Number */}
-
-                    {/* <QuoteField
-                  label="Ref Number"
-                  name="refNumber"
-                  value={form.refNumber}
-                  onChange={update}
-                  placeholder="Enter reference number"
-                /> */}
-
-                    {/* Delivery */}
-
+                    {/* DELIVERY LOCATION */}
                     <div className="lg:col-span-2">
                       <QuoteField
                         label="Delivery Location"
@@ -1481,9 +1480,8 @@ Unit Price: AED ${item.price}`,
                     </div>
                   </div>
 
-                  {/* Description */}
-
-                  <div className="mt-6">
+                  {/* DESCRIPTION */}
+                  <div className="mt-5 sm:mt-6">
                     <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
                       Description / Requirement
                     </label>
@@ -1494,33 +1492,41 @@ Unit Price: AED ${item.price}`,
                       value={form.description}
                       onChange={update}
                       placeholder="Product specifications and requirements..."
-                      className="w-full resize-none rounded-[18px] border border-black/[0.10] bg-white p-5 text-[14px] leading-7 text-[#202521] outline-none transition-all placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20"
+                      className="min-h-[150px] w-full min-w-0 resize-y rounded-[16px] border border-black/[0.10] bg-white p-4 text-[14px] leading-6 text-[#202521] outline-none placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:min-h-[170px] sm:rounded-[18px] sm:p-5 sm:leading-7"
                     />
                   </div>
 
-                  {/* Footer */}
-
-                  <div className="mt-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                  {/* FOOTER */}
+                  <div className="mt-7 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
                     <p className="max-w-md text-[11px] leading-5 text-[#737A74]">
                       Product information is automatically fetched from your cart.
                       You can edit the details before submitting.
                     </p>
 
-                    <button
-                      type="submit"
-                      disabled={submitting || Boolean(submitMessage)}
-                      className="group flex h-[58px] w-full items-center justify-between gap-7 rounded-full bg-[#101411] pl-7 pr-2 text-[14px] font-semibold text-white transition hover:bg-[#1B211D] lg:w-auto lg:min-w-[200px]"
-                    >
-                      {submitting
-                        ? "Submitting..."
-                        : submitMessage
-                          ? "Submitted"
+                    <div className="w-full lg:w-auto">
+                      {submitError && (
+                        <p
+                          className="mb-3 text-sm text-red-600"
+                          role="alert"
+                        >
+                          {submitError}
+                        </p>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white hover:bg-[#1B211D] disabled:cursor-wait disabled:opacity-60 sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
+                      >
+                        {submitting
+                          ? "Submitting…"
                           : "Request Quotation"}
 
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411] transition-transform duration-300 group-hover:rotate-45">
-                        <ArrowUpRight className="h-4 w-4" />
-                      </span>
-                    </button>
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411]">
+                          <ArrowUpRight className="h-4 w-4" />
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </form>
               </>
