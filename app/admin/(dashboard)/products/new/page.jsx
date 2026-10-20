@@ -77,6 +77,8 @@ const defaultForm = {
 
     oldPrice: "",
 
+    unit: "",
+
     stock: "",
 
     status: "Active",
@@ -302,6 +304,8 @@ export default function ProductsPage() {
 
             oldPrice: product.oldPrice ? String(product.oldPrice) : "",
 
+            unit: product.unit || "",
+
             stock: String(product.stock ?? ""),
 
             status: product.status,
@@ -440,6 +444,8 @@ export default function ProductsPage() {
             price: Number(form.price),
 
             oldPrice: form.oldPrice ? Number(form.oldPrice) : "",
+
+            unit: form.unit.trim(),
 
             stock: Number(form.stock || 0),
 
@@ -778,7 +784,7 @@ export default function ProductsPage() {
 
                                     <TableHeading>Price</TableHeading>
 
-                                    <TableHeading>Stock</TableHeading>
+                                    <TableHeading>Units</TableHeading>
 
                                     <TableHeading>Status</TableHeading>
 
@@ -891,7 +897,7 @@ export default function ProductsPage() {
 
                                         <td className="px-6 py-5">
 
-                                            <StockBadge stock={product.stock} />
+                                            <StockBadge stock={product.stock} unit={product.unit} />
 
                                         </td>
 
@@ -1040,7 +1046,7 @@ export default function ProductsPage() {
 
                                         />
 
-                                        <InfoBox label="Stock" value={`${product.stock} Items`} />
+                                        <InfoBox label="Units" value={`${product.unit || "Units"}: ${product.stock}`} />
 
                                     </div>
 
@@ -1143,7 +1149,6 @@ export default function ProductsPage() {
                         className="absolute inset-0"
 
                     />
-
 
 
                     <div className="relative mx-auto flex min-h-full w-full max-w-[1250px] items-start justify-center py-2 sm:py-4 lg:items-center">
@@ -1396,7 +1401,7 @@ export default function ProductsPage() {
 
                                         <FormSection
 
-                                            title="Pricing & Stock"
+                                            title="Pricing & Units"
 
                                             description="Configure selling price and product availability."
 
@@ -1404,7 +1409,7 @@ export default function ProductsPage() {
 
                                         >
 
-                                            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                                            <div className="grid gap-5 sm:grid-cols-2">
 
                                                 <FormField label="Selling Price" required>
 
@@ -1478,7 +1483,29 @@ export default function ProductsPage() {
 
 
 
-                                                <FormField label="Stock Quantity">
+                                                <FormField label="Unit">
+
+                                                    <input
+
+                                                        type="text"
+
+                                                        name="unit"
+
+                                                        value={form.unit}
+
+                                                        onChange={updateForm}
+
+                                                        placeholder="Kg, Boxes, Pieces, Rolls..."
+
+                                                        className={inputClass}
+
+                                                    />
+
+                                                </FormField>
+
+
+
+                                                <FormField label="Quantity">
 
                                                     <input
 
@@ -1501,6 +1528,28 @@ export default function ProductsPage() {
                                                 </FormField>
 
                                             </div>
+
+
+
+                                            {(form.unit || form.stock) && (
+
+                                                <div className="mt-5 rounded-[14px] border border-black/[0.07] bg-[#F7F7F3] px-4 py-3">
+
+                                                    <p className="text-[9px] font-bold uppercase tracking-[0.13em] text-[#777E77]">
+
+                                                        Units
+
+                                                    </p>
+
+                                                    <p className="mt-1 text-[13px] font-bold text-[#202420]">
+
+                                                        {form.unit || "Units"}: {form.stock || "0"}
+
+                                                    </p>
+
+                                                </div>
+
+                                            )}
 
                                         </FormSection>
 
@@ -1709,7 +1758,7 @@ export default function ProductsPage() {
 
                                                 </div>
 
-                                                <StockBadge stock={Number(form.stock || 0)} />
+                                                <StockBadge stock={Number(form.stock || 0)} unit={form.unit} />
 
                                             </div>
 
@@ -1917,7 +1966,7 @@ function StatusBadge({ status }) {
 
 
 
-function StockBadge({ stock }) {
+function StockBadge({ stock, unit = "" }) {
 
     const value = Number(stock || 0);
 
@@ -1929,7 +1978,7 @@ function StockBadge({ stock }) {
 
             <span className="inline-flex rounded-full bg-[#FCE8E8] px-3 py-1.5 text-[9px] font-bold text-[#A83E3E]">
 
-                Out of Stock
+                {unit ? `${unit}: 0` : "Out of Stock"}
 
             </span>
 
@@ -1945,7 +1994,7 @@ function StockBadge({ stock }) {
 
             <span className="inline-flex rounded-full bg-[#FFF1DA] px-3 py-1.5 text-[9px] font-bold text-[#95610C]">
 
-                {value} Low Stock
+                {unit ? `${unit}: ${value}` : `${value} Low Stock`}
 
             </span>
 
@@ -1959,7 +2008,7 @@ function StockBadge({ stock }) {
 
         <span className="inline-flex rounded-full bg-[#E7F5E9] px-3 py-1.5 text-[9px] font-bold text-[#31733A]">
 
-            {value} In Stock
+            {unit ? `${unit}: ${value}` : `${value} In Stock`}
 
         </span>
 
