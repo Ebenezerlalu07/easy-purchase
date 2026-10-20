@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { COOKIE_NAME, verifySessionToken } from "@/lib/auth/session";
@@ -24,7 +23,7 @@ async function requireAdmin() {
 }
 
 function clean(value) {
-  return typeof value === "string" ? value.trim() : value ?? "";
+  return typeof value === "string" ? value.trim() : (value ?? "");
 }
 
 function toText(value, fallback = "") {
@@ -41,7 +40,7 @@ function firstValue(...values) {
     (value) =>
       value !== undefined &&
       value !== null &&
-      !(typeof value === "string" && value.trim() === "")
+      !(typeof value === "string" && value.trim() === ""),
   );
 }
 
@@ -67,9 +66,7 @@ function toNumber(value, fallback = 0) {
  */
 function normalizeQuotationItem(item = {}) {
   const product =
-    item.product && typeof item.product === "object"
-      ? item.product
-      : {};
+    item.product && typeof item.product === "object" ? item.product : {};
 
   const name = firstValue(
     item.name,
@@ -80,7 +77,7 @@ function normalizeQuotationItem(item = {}) {
     product.name,
     product.productName,
     product.product_name,
-    product.title
+    product.title,
   );
 
   const rawQuantity = firstValue(
@@ -88,7 +85,7 @@ function normalizeQuotationItem(item = {}) {
     item.qty,
     item.count,
     item.selectedQuantity,
-    product.quantity
+    product.quantity,
   );
 
   const rawPrice = firstValue(
@@ -104,7 +101,7 @@ function normalizeQuotationItem(item = {}) {
     product.unitPrice,
     product.unit_price,
     product.sellingPrice,
-    product.salePrice
+    product.salePrice,
   );
 
   const quantity = toNumber(rawQuantity, 1);
@@ -114,29 +111,24 @@ function normalizeQuotationItem(item = {}) {
     id: toText(firstValue(item.id, item._id, product.id, product._id)),
     name: toText(name),
     sku: toText(
-      firstValue(item.sku, item.productSku, item.product_sku, product.sku)
+      firstValue(item.sku, item.productSku, item.product_sku, product.sku),
     ),
     category: toText(firstValue(item.category, product.category)),
     brand: toText(firstValue(item.brand, product.brand)),
+    size: toText(firstValue(item.size, product.size)),
     unit: toText(
       firstValue(item.unit, item.unitName, item.unit_name, product.unit),
-      "Unit"
+      "Unit",
     ),
-    quantity:
-      Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+    quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
     price:
-      price !== null && Number.isFinite(price) && price >= 0
-        ? price
-        : null,
+      price !== null && Number.isFinite(price) && price >= 0 ? price : null,
     remarks: toText(firstValue(item.remarks, item.notes)),
   };
 }
 
 function getQuotationItems(quotation) {
-  const source = [
-    quotation.productList,
-    quotation.items,
-  ].find(Array.isArray);
+  const source = [quotation.productList, quotation.items].find(Array.isArray);
 
   return (source || []).map((item) => {
     const normalized = normalizeQuotationItem(item);
@@ -154,7 +146,7 @@ function getMailer() {
 
   if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
     throw new Error(
-      "Email is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASS."
+      "Email is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASS.",
     );
   }
 
@@ -177,10 +169,7 @@ export async function GET() {
   const session = await requireAdmin();
 
   if (!session) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const quotations = await readQuotations();
@@ -197,7 +186,7 @@ function createQuotationPdf(quotation) {
       process.cwd(),
       "public",
       "Assets",
-      "top-range-quotation-template.png"
+      "top-range-quotation-template.png",
     );
 
     const doc = new PDFDocument({
@@ -227,8 +216,7 @@ function createQuotationPdf(quotation) {
         maximumFractionDigits: 2,
       });
 
-    const safe = (value, fallback = "") =>
-      toText(value, fallback);
+    const safe = (value, fallback = "") => toText(value, fallback);
 
     const text = (value, x, y, width, opts = {}) => {
       doc.text(String(value ?? ""), x, y, {
@@ -251,23 +239,19 @@ function createQuotationPdf(quotation) {
 
       doc.rect(36, 33, 523, 86).fill(MAROON);
 
-      doc.fillColor("#FFFFFF")
+      doc
+        .fillColor("#FFFFFF")
         .font("Helvetica-Bold")
         .fontSize(22)
         .text("TOP RANGE", 132, 45);
 
-      doc.fillColor(GOLD)
-        .fontSize(11)
-        .text("BUILDING MATERIALS", 132, 70);
+      doc.fillColor(GOLD).fontSize(11).text("BUILDING MATERIALS", 132, 70);
 
-      doc.fillColor("#FFFFFF")
+      doc
+        .fillColor("#FFFFFF")
         .font("Helvetica")
         .fontSize(8.5)
-        .text(
-          "Maliha Road, Sharjah | +971 50 468 2745",
-          132,
-          89
-        );
+        .text("Maliha Road, Sharjah | +971 50 468 2745", 132, 89);
     }
 
     /* Clear dynamic template regions */
@@ -280,34 +264,21 @@ function createQuotationPdf(quotation) {
 
     /* Reference and date */
 
-    doc.fillColor(MUTED)
-      .font("Helvetica")
-      .fontSize(8.5);
+    doc.fillColor(MUTED).font("Helvetica").fontSize(8.5);
+
+    text(`Ref. ${safe(quotation.id, "TRBM-[Quotation number]")}`, 37, 168, 300);
 
     text(
-      `Ref. ${safe(quotation.id, "TRBM-[Quotation number]")}`,
-      37,
-      168,
-      300
-    );
-
-    text(
-      `Date: ${safe(
-        quotation.date,
-        new Date().toLocaleDateString("en-GB")
-      )}`,
+      `Date: ${safe(quotation.date, new Date().toLocaleDateString("en-GB"))}`,
       425,
       168,
       133,
-      { align: "right" }
+      { align: "right" },
     );
 
     /* Customer details */
 
-
-    doc.fillColor(DARK)
-      .font("Helvetica-Bold")
-      .fontSize(7.8);
+    doc.fillColor(DARK).font("Helvetica-Bold").fontSize(7.8);
 
     text("Company Name:", 42, 190, 80);
     text("Customer Name:", 330, 190, 88);
@@ -316,38 +287,15 @@ function createQuotationPdf(quotation) {
 
     doc.font("Helvetica").fontSize(7.8);
 
-    text(
-      safe(quotation.company || quotation.contactName, "-"),
-      126,
-      190,
-      185
-    );
+    text(safe(quotation.company || quotation.contactName, "-"), 126, 190, 185);
 
-    text(
-      safe(quotation.contactName, "-"),
-      421,
-      190,
-      132
-    );
+    text(safe(quotation.contactName, "-"), 421, 190, 132);
 
-    text(
-      safe(quotation.project, "Material supply"),
-      84,
-      216,
-      220
-    );
+    text(safe(quotation.project, "Material supply"), 84, 216, 220);
 
-    text(
-      safe(quotation.phone, "-"),
-      370,
-      216,
-      180
-    );
+    text(safe(quotation.phone, "-"), 370, 216, 180);
 
-
-    doc.fillColor(DARK)
-      .font("Helvetica")
-      .fontSize(8.2);
+    doc.fillColor(DARK).font("Helvetica").fontSize(8.2);
 
     // text(
     //   `Quotation for ${safe(
@@ -372,13 +320,12 @@ function createQuotationPdf(quotation) {
 
     const totalsH = [24, 24, 29];
 
-    doc.fillColor(MAROON)
+    doc
+      .fillColor(MAROON)
       .rect(x[0], y, x[7] - x[0], headerH)
       .fill();
 
-    doc.fillColor("#FFFFFF")
-      .font("Helvetica-Bold")
-      .fontSize(7);
+    doc.fillColor("#FFFFFF").font("Helvetica-Bold").fontSize(7);
 
     [
       "Item",
@@ -398,37 +345,40 @@ function createQuotationPdf(quotation) {
           align: "center",
           lineBreak: true,
           height: 18,
-        }
+        },
       );
     });
 
     doc.strokeColor(GRID).lineWidth(0.45);
 
     for (const xx of x) {
-      doc.moveTo(xx, y).lineTo(xx, y + headerH).stroke();
+      doc
+        .moveTo(xx, y)
+        .lineTo(xx, y + headerH)
+        .stroke();
     }
 
     y += headerH;
 
     const items = getQuotationItems(quotation);
 
-    doc.fillColor(BEIGE)
+    doc
+      .fillColor(BEIGE)
       .rect(x[0], y, x[7] - x[0], categoryH)
       .fill();
 
-    doc.strokeColor(GRID)
+    doc
+      .strokeColor(GRID)
       .rect(x[0], y, x[7] - x[0], categoryH)
       .stroke();
 
-    doc.fillColor(MUTED)
-      .font("Helvetica-Bold")
-      .fontSize(7);
+    doc.fillColor(MUTED).font("Helvetica-Bold").fontSize(7);
 
     text(
       quotation.category ? `[${safe(quotation.category)}]` : "",
       x[0] + 4,
       y + 6,
-      x[7] - x[0] - 8
+      x[7] - x[0] - 8,
     );
 
     y += categoryH;
@@ -442,30 +392,29 @@ function createQuotationPdf(quotation) {
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
 
-      doc.fillColor("#FFFFFF")
+      doc
+        .fillColor("#FFFFFF")
         .rect(x[0], y, x[7] - x[0], rowH)
         .fill();
 
-      doc.strokeColor(GRID)
+      doc
+        .strokeColor(GRID)
         .lineWidth(0.45)
         .rect(x[0], y, x[7] - x[0], rowH)
         .stroke();
 
       for (let c = 1; c < x.length - 1; c++) {
-        doc.moveTo(x[c], y).lineTo(x[c], y + rowH).stroke();
+        doc
+          .moveTo(x[c], y)
+          .lineTo(x[c], y + rowH)
+          .stroke();
       }
 
-      doc.fillColor(DARK)
-        .font("Helvetica")
-        .fontSize(7);
+      doc.fillColor(DARK).font("Helvetica").fontSize(7);
 
-      text(
-        String(i + 1),
-        x[0] + 2,
-        y + 8,
-        x[1] - x[0] - 4,
-        { align: "center" }
-      );
+      text(String(i + 1), x[0] + 2, y + 8, x[1] - x[0] - 4, {
+        align: "center",
+      });
 
       const qty = toNumber(item.quantity, 1);
       const rate = toNumber(item.price, 0);
@@ -476,6 +425,7 @@ function createQuotationPdf(quotation) {
       const details = [
         item.sku ? `SKU: ${item.sku}` : "",
         item.brand ? `Brand: ${item.brand}` : "",
+        item.size ? `Size: ${item.size}` : "",
       ]
         .filter(Boolean)
         .join(" | ");
@@ -484,16 +434,9 @@ function createQuotationPdf(quotation) {
 
       doc.save();
 
-      doc.rect(
-        x[1] + 2,
-        y + 1,
-        x[2] - x[1] - 4,
-        rowH - 2
-      ).clip();
+      doc.rect(x[1] + 2, y + 1, x[2] - x[1] - 4, rowH - 2).clip();
 
-      doc.fillColor(DARK)
-        .font("Helvetica")
-        .fontSize(6.6);
+      doc.fillColor(DARK).font("Helvetica").fontSize(6.6);
 
       doc.text(name, x[1] + 4, y + 3, {
         width: x[2] - x[1] - 8,
@@ -503,60 +446,39 @@ function createQuotationPdf(quotation) {
       });
 
       if (details) {
-        doc.fillColor(MUTED).fontSize(5.7);
+        doc.save();
+
+        doc.rect(x[1] + 2, y + 1, x[2] - x[1] - 4, rowH - 2).clip();
+
+        doc.fillColor(MUTED).font("Helvetica").fontSize(5.7);
 
         doc.text(details, x[1] + 4, y + 13, {
           width: x[2] - x[1] - 8,
-          height: 7,
+          height: 10,
           lineBreak: false,
           ellipsis: true,
         });
+
+        doc.restore();
       }
 
       doc.restore();
 
-      doc.fillColor(DARK)
-        .font("Helvetica")
-        .fontSize(6.8);
+      doc.fillColor(DARK).font("Helvetica").fontSize(6.8);
 
-      text(
-        safe(item.unit, "Unit"),
-        x[2] + 1,
-        y + 8,
-        x[3] - x[2] - 2,
-        { align: "center" }
-      );
+      text(safe(item.unit, "Unit"), x[2] + 1, y + 8, x[3] - x[2] - 2, {
+        align: "center",
+      });
 
-      text(
-        String(qty),
-        x[3] + 1,
-        y + 8,
-        x[4] - x[3] - 2,
-        { align: "center" }
-      );
+      text(String(qty), x[3] + 1, y + 8, x[4] - x[3] - 2, { align: "center" });
 
-      text(
-        money(rate),
-        x[4] + 1,
-        y + 8,
-        x[5] - x[4] - 2,
-        { align: "center" }
-      );
+      text(money(rate), x[4] + 1, y + 8, x[5] - x[4] - 2, { align: "center" });
 
-      text(
-        money(amount),
-        x[5] + 1,
-        y + 8,
-        x[6] - x[5] - 2,
-        { align: "center" }
-      );
+      text(money(amount), x[5] + 1, y + 8, x[6] - x[5] - 2, {
+        align: "center",
+      });
 
-      text(
-        safe(item.remarks),
-        x[6] + 3,
-        y + 8,
-        x[7] - x[6] - 6
-      );
+      text(safe(item.remarks), x[6] + 3, y + 8, x[7] - x[6] - 6);
 
       y += rowH;
     }
@@ -567,23 +489,18 @@ function createQuotationPdf(quotation) {
       items
         .reduce(
           (sum, item) =>
-            sum +
-            toNumber(item.price, 0) *
-            toNumber(item.quantity, 1),
-          0
+            sum + toNumber(item.price, 0) * toNumber(item.quantity, 1),
+          0,
         )
-        .toFixed(2)
+        .toFixed(2),
     );
 
     const vatRate = Math.max(
       0,
-      toNumber(
-        quotation.vatRate ?? process.env.QUOTATION_VAT_RATE,
-        0
-      )
+      toNumber(quotation.vatRate ?? process.env.QUOTATION_VAT_RATE, 0),
     );
 
-    const vat = Number((subtotal * vatRate / 100).toFixed(2));
+    const vat = Number(((subtotal * vatRate) / 100).toFixed(2));
     const total = Number((subtotal + vat).toFixed(2));
 
     const totals = [
@@ -593,28 +510,22 @@ function createQuotationPdf(quotation) {
     ];
 
     for (const [label, amount, h, bg, fg] of totals) {
-      doc.fillColor(bg)
+      doc
+        .fillColor(bg)
         .rect(x[0], y, x[7] - x[0], h)
         .fill();
 
-      doc.strokeColor(GRID)
+      doc
+        .strokeColor(GRID)
         .lineWidth(0.45)
         .rect(x[0], y, x[7] - x[0], h)
         .stroke();
 
-      doc.fillColor(fg)
-        .font("Helvetica-Bold")
-        .fontSize(7.5);
+      doc.fillColor(fg).font("Helvetica-Bold").fontSize(7.5);
 
       text(label, x[0] + 6, y + 6, 300);
 
-      text(
-        money(amount),
-        x[6] + 2,
-        y + 6,
-        x[7] - x[6] - 8,
-        { align: "right" }
-      );
+      text(money(amount), x[6] + 2, y + 6, x[7] - x[6] - 8, { align: "right" });
 
       y += h;
     }
@@ -623,27 +534,16 @@ function createQuotationPdf(quotation) {
 
     let notesY = 632;
 
-    doc.fillColor(MAROON)
-      .font("Helvetica-Bold")
-      .fontSize(8.2);
+    doc.fillColor(MAROON).font("Helvetica-Bold").fontSize(8.2);
 
     text("NOTES & TERMS", 42, notesY, 200);
 
     notesY += 14;
 
     const terms = [
-      [
-        "Payment:",
-        process.env.QUOTATION_PAYMENT_TERMS || "To be confirmed",
-      ],
-      [
-        "Delivery:",
-        process.env.QUOTATION_DELIVERY_TERMS || "To be confirmed",
-      ],
-      [
-        "Validity:",
-        process.env.QUOTATION_VALIDITY || "3 days",
-      ],
+      ["Payment:", process.env.QUOTATION_PAYMENT_TERMS || "To be confirmed"],
+      ["Delivery:", process.env.QUOTATION_DELIVERY_TERMS || "To be confirmed"],
+      ["Validity:", process.env.QUOTATION_VALIDITY || "3 days"],
       [
         "Additional notes:",
         "Prices are subject to market fluctuations and are valid for 3 days from the quotation date.",
@@ -651,9 +551,7 @@ function createQuotationPdf(quotation) {
     ];
 
     for (const [label, value] of terms) {
-      doc.fillColor(DARK)
-        .font("Helvetica-Bold")
-        .fontSize(7);
+      doc.fillColor(DARK).font("Helvetica-Bold").fontSize(7);
 
       text(label, 42, notesY, 80);
 
@@ -664,9 +562,7 @@ function createQuotationPdf(quotation) {
       notesY += 10;
     }
 
-    doc.fillColor(DARK)
-      .font("Helvetica")
-      .fontSize(8);
+    doc.fillColor(DARK).font("Helvetica").fontSize(8);
 
     text("With regards,", 42, 722, 180);
 
@@ -703,10 +599,9 @@ export async function POST(request) {
   ) {
     return NextResponse.json(
       {
-        error:
-          "Contact name, customer email and phone are required.",
+        error: "Contact name, customer email and phone are required.",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -715,7 +610,7 @@ export async function POST(request) {
       {
         error: "Add at least one product to request a quotation.",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -729,12 +624,12 @@ export async function POST(request) {
         error:
           "This quotation template supports up to 8 products. Please reduce the product list or update the PDF to support multiple pages.",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const productList = body.productList.map((item) =>
-    normalizeQuotationItem(item)
+    normalizeQuotationItem(item),
   );
 
   const invalidProduct = productList.find(
@@ -742,7 +637,7 @@ export async function POST(request) {
       !item.name ||
       item.price === null ||
       !Number.isFinite(item.price) ||
-      item.price < 0
+      item.price < 0,
   );
 
   if (invalidProduct) {
@@ -751,14 +646,12 @@ export async function POST(request) {
         error:
           "A product is missing its name or valid unit price. Refresh the product list and try again.",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const invalidQuantity = productList.find(
-    (item) =>
-      !Number.isFinite(item.quantity) ||
-      item.quantity <= 0
+    (item) => !Number.isFinite(item.quantity) || item.quantity <= 0,
   );
 
   if (invalidQuantity) {
@@ -766,25 +659,19 @@ export async function POST(request) {
       {
         error: "Every product must have a valid quantity greater than zero.",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const subtotal = Number(
     productList
-      .reduce(
-        (sum, item) => sum + item.quantity * item.price,
-        0
-      )
-      .toFixed(2)
+      .reduce((sum, item) => sum + item.quantity * item.price, 0)
+      .toFixed(2),
   );
 
-  const vatRate = Math.max(
-    0,
-    toNumber(process.env.QUOTATION_VAT_RATE, 0)
-  );
+  const vatRate = Math.max(0, toNumber(process.env.QUOTATION_VAT_RATE, 0));
 
-  const vat = Number((subtotal * vatRate / 100).toFixed(2));
+  const vat = Number(((subtotal * vatRate) / 100).toFixed(2));
   const total = Number((subtotal + vat).toFixed(2));
 
   const quotations = await readQuotations();
@@ -816,13 +703,9 @@ export async function POST(request) {
 
     category: clean(body.category),
     brand: clean(body.brand),
+    size: clean(body.size),
 
-    quantity: String(
-      productList.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      )
-    ),
+    quantity: String(productList.reduce((sum, item) => sum + item.quantity, 0)),
 
     deliveryLocation: clean(body.deliveryLocation),
 
@@ -849,7 +732,8 @@ export async function POST(request) {
     const mailer = getMailer();
     const pdf = await createQuotationPdf(quotation);
 
-    const adminEmail = process.env.QUOTATION_ADMIN_EMAIL || "easypurchaseadmin@gmail.com";
+    const adminEmail =
+      process.env.QUOTATION_ADMIN_EMAIL || "easypurchaseadmin@gmail.com";
 
     await mailer.sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
@@ -924,12 +808,12 @@ export async function POST(request) {
         message:
           "Quotation request saved and estimate emailed to the customer and admin.",
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error(
       "Quotation email delivery failed:",
-      error instanceof Error ? error.message : "Unknown error"
+      error instanceof Error ? error.message : "Unknown error",
     );
 
     return NextResponse.json(
@@ -938,7 +822,7 @@ export async function POST(request) {
         warning:
           "The request was saved, but automatic email delivery failed. Check SMTP settings and server logs.",
       },
-      { status: 201 }
+      { status: 201 },
     );
   }
 }
@@ -951,10 +835,7 @@ export async function PATCH(request) {
   const session = await requireAdmin();
 
   if (!session) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await request.json().catch(() => null);
@@ -962,7 +843,7 @@ export async function PATCH(request) {
   if (!body?.id) {
     return NextResponse.json(
       { error: "Quotation id is required." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -977,14 +858,12 @@ export async function PATCH(request) {
 
   const quotations = await readQuotations();
 
-  const index = quotations.findIndex(
-    (quote) => quote.id === body.id
-  );
+  const index = quotations.findIndex((quote) => quote.id === body.id);
 
   if (index === -1) {
     return NextResponse.json(
       { error: "Quotation not found." },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -995,10 +874,7 @@ export async function PATCH(request) {
 
   if (body.status) {
     if (!allowed.includes(body.status)) {
-      return NextResponse.json(
-        { error: "Invalid status." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid status." }, { status: 400 });
     }
 
     updated.status = body.status;

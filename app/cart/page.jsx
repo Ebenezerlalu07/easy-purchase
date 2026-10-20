@@ -1100,6 +1100,9 @@ Unit Price: AED ${item.price}`,
 
     brand: autoBrand,
 
+
+    size: "",
+
     quantity: totalQuantity > 0 ? String(totalQuantity) : "",
 
     refNumber: "",
@@ -1154,6 +1157,7 @@ Unit Price: AED ${item.price}`,
             sku: item.sku || "",
             category: item.category || "",
             brand: item.brand || "",
+            size: form.size || "",
             unit: item.unit || "Unit",
             quantity: Number(item.quantity || 1),
             price: Number(item.price || 0),
@@ -1415,7 +1419,7 @@ Unit Price: AED ${item.price}`,
                     <QuoteField
                       label="Size"
                       name="size"
-                      value={form.size}
+                      value={form.size ?? ""}
                       onChange={update}
                       placeholder="Enter size"
                     />
