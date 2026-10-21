@@ -2142,6 +2142,18 @@ Unit Price: AED ${item.price}`,
   const [stage, setStage] = useState("company");
   const [customerMode, setCustomerMode] = useState("lookup");
 
+  /* =====================================================
+     ALWAYS START EACH QUOTATION SECTION FROM PAGE TOP
+  ===================================================== */
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }, [stage]);
+
   const [companyCodeInput, setCompanyCodeInput] = useState("");
   const [companyProfile, setCompanyProfile] = useState(null);
 
