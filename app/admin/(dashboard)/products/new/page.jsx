@@ -106,6 +106,11 @@ export default function ProductsPage() {
     const [products, setProducts] = useState(initialProducts);
     const [categories, setCategories] = useState([]);
     const [brands, setBrands] = useState([]);
+
+    const [error, setError] = useState("");
+
+    const [saved, setSaved] = useState(false);
+    
     useEffect(() => {
         let active = true;
         const load = async () => {
@@ -146,9 +151,7 @@ export default function ProductsPage() {
 
     const [form, setForm] = useState(defaultForm);
 
-    const [error, setError] = useState("");
-
-    const [saved, setSaved] = useState(false);
+    
 
 
 

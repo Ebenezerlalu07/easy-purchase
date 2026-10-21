@@ -22,6 +22,7 @@ export async function GET() {
         brand: String(product.brand || ""),
         price: Number(product.price || 0),
         oldPrice: product.oldPrice === "" || product.oldPrice == null ? null : Number(product.oldPrice),
+        unit: String(product.unit || "").trim(),
         stock: Number(product.stock || 0),
         featured: Boolean(product.featured),
         shortDescription: String(product.shortDescription || ""),

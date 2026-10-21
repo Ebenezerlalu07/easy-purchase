@@ -165,6 +165,7 @@ export default function ProductsPage() {
                 product.oldPrice === "" || product.oldPrice == null
                   ? null
                   : Number(product.oldPrice),
+              unit: String(product.unit || "").trim(),
               stock: Number(product.stock || 0),
               description:
                 product.description ||
@@ -402,10 +403,7 @@ export default function ProductsPage() {
 
       return {
         ...current,
-        [id]: Math.min(
-          maxQuantity,
-          Math.max(1, currentQuantity + amount),
-        ),
+        [id]: Math.min(maxQuantity, Math.max(1, currentQuantity + amount)),
       };
     });
   };
@@ -424,13 +422,13 @@ export default function ProductsPage() {
         return current.map((item) =>
           String(item.id) === String(product.id)
             ? {
-              ...item,
-              ...product,
-              quantity: Math.min(
-                Number(product.stock),
-                Number(item.quantity || 1) + selectedQuantity,
-              ),
-            }
+                ...item,
+                ...product,
+                quantity: Math.min(
+                  Number(product.stock),
+                  Number(item.quantity || 1) + selectedQuantity,
+                ),
+              }
             : item,
         );
       }
@@ -453,12 +451,12 @@ export default function ProductsPage() {
         .map((item) =>
           item.id === id
             ? {
-              ...item,
-              quantity: Math.min(
-                Number(item.stock || 0),
-                Math.max(0, Number(item.quantity || 1) + amount),
-              ),
-            }
+                ...item,
+                quantity: Math.min(
+                  Number(item.stock || 0),
+                  Math.max(0, Number(item.quantity || 1) + amount),
+                ),
+              }
             : item,
         )
         .filter((item) => item.quantity > 0),
@@ -711,10 +709,11 @@ export default function ProductsPage() {
 
 
 
-                      ${category === item
-                      ? "bg-[#101411] text-white"
-                      : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
-                    }
+                      ${
+                        category === item
+                          ? "bg-[#101411] text-white"
+                          : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
+                      }
                     `}
                 >
                   {item}
@@ -961,10 +960,11 @@ export default function ProductsPage() {
                             </p>
 
                             <p
-                              className={`mt-1 text-[11px] font-bold ${product.stock <= 15
+                              className={`mt-1 text-[11px] font-bold ${
+                                product.stock <= 15
                                   ? "text-[#B66B19]"
                                   : "text-[#34733D]"
-                                }`}
+                              }`}
                             >
                               {product.stock <= 0
                                 ? "Out of Stock"
@@ -994,7 +994,9 @@ export default function ProductsPage() {
                                 type="button"
                                 aria-label={`Decrease ${product.unit || "unit"} quantity`}
                                 disabled={selectedQuantity <= 1}
-                                onClick={() => changeSelectedQuantity(product, -1)}
+                                onClick={() =>
+                                  changeSelectedQuantity(product, -1)
+                                }
                                 className="flex h-8 w-8 items-center justify-center rounded-full border border-black/[0.07] text-[#303630] disabled:cursor-not-allowed disabled:opacity-35"
                               >
                                 <Minus className="h-3 w-3" />
@@ -1006,11 +1008,13 @@ export default function ProductsPage() {
 
                               <button
                                 type="button"
-                                aria-label={`Increase ${product.unit || "unit"} quantity`}
+                                aria-label={`Increase ${product.unit} quantity`}
                                 disabled={
                                   selectedQuantity >= Number(product.stock || 0)
                                 }
-                                onClick={() => changeSelectedQuantity(product, 1)}
+                                onClick={() =>
+                                  changeSelectedQuantity(product, 1)
+                                }
                                 className="flex h-8 w-8 items-center justify-center rounded-full bg-[#101411] text-white disabled:cursor-not-allowed disabled:opacity-35"
                               >
                                 <Plus className="h-3 w-3" />
@@ -1057,12 +1061,13 @@ export default function ProductsPage() {
 
 
 
-                                ${product.stock <= 0
-                                ? "cursor-not-allowed bg-black/10 text-black/40"
-                                : added
-                                  ? "bg-[#D8FF65] text-[#101411]"
-                                  : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
-                              }
+                                ${
+                                  product.stock <= 0
+                                    ? "cursor-not-allowed bg-black/10 text-black/40"
+                                    : added
+                                      ? "bg-[#D8FF65] text-[#101411]"
+                                      : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
+                                }
                               `}
                           >
                             {product.stock <= 0 ? (
@@ -1452,14 +1457,16 @@ function FilterDropdown({
 
 
 
-          ${open
-            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
-            : "border-black/[0.09] hover:border-black/20"
+          ${
+            open
+              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
+              : "border-black/[0.09] hover:border-black/20"
           }
 
-          ${compact
-            ? "h-[50px] min-w-[190px] rounded-full px-5"
-            : "h-[54px] w-full rounded-[15px] px-4"
+          ${
+            compact
+              ? "h-[50px] min-w-[190px] rounded-full px-5"
+              : "h-[54px] w-full rounded-[15px] px-4"
           }
         `}
       >
@@ -1495,10 +1502,11 @@ function FilterDropdown({
                   font-medium
 
 
-                  ${value === option
-                  ? "bg-[#D8FF65] text-[#101411]"
-                  : "text-[#454B46] hover:bg-[#F2F4EE]"
-                }
+                  ${
+                    value === option
+                      ? "bg-[#D8FF65] text-[#101411]"
+                      : "text-[#454B46] hover:bg-[#F2F4EE]"
+                  }
                 `}
             >
               {option}
@@ -1600,10 +1608,11 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
                   font-bold
 
 
-                  ${currentPage === page
-                  ? "bg-[#101411] text-white"
-                  : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
-                }
+                  ${
+                    currentPage === page
+                      ? "bg-[#101411] text-white"
+                      : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
+                  }
                 `}
             >
               {page}
@@ -1704,16 +1713,16 @@ function QuoteModal({ cart = [], onClose }) {
   const autoDescription =
     cart.length > 0
       ? cart
-        .map(
-          (item, index) => `${index + 1}. ${item.name}
+          .map(
+            (item, index) => `${index + 1}. ${item.name}
 SKU: ${item.sku}
 Brand: ${item.brand}
 Category: ${item.category}
 Unit: ${item.unit || "Unit"}
 Quantity: ${item.quantity}
 Unit Price: AED ${item.price}`,
-        )
-        .join("\n\n")
+          )
+          .join("\n\n")
       : "";
 
   /* =====================================================
@@ -2077,19 +2086,17 @@ Unit Price: AED ${item.price}`,
                       value={
                         cart.length > 0
                           ? cart
-                            .map(
-                              (item) =>
-                                `${item.unit || "Unit"}: ${item.quantity}`,
-                            )
-                            .join(", ")
+                              .map(
+                                (item) =>
+                                  `${item.unit || "Unit"}: ${item.quantity}`,
+                              )
+                              .join(", ")
                           : ""
                       }
                       placeholder="Unit and quantity"
                       className="h-[54px] w-full min-w-0 rounded-[14px] border border-black/[0.10] bg-[#F7F7F3] px-4 text-[14px] font-medium text-[#202521] outline-none sm:h-[58px] sm:rounded-[16px]"
                     />
                   </div>
-
-
 
                   {/* CATEGORY */}
                   <PremiumQuoteDropdown
@@ -2279,9 +2286,10 @@ function PremiumQuoteDropdown({
 
 
 
-          ${open
-            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
-            : "border-black/[0.10] hover:border-black/20"
+          ${
+            open
+              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
+              : "border-black/[0.10] hover:border-black/20"
           }
         `}
       >
@@ -2311,9 +2319,10 @@ function PremiumQuoteDropdown({
 
 
 
-            ${open
-              ? "rotate-180 bg-[#D8FF65] text-[#101411]"
-              : "bg-[#F1F3ED] text-[#535A54]"
+            ${
+              open
+                ? "rotate-180 bg-[#D8FF65] text-[#101411]"
+                : "bg-[#F1F3ED] text-[#535A54]"
             }
           `}
         >
@@ -2357,10 +2366,11 @@ function PremiumQuoteDropdown({
 
 
 
-                      ${selected
-                      ? "bg-[#D8FF65] text-[#101411]"
-                      : "text-[#454B46] hover:bg-[#F1F3ED]"
-                    }
+                      ${
+                        selected
+                          ? "bg-[#D8FF65] text-[#101411]"
+                          : "text-[#454B46] hover:bg-[#F1F3ED]"
+                      }
                     `}
                 >
                   <span className="text-[13px] font-semibold">{option}</span>

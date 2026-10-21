@@ -80,6 +80,7 @@ export default function CartPage() {
               ...live,
               id: String(live.id ?? live._id),
               price: Number(live.price || 0),
+              unit: String(live.unit || item.unit || "").trim(),
               stock: Number(live.stock || 0),
               quantity: Math.min(
                 Math.max(1, Number(item.quantity || 1)),
@@ -1078,6 +1079,7 @@ function QuoteModal({ cart = [], onClose }) {
 SKU: ${item.sku}
 Brand: ${item.brand}
 Category: ${item.category}
+Unit: ${item.unit || "Not specified"}
 Quantity: ${item.quantity}
 Unit Price: AED ${item.price}`,
         )
@@ -1157,8 +1159,7 @@ Unit Price: AED ${item.price}`,
             sku: item.sku || "",
             category: item.category || "",
             brand: item.brand || "",
-            size: form.size || "",
-            unit: item.unit || "Unit",
+            unit: String(item.unit ?? item.unitName ?? "Unit"),
             quantity: Number(item.quantity || 1),
             price: Number(item.price || 0),
           })),
@@ -1291,7 +1292,7 @@ Unit Price: AED ${item.price}`,
                       </div>
 
                       <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#101411]">
-                        × {item.quantity}
+                       {item.unit || "Unit"}: {item.quantity}
                       </span>
                     </div>
                   ))}
@@ -1406,23 +1407,28 @@ Unit Price: AED ${item.price}`,
                     />
 
                     {/* QUANTITY */}
-                    <QuoteField
-                      label="Quantity"
-                      name="quantity"
-                      type="number"
-                      value={form.quantity}
-                      onChange={update}
-                      placeholder="Required quantity"
-                    />
+                   <div className="min-w-0">
+                    <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+                      Units / Quantity
+                    </label>
 
-                    {/* SIZE - OPTIONAL */}
-                    <QuoteField
-                      label="Size"
-                      name="size"
-                      value={form.size ?? ""}
-                      onChange={update}
-                      placeholder="Enter size"
+                    <input
+                      type="text"
+                      readOnly
+                      value={
+                        cart.length > 0
+                          ? cart
+                              .map(
+                                (item) =>
+                                  `${item.unit || "Unit"}: ${item.quantity}`,
+                              )
+                              .join(", ")
+                          : ""
+                      }
+                      placeholder="Unit and quantity"
+                      className="h-[54px] w-full min-w-0 rounded-[14px] border border-black/[0.10] bg-[#F7F7F3] px-4 text-[14px] font-medium text-[#202521] outline-none sm:h-[58px] sm:rounded-[16px]"
                     />
+                  </div>
 
                     {/* CATEGORY */}
                     <PremiumQuoteDropdown
