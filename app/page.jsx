@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import PhoneInput from "react-phone-number-input";
-import "react-phone-number-input/style.css";
 
 import {
   ArrowLeft,
@@ -192,18 +190,12 @@ export default function ProductsPage() {
 
   const [cartOpen, setCartOpen] = useState(false);
 
-  const [quoteOpen, setQuoteOpen] = useState(false);
-
   /* =========================================================
-       DRAWER / MODAL CLOSE HELPERS
-    ========================================================= */
+        CART DRAWER CLOSE HELPER
+     ========================================================= */
 
   const closeCart = () => {
     setCartOpen(false);
-  };
-
-  const closeQuote = () => {
-    setQuoteOpen(false);
   };
 
   /* =========================================================
@@ -211,37 +203,22 @@ export default function ProductsPage() {
     ========================================================= */
 
   useEffect(() => {
-    if (!cartOpen && !quoteOpen) {
-      return;
-    }
+    if (!cartOpen) return;
 
     const previousOverflow = document.body.style.overflow;
-
     document.body.style.overflow = "hidden";
 
     const handleKeyDown = (event) => {
-      if (event.key !== "Escape") {
-        return;
-      }
-
-      if (quoteOpen) {
-        closeQuote();
-        return;
-      }
-
-      if (cartOpen) {
-        closeCart();
-      }
+      if (event.key === "Escape") closeCart();
     };
 
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.body.style.overflow = previousOverflow;
-
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [cartOpen, quoteOpen]);
+  }, [cartOpen]);
 
   /* =========================================================
        FILTER PRODUCTS
@@ -422,13 +399,13 @@ export default function ProductsPage() {
         return current.map((item) =>
           String(item.id) === String(product.id)
             ? {
-                ...item,
-                ...product,
-                quantity: Math.min(
-                  Number(product.stock),
-                  Number(item.quantity || 1) + selectedQuantity,
-                ),
-              }
+              ...item,
+              ...product,
+              quantity: Math.min(
+                Number(product.stock),
+                Number(item.quantity || 1) + selectedQuantity,
+              ),
+            }
             : item,
         );
       }
@@ -451,12 +428,12 @@ export default function ProductsPage() {
         .map((item) =>
           item.id === id
             ? {
-                ...item,
-                quantity: Math.min(
-                  Number(item.stock || 0),
-                  Math.max(0, Number(item.quantity || 1) + amount),
-                ),
-              }
+              ...item,
+              quantity: Math.min(
+                Number(item.stock || 0),
+                Math.max(0, Number(item.quantity || 1) + amount),
+              ),
+            }
             : item,
         )
         .filter((item) => item.quantity > 0),
@@ -554,43 +531,31 @@ export default function ProductsPage() {
 
               {/* Quote Card */}
 
+
               <div className="rounded-[30px] border border-white/15 bg-[#111713] p-7 shadow-[0_16px_40px_rgba(0,0,0,.18)]">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.17em] text-[#D8FF65]">
-                  Project Procurement
-                </p>
 
                 <h3 className="mt-6 text-[29px] font-semibold leading-[1.08] tracking-[-0.035em] text-white">
-                  Buying materials
+                  Explore in your
                   <br />
-                  in bulk?
+                  preferred language.
                 </h3>
 
-                <p className="mt-4 text-[14px] leading-7 text-white/75">
-                  Combine multiple products into one professional quotation
-                  request.
-                </p>
 
-                <button
-                  type="button"
-                  onClick={() => setQuoteOpen(true)}
-                  className="group mt-7 flex w-full items-center justify-between border-t border-white/15 pt-5 text-[14px] font-semibold text-white"
-                >
-                  Request quotation
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D8FF65] text-black   ">
-                    <ArrowUpRight className="h-4 w-4" />
-                  </span>
-                </button>
+                <div className="mt-7">
+                  <LanguageSelector />
+                </div>
               </div>
+
             </div>
 
             {/* =================================================
                 SEARCH
             ================================================= */}
 
-            <div className="mt-14 flex flex-col gap-2 rounded-[24px] border border-white/15 bg-[#111713] p-2 shadow-[0_12px_30px_rgba(0,0,0,.14)] md:flex-row">
+            <div className="mt-14 flex flex-col gap-2 rounded-[24px] border border-[#698518] bg-[#111713] p-2 shadow-[0_12px_30px_rgba(0,0,0,.14)] md:flex-row">
               <div className="relative min-w-0 flex-1 search-suggestions-container">
                 <div className="flex items-center gap-4 px-4">
-                  <Search className="h-5 w-5 shrink-0 text-white/75" />
+                  <Search className="h-5 w-5 shrink-0 text-white/75 " />
 
                   <input
                     type="text"
@@ -709,11 +674,10 @@ export default function ProductsPage() {
 
 
 
-                      ${
-                        category === item
-                          ? "bg-[#101411] text-white"
-                          : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
-                      }
+                      ${category === item
+                      ? "bg-[#101411] text-white"
+                      : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
+                    }
                     `}
                 >
                   {item}
@@ -960,11 +924,10 @@ export default function ProductsPage() {
                             </p>
 
                             <p
-                              className={`mt-1 text-[11px] font-bold ${
-                                product.stock <= 15
-                                  ? "text-[#B66B19]"
-                                  : "text-[#34733D]"
-                              }`}
+                              className={`mt-1 text-[11px] font-bold ${product.stock <= 15
+                                ? "text-[#B66B19]"
+                                : "text-[#34733D]"
+                                }`}
                             >
                               {product.stock <= 0
                                 ? "Out of Stock"
@@ -1061,13 +1024,12 @@ export default function ProductsPage() {
 
 
 
-                                ${
-                                  product.stock <= 0
-                                    ? "cursor-not-allowed bg-black/10 text-black/40"
-                                    : added
-                                      ? "bg-[#D8FF65] text-[#101411]"
-                                      : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
-                                }
+                                ${product.stock <= 0
+                                ? "cursor-not-allowed bg-black/10 text-black/40"
+                                : added
+                                  ? "bg-[#D8FF65] text-[#101411]"
+                                  : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
+                              }
                               `}
                           >
                             {product.stock <= 0 ? (
@@ -1394,30 +1356,21 @@ export default function ProductsPage() {
                   delivery.
                 </p>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeCart();
-                    setQuoteOpen(true);
-                  }}
+                <Link
+                  href="/cart"
                   className="mt-6 flex h-14 w-full items-center justify-between rounded-full bg-[#101411] pl-6 pr-2 text-[14px] font-semibold text-white"
                 >
-                  Request Quotation
+                  Continue Shopping
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#D8FF65] text-black">
                     <ArrowRight className="h-4 w-4" />
                   </span>
-                </button>
+                </Link>
               </div>
             )}
           </aside>
         </div>
       )}
 
-      {/* =====================================================
-          QUOTE MODAL
-      ===================================================== */}
-
-      {quoteOpen && <QuoteModal cart={cart} onClose={closeQuote} />}
     </>
   );
 }
@@ -1457,16 +1410,14 @@ function FilterDropdown({
 
 
 
-          ${
-            open
-              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
-              : "border-black/[0.09] hover:border-black/20"
+          ${open
+            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
+            : "border-black/[0.09] hover:border-black/20"
           }
 
-          ${
-            compact
-              ? "h-[50px] min-w-[190px] rounded-full px-5"
-              : "h-[54px] w-full rounded-[15px] px-4"
+          ${compact
+            ? "h-[50px] min-w-[190px] rounded-full px-5"
+            : "h-[54px] w-full rounded-[15px] px-4"
           }
         `}
       >
@@ -1502,11 +1453,10 @@ function FilterDropdown({
                   font-medium
 
 
-                  ${
-                    value === option
-                      ? "bg-[#D8FF65] text-[#101411]"
-                      : "text-[#454B46] hover:bg-[#F2F4EE]"
-                  }
+                  ${value === option
+                  ? "bg-[#D8FF65] text-[#101411]"
+                  : "text-[#454B46] hover:bg-[#F2F4EE]"
+                }
                 `}
             >
               {option}
@@ -1608,11 +1558,10 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
                   font-bold
 
 
-                  ${
-                    currentPage === page
-                      ? "bg-[#101411] text-white"
-                      : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
-                  }
+                  ${currentPage === page
+                  ? "bg-[#101411] text-white"
+                  : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
+                }
                 `}
             >
               {page}
@@ -1660,6 +1609,155 @@ function ProcurementFeature({ icon: Icon, number, title, description }) {
 }
 
 /* =========================================================
+   Language
+========================================================= */
+
+function LanguageSelector() {
+  const [language, setLanguage] = useState("en");
+
+  useEffect(() => {
+    const existingLanguage = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("googtrans="));
+
+    if (existingLanguage) {
+      const code = existingLanguage.split("=")[1]?.split("/").pop();
+      if (["en", "hi", "ur"].includes(code)) {
+        setLanguage(code);
+      }
+    }
+
+    window.googleTranslateElementInit = function () {
+      if (
+        window.google?.translate?.TranslateElement &&
+        !document.querySelector("#google_translate_element select")
+      ) {
+        new window.google.translate.TranslateElement(
+          {
+            pageLanguage: "en",
+            includedLanguages: "en,hi,ur",
+            autoDisplay: false,
+          },
+          "google_translate_element"
+        );
+      }
+    };
+
+    if (window.google?.translate?.TranslateElement) {
+      window.googleTranslateElementInit();
+    } else if (
+      !document.getElementById("google-translate-script")
+    ) {
+      const script = document.createElement("script");
+      script.id = "google-translate-script";
+      script.src =
+        "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
+  const changeLanguage = (code) => {
+    if (code === language) return;
+
+    setLanguage(code);
+
+    const cookieValue = `/en/${code}`;
+
+    document.cookie =
+      `googtrans=${cookieValue};path=/;SameSite=Lax`;
+
+    const select = document.querySelector(
+      "#google_translate_element select.goog-te-combo"
+    );
+
+    if (select) {
+      select.value = code;
+      select.dispatchEvent(
+        new Event("change", { bubbles: true })
+      );
+    } else {
+      // Reload to apply the selected translation cookie.
+      window.location.reload();
+    }
+  };
+
+  const languages = [
+    {
+      code: "en",
+      name: "English",
+      native: "English",
+    },
+    {
+      code: "hi",
+      name: "Hindi",
+      native: "हिन्दी",
+    },
+    {
+      code: "ur",
+      name: "Urdu",
+      native: "اردو",
+    },
+  ];
+
+  return (
+    <>
+      <div
+        id="google_translate_element"
+        className="absolute -left-[9999px] h-px w-px overflow-hidden"
+      />
+
+      <div className="space-y-2">
+        {languages.map((item) => {
+          const active = language === item.code;
+
+          return (
+            <button
+              key={item.code}
+              type="button"
+              onClick={() => changeLanguage(item.code)}
+              className={`flex w-full items-center justify-between rounded-[16px] border px-4 py-3.5 text-left transition-colors ${active
+                  ? "border-[#D8FF65] bg-[#D8FF65] text-[#101411]"
+                  : "border-white/10 bg-white/5 text-white hover:border-[#D8FF65]/60 hover:bg-white/10"
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-[23px]">
+                  {item.flag}
+                </span>
+
+                <div>
+                  <p className="text-[13px] font-semibold">
+                    {item.name}
+                  </p>
+
+                  <p
+                    className={`mt-0.5 text-[12px] ${active
+                        ? "text-black/60"
+                        : "text-white/55"
+                      }`}
+                  >
+                    {item.native}
+                  </p>
+                </div>
+              </div>
+
+              {active ? (
+                <Check className="h-5 w-5" />
+              ) : (
+                <ArrowUpRight className="h-4 w-4" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+
+
+/* =========================================================
    QUOTE PREVIEW
 ========================================================= */
 
@@ -1675,717 +1773,6 @@ function QuotePreviewRow({ title, value }) {
 
         <p className="mt-1 text-[12px] leading-5 text-white/70">{value}</p>
       </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   QUOTE MODAL
-========================================================= */
-
-function QuoteModal({ cart = [], onClose }) {
-  /* =====================================================
-       AUTOMATIC CART DATA
-    ===================================================== */
-
-  const totalQuantity = cart.reduce((total, item) => total + item.quantity, 0);
-
-  const selectedProductNames = cart.map((item) => item.name).join(", ");
-
-  const selectedCategories = [...new Set(cart.map((item) => item.category))];
-
-  const selectedBrands = [...new Set(cart.map((item) => item.brand))];
-
-  const autoCategory =
-    selectedCategories.length === 1
-      ? selectedCategories[0]
-      : selectedCategories.length > 1
-        ? "Multiple Categories"
-        : "";
-
-  const autoBrand =
-    selectedBrands.length === 1
-      ? selectedBrands[0]
-      : selectedBrands.length > 1
-        ? "Multiple Brands"
-        : "";
-
-  const autoDescription =
-    cart.length > 0
-      ? cart
-          .map(
-            (item, index) => `${index + 1}. ${item.name}
-SKU: ${item.sku}
-Brand: ${item.brand}
-Category: ${item.category}
-Unit: ${item.unit || "Unit"}
-Quantity: ${item.quantity}
-Unit Price: AED ${item.price}`,
-          )
-          .join("\n\n")
-      : "";
-
-  /* =====================================================
-       FORM STATE
-    ===================================================== */
-
-  const [form, setForm] = useState({
-    company: "",
-    contactName: "",
-    email: "",
-    phone: "",
-
-    products: selectedProductNames,
-
-    category: autoCategory,
-
-    brand: autoBrand,
-    size: "",
-
-    quantity: totalQuantity > 0 ? String(totalQuantity) : "",
-
-    refNumber: "",
-
-    deliveryLocation: "",
-
-    description: autoDescription,
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [quotationReference, setQuotationReference] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-
-  const update = (e) => {
-    const { name, value } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  /* =====================================================
-       CUSTOM DROPDOWN UPDATE
-    ===================================================== */
-
-  const updateSelect = (name, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  /* =====================================================
-       SUBMIT
-    ===================================================== */
-
-  const submit = async (e) => {
-    e.preventDefault();
-
-    if (submitting) return;
-
-    if (!Array.isArray(cart) || cart.length === 0) {
-      setSubmitError("Please add at least one product to your cart.");
-      return;
-    }
-
-    // Send complete product objects, not comma-separated product names.
-    const productList = cart.map((item) => ({
-      id: String(item.id ?? item._id ?? ""),
-      name: String(item.name ?? item.productName ?? item.title ?? "").trim(),
-      sku: String(item.sku ?? item.productSku ?? ""),
-      brand: String(item.brand ?? ""),
-      category: String(item.category ?? ""),
-      size: form.size || "",
-      unit: String(item.unit ?? item.unitName ?? "Unit"),
-      quantity: Number(item.quantity ?? item.qty ?? 1),
-      price: Number(item.price ?? item.unitPrice ?? item.sellingPrice ?? 0),
-      remarks: String(item.remarks ?? ""),
-    }));
-
-    const invalidProduct = productList.find(
-      (item) =>
-        !item.name ||
-        !Number.isFinite(item.price) ||
-        item.price < 0 ||
-        !Number.isFinite(item.quantity) ||
-        item.quantity <= 0,
-    );
-
-    if (invalidProduct) {
-      setSubmitError(
-        "A cart product is missing its name, price or valid quantity. Please remove it and add the product again.",
-      );
-      return;
-    }
-
-    setSubmitting(true);
-    setSubmitError("");
-
-    try {
-      const response = await fetch("/api/quotations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...form,
-          productList,
-          products: productList.length,
-          quantity: String(
-            productList.reduce((sum, item) => sum + item.quantity, 0),
-          ),
-        }),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.error || "Unable to submit quotation request.");
-      }
-
-      const reference =
-        data?.quotation?.reference ||
-        data?.quotation?.id ||
-        data?.reference ||
-        data?.quotationId ||
-        "";
-
-      setQuotationReference(String(reference));
-
-      if (data.warning) {
-        setSubmitError(data.warning);
-        return;
-      }
-
-      setSubmitted(true);
-    } catch (error) {
-      console.error("Quotation submission failed:", error);
-
-      setSubmitError(error.message || "Unable to submit quotation request.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-[6000] overflow-x-hidden overflow-y-auto bg-[#07100D]/95 p-2 sm:p-4 md:p-6 lg:p-8"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Quotation request"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <div
-        className="mx-auto flex min-h-full w-full max-w-[1050px] items-start justify-center py-2 sm:py-4 lg:items-center lg:py-6"
-        onMouseDown={(event) => {
-          if (event.target === event.currentTarget) {
-            onClose();
-          }
-        }}
-      >
-        <div
-          className="relative z-10 w-full min-w-0 overflow-x-clip rounded-[22px] bg-[#F4F5EF] shadow-[0_40px_120px_rgba(0,0,0,.28)] sm:rounded-[30px] lg:rounded-[36px]"
-          onMouseDown={(event) => event.stopPropagation()}
-        >
-          {/* Glow */}
-
-          <div className="relative p-4 sm:p-6 md:p-8 lg:p-12">
-            {/* Header */}
-
-            <div className="flex items-start justify-between gap-3 sm:gap-6">
-              <div className="min-w-0 flex-1">
-                <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#727972] sm:text-[11px] sm:tracking-[0.22em]">
-                  Project Enquiry
-                </p>
-
-                <h2 className="mt-3 text-[30px] font-semibold leading-none tracking-[-0.05em] text-[#101411] sm:mt-4 sm:text-[38px] md:text-[44px] lg:text-[48px]">
-                  Get a Quote
-                </h2>
-
-                {cart.length > 0 && (
-                  <p className="mt-3 max-w-[620px] text-[12px] leading-5 text-[#626963] sm:mt-4 sm:text-[14px] sm:leading-6">
-                    {cart.length === 1
-                      ? "Selected product details have been added automatically."
-                      : `${cart.length} selected products have been added automatically.`}
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="button"
-                aria-label="Close quotation request"
-                onClick={onClose}
-                className="relative z-30 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-[#101411] shadow-[0_8px_25px_rgba(0,0,0,.08)]  hover:bg-[#101411] hover:text-white focus:outline-none focus:ring-4 focus:ring-[#D8FF65]/30 sm:h-12 sm:w-12"
-              >
-                <X className="pointer-events-none h-4 w-4" />
-              </button>
-            </div>
-
-            {/* =================================================
-                SELECTED PRODUCTS
-            ================================================= */}
-
-            {cart.length > 0 && (
-              <div className="mt-6 min-w-0 rounded-[18px] border border-black/[0.07] bg-white p-3 sm:mt-8 sm:rounded-[22px] sm:p-5">
-                <div className="flex min-w-0 items-start justify-between gap-3 sm:items-center sm:gap-4">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#697069]">
-                      Selected Products
-                    </p>
-
-                    <p className="mt-1 text-[11px] font-medium leading-5 text-[#454B45] sm:text-[13px]">
-                      Automatically added from your cart
-                    </p>
-                  </div>
-
-                  <span className="rounded-full bg-[#D8FF65] px-3 py-1.5 text-[11px] font-bold text-[#101411]">
-                    {cart.length}
-                  </span>
-                </div>
-
-                <div className="mt-4 grid min-w-0 gap-3 md:grid-cols-2">
-                  {cart.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex min-w-0 items-center gap-3 rounded-[14px] bg-[#F4F5EF] p-2.5 sm:rounded-[16px] sm:p-3"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-[12px] font-semibold text-[#101411] sm:text-[13px]">
-                          {item.name}
-                        </p>
-
-                        <p className="mt-1 truncate text-[9px] font-medium text-[#656C66] sm:text-[10px]">
-                          {item.brand} · {item.sku}
-                        </p>
-                      </div>
-
-                      <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#101411]">
-                        {item.unit || "Unit"}: {item.quantity}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* =================================================
-                FORM
-            ================================================= */}
-
-            {submitted ? (
-              <div
-                className="mt-8 rounded-[24px] border border-[#D8FF65]/60 bg-white p-6 text-center sm:p-10"
-                role="status"
-                aria-live="polite"
-              >
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411]">
-                  <Check className="h-7 w-7" />
-                </div>
-                <h3 className="mt-5 text-[25px] font-semibold tracking-tight text-[#101411] sm:text-[30px]">
-                  Quotation Request Submitted
-                </h3>
-                <p className="mx-auto mt-3 max-w-xl text-[14px] leading-7 text-[#626963]">
-                  Thank you. Your quotation request has been submitted
-                  successfully. Our team will review your requirements.
-                </p>
-                {quotationReference && (
-                  <p className="mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-[#F4F5EF] px-5 py-3 text-[13px] text-[#303630]">
-                    <span className="font-medium">Reference:</span>
-                    <strong>{quotationReference}</strong>
-                  </p>
-                )}
-                <div>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="mt-7 rounded-full bg-[#101411] px-8 py-3.5 text-[13px] font-semibold text-white  hover:bg-[#1B211D]"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={submit} className="mt-7 sm:mt-9">
-                <div className="grid min-w-0 gap-x-5 gap-y-5 lg:grid-cols-2 lg:gap-y-6">
-                  <QuoteField
-                    label="Company Name"
-                    name="company"
-                    value={form.company}
-                    onChange={update}
-                    placeholder="Company name"
-                    required
-                  />
-
-                  <QuoteField
-                    label="Contact Person"
-                    name="contactName"
-                    value={form.contactName}
-                    onChange={update}
-                    placeholder="Full name"
-                    required
-                  />
-
-                  <QuoteField
-                    label="Email"
-                    name="email"
-                    type="email"
-                    value={form.email}
-                    onChange={update}
-                    placeholder="name@company.com"
-                    required
-                  />
-
-                  {/* PHONE */}
-                  <div className="min-w-0">
-                    <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
-                      Phone <span className="text-red-500">*</span>
-                    </label>
-
-                    <div className="quote-phone-input flex min-h-[58px] items-center rounded-[18px] border border-black/[0.10] bg-white px-5 transition-all hover:border-black/20 focus-within:border-[#101411]/30 focus-within:ring-4 focus-within:ring-[#D8FF65]/20">
-                      <PhoneInput
-                        international
-                        countryCallingCodeEditable={false}
-                        defaultCountry="AE"
-                        value={form.phone}
-                        onChange={(value) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            phone: value || "",
-                          }))
-                        }
-                        placeholder="Enter phone number"
-                        required
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-
-                  {/* PRODUCT */}
-                  <QuoteField
-                    label="Product"
-                    name="products"
-                    value={form.products}
-                    onChange={update}
-                    placeholder="Product name"
-                  />
-
-                  {/* UNITS / QUANTITY */}
-                  <div className="min-w-0">
-                    <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
-                      Units / Quantity
-                    </label>
-
-                    <input
-                      type="text"
-                      readOnly
-                      value={
-                        cart.length > 0
-                          ? cart
-                              .map(
-                                (item) =>
-                                  `${item.unit || "Unit"}: ${item.quantity}`,
-                              )
-                              .join(", ")
-                          : ""
-                      }
-                      placeholder="Unit and quantity"
-                      className="h-[54px] w-full min-w-0 rounded-[14px] border border-black/[0.10] bg-[#F7F7F3] px-4 text-[14px] font-medium text-[#202521] outline-none sm:h-[58px] sm:rounded-[16px]"
-                    />
-                  </div>
-
-                  {/* CATEGORY */}
-                  <PremiumQuoteDropdown
-                    label="Category"
-                    value={form.category}
-                    placeholder="Select category"
-                    options={[
-                      "Power Tools",
-                      "Hand Tools",
-                      "Electrical",
-                      "Plumbing",
-                      "Hardware",
-                      "Fasteners",
-                      "Safety",
-                      "Paint & Adhesives",
-                      "Construction Materials",
-                      "HVAC",
-                      "Multiple Categories",
-                    ]}
-                    onChange={(value) => updateSelect("category", value)}
-                  />
-
-                  {/* BRAND */}
-                  <PremiumQuoteDropdown
-                    label="Preferred Brand"
-                    value={form.brand}
-                    placeholder="Select preferred brand"
-                    options={[
-                      "DeWalt",
-                      "Bosch",
-                      "Stanley",
-                      "3M",
-                      "Sika",
-                      "Fischer",
-                      "Hepworth",
-                      "Mueller",
-                      "Dormakaba",
-                      "Fluke",
-                      "No Preference",
-                      "Multiple Brands",
-                    ]}
-                    onChange={(value) => updateSelect("brand", value)}
-                  />
-
-                  {/* DELIVERY LOCATION */}
-                  <div className="lg:col-span-2">
-                    <QuoteField
-                      label="Delivery Location"
-                      name="deliveryLocation"
-                      value={form.deliveryLocation}
-                      onChange={update}
-                      placeholder="Dubai, Ajman, Sharjah, Abu Dhabi..."
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* DESCRIPTION */}
-                <div className="mt-5 sm:mt-6">
-                  <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
-                    Description / Requirement
-                  </label>
-
-                  <textarea
-                    rows={7}
-                    name="description"
-                    value={form.description}
-                    onChange={update}
-                    placeholder="Product specifications and requirements..."
-                    className="min-h-[150px] w-full min-w-0 resize-y rounded-[16px] border border-black/[0.10] bg-white p-4 text-[14px] leading-6 text-[#202521] outline-none placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:min-h-[170px] sm:rounded-[18px] sm:p-5 sm:leading-7"
-                  />
-                </div>
-
-                {/* FOOTER */}
-                <div className="mt-7 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-5">
-                  <p className="max-w-md text-[11px] leading-5 text-[#737A74]">
-                    Product information is automatically fetched from your cart.
-                    You can edit the details before submitting.
-                  </p>
-
-                  <div className="w-full lg:w-auto">
-                    {submitError && (
-                      <p className="mb-3 text-sm text-red-600" role="alert">
-                        {submitError}
-                      </p>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="group flex h-[56px] w-full items-center justify-between gap-5 rounded-full bg-[#101411] pl-6 pr-2 text-[13px] font-semibold text-white hover:bg-[#1B211D] disabled:cursor-wait disabled:opacity-60 sm:h-[58px] sm:gap-7 sm:pl-7 sm:text-[14px] lg:w-auto lg:min-w-[205px]"
-                    >
-                      {submitting ? "Submitting…" : "Request Quotation"}
-
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#D8FF65] text-[#101411]">
-                        <ArrowUpRight className="h-4 w-4" />
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   QUOTE FIELD
-========================================================= */
-
-function QuoteField({
-  label,
-  name,
-  value,
-  onChange,
-  placeholder = "",
-  type = "text",
-  required = false,
-}) {
-  return (
-    <div className="min-w-0">
-      <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
-        {label}
-
-        {required && <span className="ml-1 text-red-500">*</span>}
-      </label>
-
-      <input
-        required={required}
-        type={type}
-        name={name}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="h-[54px] w-full min-w-0 rounded-[14px] border border-black/[0.10] bg-white px-4 text-[14px] font-medium text-[#202521] outline-none  placeholder:text-black/30 hover:border-black/20 focus:border-[#101411]/30 focus:ring-4 focus:ring-[#D8FF65]/20 sm:h-[58px] sm:rounded-[16px]"
-      />
-    </div>
-  );
-}
-
-/* =========================================================
-   PREMIUM QUOTE DROPDOWN
-========================================================= */
-
-function PremiumQuoteDropdown({
-  label,
-  value,
-  placeholder,
-  options = [],
-  onChange,
-}) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="relative z-[60] min-w-0">
-      {/* Label */}
-
-      <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
-        {label}
-      </label>
-
-      {/* Button */}
-
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className={`
-          group
-          flex
-          h-[54px]
-          w-full
-          min-w-0
-          items-center
-          justify-between
-          gap-4
-          rounded-[14px]
-          border
-          sm:h-[58px]
-          sm:rounded-[16px]
-          bg-white
-          pl-4
-          pr-2.5
-          text-left
-
-
-
-          ${
-            open
-              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
-              : "border-black/[0.10] hover:border-black/20"
-          }
-        `}
-      >
-        <span
-          className={`
-            min-w-0
-            flex-1
-            truncate
-            text-[14px]
-            font-medium
-
-            ${value ? "text-[#202521]" : "text-black/35"}
-          `}
-        >
-          {value || placeholder}
-        </span>
-
-        <span
-          className={`
-            flex
-            h-9
-            w-9
-            shrink-0
-            items-center
-            justify-center
-            rounded-full
-
-
-
-            ${
-              open
-                ? "rotate-180 bg-[#D8FF65] text-[#101411]"
-                : "bg-[#F1F3ED] text-[#535A54]"
-            }
-          `}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </span>
-      </button>
-
-      {/* Menu */}
-
-      {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-[500] min-w-0 overflow-hidden rounded-[16px] border border-black/[0.08] bg-white p-2 shadow-[0_25px_70px_rgba(0,0,0,.16)] sm:top-[calc(100%+10px)] sm:rounded-[20px]">
-          <div className="border-b border-black/[0.06] px-3 pb-2 pt-1">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-black/40">
-              Choose {label}
-            </p>
-          </div>
-
-          <div className="mt-2 max-h-[190px] space-y-1 overflow-y-auto overscroll-contain sm:max-h-[220px] lg:max-h-[250px]">
-            {options.map((option) => {
-              const selected = value === option;
-
-              return (
-                <button
-                  type="button"
-                  key={option}
-                  onClick={() => {
-                    onChange(option);
-
-                    setOpen(false);
-                  }}
-                  className={`
-                      flex
-                      w-full
-                      items-center
-                      justify-between
-                      gap-4
-                      rounded-[13px]
-                      px-3.5
-                      py-3
-                      text-left
-
-
-
-                      ${
-                        selected
-                          ? "bg-[#D8FF65] text-[#101411]"
-                          : "text-[#454B46] hover:bg-[#F1F3ED]"
-                      }
-                    `}
-                >
-                  <span className="text-[13px] font-semibold">{option}</span>
-
-                  {selected && (
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#101411] text-white">
-                      <Check className="h-3 w-3" />
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -25,6 +25,52 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Append at the BOTTOM of app/globals.css. Google Translate legacy widget UI. */
+html,
+body,
+html.translated-ltr,
+html.translated-rtl {
+  top: 0 !important;
+  margin-top: 0 !important;
+}
+
+body>.skiptranslate,
+body>iframe.skiptranslate,
+body>iframe[id^="google_translate"],
+.goog-te-banner-frame,
+.goog-te-banner-frame.skiptranslate,
+iframe.goog-te-banner-frame,
+.VIpgJd-ZVi9od-ORHb-OEVmcd,
+.VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+.goog-te-menu-frame,
+.goog-te-ftab,
+.goog-te-balloon-frame,
+.goog-te-spinner-pos,
+#goog-gt-tt,
+.VIpgJd-yAWNEb-L7lbkb {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+}
+
+.goog-text-highlight,
+.VIpgJd-yAWNEb-VIpgJd-fmcmS {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#google_translate_element {
+  position: fixed !important;
+  left: -99999px !important;
+  top: -99999px !important;
+  height: 1px !important;
+  width: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+
 
 /* =========================================
    GLOBAL SMOOTH SCROLL
