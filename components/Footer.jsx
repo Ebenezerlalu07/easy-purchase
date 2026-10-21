@@ -1,521 +1,135 @@
 import Link from "next/link";
 import {
   ArrowUpRight,
+  ArrowUp,
+  Mail,
   MapPin,
   Phone,
-  ArrowUp,
 } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer
-      className="
-        relative
-        overflow-hidden
-        bg-[#07100B]
-        text-white
-      "
-    >
-      {/* =====================================================
-          BACKGROUND AMBIENCE
-      ====================================================== */}
+    <footer className="bg-[#07100B] text-white">
+      <div className="mx-auto w-full max-w-[1320px] px-5 py-10 md:px-8 lg:px-0 lg:py-12">
+        {/* TOP */}
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          right-[-180px]
-          top-0
-          h-[500px]
-          w-[500px]
-          rounded-full
-          bg-[#D8FF65]/[0.04]
-          blur-[160px]
-        "
-      />
+        <div className="flex flex-col gap-6 border-b border-white/10 pb-8 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/30">
+              Top Range Building Materials
+            </p>
 
-      {/* =====================================================
-          MAIN CONTAINER
-      ====================================================== */}
-
-      <div
-        className="
-          relative z-10
-          mx-auto
-          max-w-[1320px]
-          px-5
-          pt-20
-          md:px-8
-          lg:px-0
-          lg:pt-24
-        "
-      >
-        {/* =====================================================
-            TOP CTA
-        ====================================================== */}
-
-        <div
-          className="
-    grid
-    grid-cols-1
-    gap-10
-    border-b
-    border-white/10
-    pb-12
-    sm:pb-14
-    md:pb-16
-    lg:grid-cols-[minmax(0,1fr)_auto]
-    lg:items-start
-    lg:gap-16
-    lg:pb-20
-  "
-        >
-          {/* Heading */}
-          <div className="min-w-0">
-            <h2
-              className="
-        font-display
-        text-[46px]
-        font-medium
-        leading-[0.92]
-        tracking-[-0.055em]
-        text-white
-        sm:text-[58px]
-        md:text-[72px]
-        lg:text-[82px]
-        xl:text-[92px]
-      "
-            >
-              <span className="block text-white">
-                Let&apos;s build
-              </span>
-
-              <span className="mt-1 block">
-                <span className="relative inline-block text-[#D8FF65]">
-                  something
-
-                  {/* Underline */}
-                  <svg
-                    className="
-              absolute
-              -bottom-3
-              left-[10%]
-              h-[14px]
-              w-[80%]
-              sm:-bottom-4
-              sm:h-[16px]
-              md:-bottom-5
-              md:h-[20px]
-            "
-                    viewBox="0 0 300 20"
-                    fill="none"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M5 14C74 5 179 4 295 11"
-                      stroke="#D8FF65"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </span>
-
-                <span className="text-white"> better.</span>
-              </span>
+            <h2 className="mt-2 font-display text-[28px] font-medium leading-tight tracking-[-0.045em] sm:text-[34px]">
+              Let&apos;s build{" "}
+              <span className="text-[#D8FF65]">something better.</span>
             </h2>
           </div>
 
-          {/* Quote Button */}
-          <div
-            className="
-      flex
-      w-full
-      justify-start
-      pt-2
-      sm:w-auto
-      lg:justify-end
-      lg:pt-1
-    "
-          >
-            <Link
-              href="/products"
-              className="
-        group
-        inline-flex
-        w-full
-        items-center
-        justify-between
-        gap-5
-        rounded-full
-        bg-[#D8FF65]
-        py-[7px]
-        pl-6
-        pr-[7px]
-        text-[14px]
-        font-semibold
-        text-[#101411]
-        transition-all
-        duration-300
-        hover:bg-white
-        sm:w-auto
-        sm:pl-7
-      "
-            >
-              Start a Quote
 
-              <span
-                className="
-          flex
-          h-11
-          w-11
-          shrink-0
-          items-center
-          justify-center
-          rounded-full
-          bg-[#07100B]
-          text-white
-          sm:h-12
-          sm:w-12
-        "
-              >
-                <ArrowUpRight
-                  className="
-            h-[18px]
-            w-[18px]
-            transition-transform
-            duration-300
-            group-hover:rotate-45
-          "
-                />
-              </span>
-            </Link>
-          </div>
         </div>
 
-        {/* =====================================================
-            CONTACT CARDS
-        ====================================================== */}
+        {/* INFO */}
 
-        <div
-          className="
-            grid
-            gap-5
-            border-b
-            border-white/10
-            py-16
-            md:grid-cols-2
-            lg:grid-cols-[1.35fr_1.08fr_0.8fr]
-            lg:py-20
-          "
-        >
-          {/* =================================================
-              COMPANY CARD
-          ================================================== */}
+        <div className="grid gap-3 border-b border-white/10 py-7 md:grid-cols-3">
+          <InfoItem
+            icon={<MapPin className="h-4 w-4" />}
+            label="Location"
+            value="Maliha Road, Sharjah"
+          />
 
-          <div
-            className="
-              flex
-              min-h-[270px]
-              flex-col
-              rounded-[28px]
-              border
-              border-white/10
-              bg-white/[0.025]
-              p-7
-              md:p-8
-            "
-          >
-            {/* Logo */}
-
-            <Link href="/" className="inline-block w-fit">
-              <img
-                src="/Assets/Logo.png"
-                alt="Top Range Building Materials"
-                className="
-                  h-auto
-                  w-[145px]
-                  object-contain
-                "
-              />
-            </Link>
-
-            {/* Description */}
-
-            <p
-              className="
-                mt-10
-                max-w-[390px]
-                text-[14px]
-                leading-7
-                text-white/35
-              "
-            >
-              Quality building materials and reliable supply solutions for
-              residential, commercial and industrial projects.
-            </p>
-
-            {/* Location */}
-
-            <div
-              className="
-                mt-auto
-                flex
-                items-end
-                justify-between
-                pt-10
-              "
-            >
-              <div>
-                <p
-                  className="
-                    text-[10px]
-                    font-semibold
-                    uppercase
-                    tracking-[0.18em]
-                    text-white/25
-                  "
-                >
-                  Based In
-                </p>
-
-                <p
-                  className="
-                    mt-3
-                    text-[14px]
-                    font-medium
-                    text-white/55
-                  "
-                >
-                  Maliha Road, Sharjah
-                </p>
-              </div>
-
-              <MapPin
-                className="
-                  h-5
-                  w-5
-                  text-[#D8FF65]
-                "
-              />
-            </div>
-          </div>
-
-          {/* =================================================
-              EMAIL CARD
-          ================================================== */}
-
-          <a
+          <InfoItem
+            icon={<Mail className="h-4 w-4" />}
+            label="Email"
+            value="easypurchaseadmin@gmail.com"
             href="mailto:easypurchaseadmin@gmail.com"
-            className="
-              group
-              flex
-              min-h-[270px]
-              flex-col
-              rounded-[28px]
-              border
-              border-white/10
-              bg-white/[0.025]
-              p-7
-              transition-all
-              duration-300
-              hover:border-[#D8FF65]/25
-              hover:bg-white/[0.04]
-              md:p-8
-            "
-          >
-            <div className="flex items-start justify-between">
-              <p
-                className="
-                  text-[10px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.18em]
-                  text-white/25
-                "
-              >
-                Email
-              </p>
+          />
 
-              <span
-                className="
-                  flex
-                  h-11
-                  w-11
-                  items-center
-                  justify-center
-                  rounded-full
-                  border
-                  border-white/10
-                  text-white
-                  transition
-                  duration-300
-                  group-hover:border-[#D8FF65]
-                  group-hover:bg-[#D8FF65]
-                  group-hover:text-black
-                "
-              >
-                <ArrowUpRight className="h-4 w-4" />
-              </span>
-            </div>
-
-            <div className="mt-auto">
-              <h3
-                className="
-                  break-all
-                  text-[22px]
-                  font-semibold
-                  tracking-[-0.035em]
-                  text-white/80
-                  md:text-[24px]
-                "
-              >
-                easypurchaseadmin@gmail.com
-              </h3>
-
-              <p
-                className="
-                  mt-4
-                  text-[14px]
-                  text-white/25
-                "
-              >
-                Send your material requirement
-              </p>
-            </div>
-          </a>
-
-          {/* =================================================
-              PHONE CARD
-          ================================================== */}
-
-          <a
-            href="tel:+971 50 468 2745"
-            className="
-              group
-              flex
-              min-h-[270px]
-              flex-col
-              rounded-[28px]
-              bg-[#D8FF65]
-              p-7
-              text-[#101411]
-              transition
-              duration-300
-              hover:bg-[#E3FF8A]
-              md:p-8
-            "
-          >
-            <div className="flex items-start justify-between">
-              <p
-                className="
-                  text-[10px]
-                  font-semibold
-                  uppercase
-                  tracking-[0.18em]
-                  text-black/35
-                "
-              >
-                Call Us
-              </p>
-
-              <span
-                className="
-                  flex
-                  h-11
-                  w-11
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-[#07100B]
-                  text-white
-                  transition-transform
-                  duration-300
-                  group-hover:rotate-12
-                "
-              >
-                <Phone className="h-4 w-4" />
-              </span>
-            </div>
-
-            <div className="mt-auto">
-              <h3
-                className="
-                  text-[20px]
-                  font-semibold
-                  tracking-[-0.035em]
-                  md:text-[22px]
-                "
-              >
-               +971 504682745
-              </h3>
-
-              <p
-                className="
-                  mt-4
-                  text-[14px]
-                  text-black/40
-                "
-              >
-                Speak with our team
-              </p>
-            </div>
-          </a>
+          <InfoItem
+            icon={<Phone className="h-4 w-4" />}
+            label="Phone"
+            value="+971 50 468 2745"
+            href="tel:+971504682745"
+            highlight
+          />
         </div>
 
-        {/* =====================================================
-            GIANT TEXT
-        ====================================================== */}
+        {/* BOTTOM */}
 
-
-
-        <div
-          className="
-            flex
-            flex-col
-            gap-4
-            py-7
-            text-[11px]
-            text-white/25
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-          "
-        >
+        <div className="flex flex-col gap-4 pt-6 text-[10px] text-white/30 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {new Date().getFullYear()} Top Range Building Materials. All
-            rights reserved.
+            © {new Date().getFullYear()} Top Range Building Materials. All rights reserved.
           </p>
 
-          <p className="hidden md:block">
-            Quality · Reliability · Supply
-          </p>
+          <div className="flex items-center gap-5">
+            <span className="hidden sm:inline">
+              Quality · Reliability · Supply
+            </span>
 
-          <a
-            href="#top"
-            className="
-              group
-              flex
-              items-center
-              gap-2
-              transition-colors
-              duration-300
-              hover:text-white
-            "
-          >
-            Back to top
-
-            <ArrowUp
-              className="
-                h-3
-                w-3
-                transition-transform
-                duration-300
-                group-hover:-translate-y-1
-              "
-            />
-          </a>
+            <a
+              href="#top"
+              className="group inline-flex items-center gap-2 text-white/45 transition hover:text-white"
+            >
+              Back to top
+              <ArrowUp className="h-3 w-3 transition-transform group-hover:-translate-y-0.5" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
+  );
+}
+
+function InfoItem({
+  icon,
+  label,
+  value,
+  href,
+  highlight = false,
+}) {
+  const content = (
+    <div
+      className={`flex items-center gap-3 rounded-[16px] border px-4 py-4 transition ${highlight
+        ? "border-[#D8FF65]/20 bg-[#D8FF65] text-[#101411]"
+        : "border-white/10 bg-white/[0.025] text-white"
+        }`}
+    >
+      <span
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${highlight
+          ? "bg-[#07100B] text-white"
+          : "bg-white/[0.06] text-[#D8FF65]"
+          }`}
+      >
+        {icon}
+      </span>
+
+      <div className="min-w-0">
+        <p
+          className={`text-[9px] font-semibold uppercase tracking-[0.15em] ${highlight ? "text-black/40" : "text-white/25"
+            }`}
+        >
+          {label}
+        </p>
+
+        <p
+          className={`mt-1 truncate text-[12px] font-semibold ${highlight ? "text-[#101411]" : "text-white/75"
+            }`}
+        >
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+
+  if (!href) {
+    return content;
+  }
+
+  return (
+    <a
+      href={href}
+      className="block transition hover:-translate-y-0.5"
+    >
+      {content}
+    </a>
   );
 }
