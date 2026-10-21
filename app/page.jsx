@@ -111,6 +111,8 @@ export default function ProductsPage() {
 
   const [cart, setCart] = useState([]);
 
+  const [selectedQuantities, setSelectedQuantities] = useState({});
+
   const [cartLoaded, setCartLoaded] = useState(false);
 
   const searchSuggestions = useMemo(() => {
@@ -380,31 +382,68 @@ export default function ProductsPage() {
        CART
     ========================================================= */
 
+  const getSelectedQuantity = (product) => {
+    const maxQuantity = Math.max(0, Number(product?.stock || 0));
+    const selected = Number(selectedQuantities[String(product?.id)] || 1);
+
+    if (maxQuantity <= 0) return 0;
+
+    return Math.min(maxQuantity, Math.max(1, selected));
+  };
+
+  const changeSelectedQuantity = (product, amount) => {
+    const id = String(product?.id || "");
+    const maxQuantity = Math.max(0, Number(product?.stock || 0));
+
+    if (!id || maxQuantity <= 0) return;
+
+    setSelectedQuantities((current) => {
+      const currentQuantity = Number(current[id] || 1);
+
+      return {
+        ...current,
+        [id]: Math.min(
+          maxQuantity,
+          Math.max(1, currentQuantity + amount),
+        ),
+      };
+    });
+  };
+
   const addToCart = (product) => {
     if (!product?.id || Number(product.stock || 0) <= 0) return;
+
+    const selectedQuantity = getSelectedQuantity(product);
 
     setCart((current) => {
       const existing = current.find(
         (item) => String(item.id) === String(product.id),
       );
+
       if (existing) {
-        if (Number(existing.quantity || 1) >= Number(product.stock || 0))
-          return current;
         return current.map((item) =>
           String(item.id) === String(product.id)
             ? {
-                ...item,
-                ...product,
-                quantity: Math.min(
-                  Number(product.stock),
-                  Number(item.quantity || 1) + 1,
-                ),
-              }
+              ...item,
+              ...product,
+              quantity: Math.min(
+                Number(product.stock),
+                Number(item.quantity || 1) + selectedQuantity,
+              ),
+            }
             : item,
         );
       }
-      return [...current, { ...product, quantity: 1 }];
+
+      return [
+        ...current,
+        {
+          ...product,
+          quantity: selectedQuantity,
+        },
+      ];
     });
+
     setCartOpen(true);
   };
 
@@ -414,12 +453,12 @@ export default function ProductsPage() {
         .map((item) =>
           item.id === id
             ? {
-                ...item,
-                quantity: Math.min(
-                  Number(item.stock || 0),
-                  Math.max(0, Number(item.quantity || 1) + amount),
-                ),
-              }
+              ...item,
+              quantity: Math.min(
+                Number(item.stock || 0),
+                Math.max(0, Number(item.quantity || 1) + amount),
+              ),
+            }
             : item,
         )
         .filter((item) => item.quantity > 0),
@@ -672,11 +711,10 @@ export default function ProductsPage() {
 
 
 
-                      ${
-                        category === item
-                          ? "bg-[#101411] text-white"
-                          : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
-                      }
+                      ${category === item
+                      ? "bg-[#101411] text-white"
+                      : "bg-[#F0F2EC] text-[#3F4540] hover:bg-[#D8FF65] hover:text-black"
+                    }
                     `}
                 >
                   {item}
@@ -862,6 +900,7 @@ export default function ProductsPage() {
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {paginatedProducts.map((product) => {
                   const added = cart.some((item) => item.id === product.id);
+                  const selectedQuantity = getSelectedQuantity(product);
 
                   const cardStyle = getCategoryCardStyle();
 
@@ -922,11 +961,10 @@ export default function ProductsPage() {
                             </p>
 
                             <p
-                              className={`mt-1 text-[11px] font-bold ${
-                                product.stock <= 15
+                              className={`mt-1 text-[11px] font-bold ${product.stock <= 15
                                   ? "text-[#B66B19]"
                                   : "text-[#34733D]"
-                              }`}
+                                }`}
                             >
                               {product.stock <= 0
                                 ? "Out of Stock"
@@ -936,6 +974,50 @@ export default function ProductsPage() {
                             </p>
                           </div>
                         </div>
+
+                        {/* QUANTITY BY UNIT */}
+
+                        {product.stock > 0 && (
+                          <div className="mt-4 flex items-center justify-between gap-4 rounded-[16px] border border-black/[0.06] bg-[#F5F6F1] px-4 py-3">
+                            <div className="min-w-0">
+                              <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#7A817A]">
+                                Quantity
+                              </p>
+
+                              <p className="mt-1 truncate text-[12px] font-bold text-[#303630]">
+                                {product.unit || "Unit"}
+                              </p>
+                            </div>
+
+                            <div className="flex shrink-0 items-center gap-2 rounded-full bg-white p-1">
+                              <button
+                                type="button"
+                                aria-label={`Decrease ${product.unit || "unit"} quantity`}
+                                disabled={selectedQuantity <= 1}
+                                onClick={() => changeSelectedQuantity(product, -1)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full border border-black/[0.07] text-[#303630] disabled:cursor-not-allowed disabled:opacity-35"
+                              >
+                                <Minus className="h-3 w-3" />
+                              </button>
+
+                              <span className="min-w-8 text-center text-[12px] font-bold text-[#101411]">
+                                {selectedQuantity}
+                              </span>
+
+                              <button
+                                type="button"
+                                aria-label={`Increase ${product.unit || "unit"} quantity`}
+                                disabled={
+                                  selectedQuantity >= Number(product.stock || 0)
+                                }
+                                onClick={() => changeSelectedQuantity(product, 1)}
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-[#101411] text-white disabled:cursor-not-allowed disabled:opacity-35"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Price */}
 
@@ -975,13 +1057,12 @@ export default function ProductsPage() {
 
 
 
-                                ${
-                                  product.stock <= 0
-                                    ? "cursor-not-allowed bg-black/10 text-black/40"
-                                    : added
-                                      ? "bg-[#D8FF65] text-[#101411]"
-                                      : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
-                                }
+                                ${product.stock <= 0
+                                ? "cursor-not-allowed bg-black/10 text-black/40"
+                                : added
+                                  ? "bg-[#D8FF65] text-[#101411]"
+                                  : "bg-[#101411] text-white hover:bg-[#D8FF65] hover:text-[#101411]"
+                              }
                               `}
                           >
                             {product.stock <= 0 ? (
@@ -1233,6 +1314,12 @@ export default function ProductsPage() {
                           <p className="mt-1 text-[14px] font-bold">
                             AED {item.price}
                           </p>
+
+                          {item.unit && (
+                            <p className="mt-1 text-[10px] font-semibold text-[#6B726C]">
+                              Unit: {item.unit}
+                            </p>
+                          )}
                         </div>
 
                         <button
@@ -1248,7 +1335,7 @@ export default function ProductsPage() {
 
                       <div className="mt-4 flex items-center justify-between border-t border-black/[0.07] pt-3">
                         <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#5B625C]">
-                          Quantity
+                          Quantity{item.unit ? ` (${item.unit})` : ""}
                         </span>
 
                         <div className="flex items-center gap-3 rounded-full bg-[#F4F5EF] p-1">
@@ -1365,16 +1452,14 @@ function FilterDropdown({
 
 
 
-          ${
-            open
-              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
-              : "border-black/[0.09] hover:border-black/20"
+          ${open
+            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/15"
+            : "border-black/[0.09] hover:border-black/20"
           }
 
-          ${
-            compact
-              ? "h-[50px] min-w-[190px] rounded-full px-5"
-              : "h-[54px] w-full rounded-[15px] px-4"
+          ${compact
+            ? "h-[50px] min-w-[190px] rounded-full px-5"
+            : "h-[54px] w-full rounded-[15px] px-4"
           }
         `}
       >
@@ -1410,11 +1495,10 @@ function FilterDropdown({
                   font-medium
 
 
-                  ${
-                    value === option
-                      ? "bg-[#D8FF65] text-[#101411]"
-                      : "text-[#454B46] hover:bg-[#F2F4EE]"
-                  }
+                  ${value === option
+                  ? "bg-[#D8FF65] text-[#101411]"
+                  : "text-[#454B46] hover:bg-[#F2F4EE]"
+                }
                 `}
             >
               {option}
@@ -1516,11 +1600,10 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
                   font-bold
 
 
-                  ${
-                    currentPage === page
-                      ? "bg-[#101411] text-white"
-                      : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
-                  }
+                  ${currentPage === page
+                  ? "bg-[#101411] text-white"
+                  : "border border-black/10 bg-white text-[#303530] hover:bg-[#D8FF65]"
+                }
                 `}
             >
               {page}
@@ -1621,15 +1704,16 @@ function QuoteModal({ cart = [], onClose }) {
   const autoDescription =
     cart.length > 0
       ? cart
-          .map(
-            (item, index) => `${index + 1}. ${item.name}
+        .map(
+          (item, index) => `${index + 1}. ${item.name}
 SKU: ${item.sku}
 Brand: ${item.brand}
 Category: ${item.category}
+Unit: ${item.unit || "Unit"}
 Quantity: ${item.quantity}
 Unit Price: AED ${item.price}`,
-          )
-          .join("\n\n")
+        )
+        .join("\n\n")
       : "";
 
   /* =====================================================
@@ -1872,7 +1956,7 @@ Unit Price: AED ${item.price}`,
                       </div>
 
                       <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#101411]">
-                        × {item.quantity}
+                        {item.unit || "Unit"}: {item.quantity}
                       </span>
                     </div>
                   ))}
@@ -1981,24 +2065,31 @@ Unit Price: AED ${item.price}`,
                     placeholder="Product name"
                   />
 
-                  {/* QUANTITY */}
-                  <QuoteField
-                    label="Quantity"
-                    name="quantity"
-                    type="number"
-                    value={form.quantity}
-                    onChange={update}
-                    placeholder="Required quantity"
-                  />
+                  {/* UNITS / QUANTITY */}
+                  <div className="min-w-0">
+                    <label className="mb-2.5 block text-[11px] font-semibold text-[#686F69]">
+                      Units / Quantity
+                    </label>
 
-                  {/* SIZE - OPTIONAL */}
-                  <QuoteField
-                    label="Size"
-                    name="size"
-                    value={form.size ?? ""}
-                    onChange={update}
-                    placeholder="Enter size"
-                  />
+                    <input
+                      type="text"
+                      readOnly
+                      value={
+                        cart.length > 0
+                          ? cart
+                            .map(
+                              (item) =>
+                                `${item.unit || "Unit"}: ${item.quantity}`,
+                            )
+                            .join(", ")
+                          : ""
+                      }
+                      placeholder="Unit and quantity"
+                      className="h-[54px] w-full min-w-0 rounded-[14px] border border-black/[0.10] bg-[#F7F7F3] px-4 text-[14px] font-medium text-[#202521] outline-none sm:h-[58px] sm:rounded-[16px]"
+                    />
+                  </div>
+
+
 
                   {/* CATEGORY */}
                   <PremiumQuoteDropdown
@@ -2188,10 +2279,9 @@ function PremiumQuoteDropdown({
 
 
 
-          ${
-            open
-              ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
-              : "border-black/[0.10] hover:border-black/20"
+          ${open
+            ? "border-[#101411]/30 ring-4 ring-[#D8FF65]/20"
+            : "border-black/[0.10] hover:border-black/20"
           }
         `}
       >
@@ -2221,10 +2311,9 @@ function PremiumQuoteDropdown({
 
 
 
-            ${
-              open
-                ? "rotate-180 bg-[#D8FF65] text-[#101411]"
-                : "bg-[#F1F3ED] text-[#535A54]"
+            ${open
+              ? "rotate-180 bg-[#D8FF65] text-[#101411]"
+              : "bg-[#F1F3ED] text-[#535A54]"
             }
           `}
         >
@@ -2268,11 +2357,10 @@ function PremiumQuoteDropdown({
 
 
 
-                      ${
-                        selected
-                          ? "bg-[#D8FF65] text-[#101411]"
-                          : "text-[#454B46] hover:bg-[#F1F3ED]"
-                      }
+                      ${selected
+                      ? "bg-[#D8FF65] text-[#101411]"
+                      : "text-[#454B46] hover:bg-[#F1F3ED]"
+                    }
                     `}
                 >
                   <span className="text-[13px] font-semibold">{option}</span>

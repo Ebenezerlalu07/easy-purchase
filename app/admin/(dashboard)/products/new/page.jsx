@@ -1401,9 +1401,9 @@ export default function ProductsPage() {
 
                                         <FormSection
 
-                                            title="Pricing & Units"
+                                            title="Pricing & Stock"
 
-                                            description="Configure selling price and product availability."
+                                            description="Configure selling price, optional selling unit and available stock."
 
                                             icon={CircleDollarSign}
 
@@ -1483,7 +1483,7 @@ export default function ProductsPage() {
 
 
 
-                                                <FormField label="Unit">
+                                                <FormField label="Selling Unit">
 
                                                     <input
 
@@ -1495,17 +1495,23 @@ export default function ProductsPage() {
 
                                                         onChange={updateForm}
 
-                                                        placeholder="Kg, Boxes, Pieces, Rolls..."
+                                                        placeholder="Piece, Box, Kg, Meter, Bag..."
 
                                                         className={inputClass}
 
                                                     />
 
+                                                    <p className="mt-2 text-[9px] leading-4 text-[#858B85]">
+
+                                                        Optional — leave empty if this product does not require a specific selling unit.
+
+                                                    </p>
+
                                                 </FormField>
 
 
 
-                                                <FormField label="Quantity">
+                                                <FormField label="Stock">
 
                                                     <input
 
@@ -1519,11 +1525,17 @@ export default function ProductsPage() {
 
                                                         onChange={updateForm}
 
-                                                        placeholder="0"
+                                                        placeholder="Available stock"
 
                                                         className={inputClass}
 
                                                     />
+
+                                                    <p className="mt-2 text-[9px] leading-4 text-[#858B85]">
+
+                                                        Total quantity currently available.
+
+                                                    </p>
 
                                                 </FormField>
 
@@ -1531,19 +1543,21 @@ export default function ProductsPage() {
 
 
 
-                                            {(form.unit || form.stock) && (
+                                            {form.stock !== "" && (
 
                                                 <div className="mt-5 rounded-[14px] border border-black/[0.07] bg-[#F7F7F3] px-4 py-3">
 
                                                     <p className="text-[9px] font-bold uppercase tracking-[0.13em] text-[#777E77]">
 
-                                                        Units
+                                                        Stock Preview
 
                                                     </p>
 
                                                     <p className="mt-1 text-[13px] font-bold text-[#202420]">
 
-                                                        {form.unit || "Units"}: {form.stock || "0"}
+                                                        {form.stock || "0"}
+
+                                                        {form.unit ? ` ${form.unit}` : ""}
 
                                                     </p>
 
