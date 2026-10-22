@@ -52,9 +52,13 @@ export default function QuotationsPage() {
         }
     };
 
-    useEffect(() => {
-        loadQuotations();
-    }, []);
+   useEffect(() => {
+    const load = async () => {
+        await loadQuotations();
+    };
+
+    void load();
+}, []);
 
     const filteredQuotes = useMemo(() => {
         const term = search.trim().toLowerCase();
@@ -65,6 +69,7 @@ export default function QuotationsPage() {
 
             const matchesSearch =
                 !term ||
+                String(quote.companyCode || quote.customer?.companyCode || "").toLowerCase().includes(term) ||
                 quote.id.toLowerCase().includes(term) ||
                 quote.company.toLowerCase().includes(term) ||
                 quote.contactName.toLowerCase().includes(term) ||
@@ -254,7 +259,7 @@ export default function QuotationsPage() {
                                 onChange={(event) =>
                                     setSearch(event.target.value)
                                 }
-                                placeholder="Search quotation or customer..."
+                                placeholder="Search company code or customer..."
                                 className="
                   h-full
                   w-full
@@ -346,7 +351,7 @@ export default function QuotationsPage() {
                 "
                             >
                                 <th className="px-6 py-4">
-                                    Quotation
+                                    Company Code
                                 </th>
 
                                 <th className="px-6 py-4">
@@ -397,7 +402,7 @@ export default function QuotationsPage() {
                         text-[#151814]
                       "
                                         >
-                                            {quote.id}
+                                            {quote.companyCode || quote.customer?.companyCode || quote.id}
                                         </p>
 
                                         <div
@@ -662,7 +667,7 @@ export default function QuotationsPage() {
                       text-[#151814]
                     "
                                     >
-                                        {quote.id}
+                                        {quote.companyCode || quote.customer?.companyCode || quote.id}
                                     </p>
 
                                     <div
@@ -1063,7 +1068,7 @@ function QuotationDetails({
                   text-[#71776F]
                 "
                             >
-                                Quotation Details
+                                Company Details
                             </p>
 
                             <StatusBadge value={quote.status} />
@@ -1078,7 +1083,7 @@ function QuotationDetails({
                 text-[#151814]
               "
                         >
-                            {quote.id}
+                            {quote.companyCode || quote.customer?.companyCode || quote.id}
                         </h2>
 
                         <p

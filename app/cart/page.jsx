@@ -2334,63 +2334,44 @@ Unit Price: AED ${item.price}`,
     setCompanyMessage("");
 
     try {
-      const demoCompany = {
-        id: `demo-${code}`,
-        companyCode: code,
-        companyName: "Demo Company",
-        contactPerson: "Demo Contact",
-        phone: "+971500000000",
-        emailContacts: [
-          {
-            id: "demo-purchase",
-            role: "Purchase Manager",
-            email: "purchase@demo-company.com",
-          },
-          {
-            id: "demo-accounts",
-            role: "Accountant",
-            email: "accounts@demo-company.com",
-          },
-        ],
-        deliveryLocation: "",
-      };
+      const response = await fetch(CUSTOMERS_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "lookup",
+          companyCode: code,
+        }),
+        cache: "no-store",
+      });
 
-      applyCompanyToQuotation(demoCompany);
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          payload.error || "Company code could not be verified."
+        );
+      }
+
+      const company = normalizeCompany(payload);
+
+      if (!company.id || !company.companyCode) {
+        throw new Error("The server returned an incomplete company record.");
+      }
+
+      applyCompanyToQuotation(company);
+    } catch (error) {
+      setCompanyError(
+        error.message || "Unable to verify the company code. Please try again."
+      );
     } finally {
       setCompanyLoading(false);
     }
   };
 
-  const generateCompanyCode = (companyName) => {
-    const cleanName = String(companyName || "Company")
-      .trim()
-      .replace(/[^a-zA-Z0-9]+/g, " ")
-      .split(" ")
-      .filter(Boolean)
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join("")
-      .slice(0, 24);
-
-    const prefix = cleanName || "Company";
-    const storageKey = `toprange_company_code_${prefix.toLowerCase()}`;
-
-    let nextNumber = 1;
-
-    try {
-      const lastNumber = Number(localStorage.getItem(storageKey) || 0);
-      nextNumber = lastNumber + 1;
-      localStorage.setItem(storageKey, String(nextNumber));
-    } catch (error) {
-      console.warn("Unable to persist company code counter:", error);
-    }
-
-    return `${prefix}-UC-${String(nextNumber).padStart(2, "0")}`;
-  };
-
   const createCompany = async () => {
     const companyName = newCompany.companyName.trim();
     const contactPerson = newCompany.contactPerson.trim();
-    const phone = newCompany.phone;
+    const phone = String(newCompany.phone || "").trim();
 
     const cleanEmails = emailContacts
       .map((item) => ({
@@ -2420,12 +2401,12 @@ Unit Price: AED ${item.price}`,
     }
 
     const invalidEmail = cleanEmails.find(
-      (item) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item.email),
+      (item) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item.email)
     );
 
     if (invalidEmail) {
       setCompanyError(
-        `Please enter a valid email address for ${invalidEmail.role}.`,
+        `Please enter a valid email address for ${invalidEmail.role}.`
       );
       return;
     }
@@ -2435,46 +2416,61 @@ Unit Price: AED ${item.price}`,
     setCompanyMessage("");
 
     try {
-      const generatedCode = generateCompanyCode(companyName);
+      const response = await fetch(CUSTOMERS_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "register",
+          companyName,
+          contactPerson,
+          phone,
+          emailContacts: cleanEmails,
+        }),
+      });
 
-      const completedCompany = {
-        id: `demo-${generatedCode}`,
-        companyCode: generatedCode,
-        companyName,
-        contactPerson,
-        phone,
-        emailContacts: cleanEmails.map((item, index) => ({
-          ...item,
-          id: `new-email-${index}`,
-        })),
-        deliveryLocation: "",
-      };
+      const payload = await response.json().catch(() => ({}));
 
-      setCompanyProfile(completedCompany);
-      setCompanyCodeInput(completedCompany.companyCode);
+      if (!response.ok) {
+        throw new Error(
+          payload.error || "Could not register the company. Please try again."
+        );
+      }
 
-      setCompanyMessage(
-        `Company profile created. Your unique code is ${completedCompany.companyCode}.`,
-      );
+      const company = normalizeCompany(payload);
 
-      const primaryEmail =
-        completedCompany.emailContacts.find(
-          (item) => item.role === "Purchase Manager" && item.email,
-        )?.email ||
-        completedCompany.emailContacts[0]?.email ||
-        "";
+      if (!company.id || !company.companyCode) {
+        throw new Error("The server did not return a valid company record.");
+      }
+
+      setCompanyProfile(company);
+      setCompanyCodeInput(company.companyCode);
 
       setForm((prev) => ({
         ...prev,
-        companyCode: completedCompany.companyCode,
-        customerId: completedCompany.id,
-        company: completedCompany.companyName,
-        contactName: completedCompany.contactPerson,
-        phone: completedCompany.phone,
-        email: primaryEmail,
+        companyCode: company.companyCode,
+        customerId: company.id,
+        company: company.companyName,
+        contactName: company.contactPerson,
+        phone: company.phone,
+        email:
+          company.emailContacts.find(
+            (item) =>
+              item.role.toLowerCase() === "purchase manager" && item.email
+          )?.email ||
+          company.emailContacts.find((item) => item.email)?.email ||
+          "",
+        deliveryLocation: company.deliveryLocation || prev.deliveryLocation,
       }));
 
+      setCompanyMessage(
+        `Company registered successfully. Your unique code is ${company.companyCode}.`
+      );
+
       setStage("company-created");
+    } catch (error) {
+      setCompanyError(
+        error.message || "Unable to register the company. Please try again."
+      );
     } finally {
       setCompanyLoading(false);
     }
@@ -2856,7 +2852,7 @@ Unit Price: AED ${item.price}`,
                                 />
 
                                 <p className="mt-2 text-[10px] leading-5 text-[#808680]">
-                                  For now, enter any company code to continue the demo flow.
+                                  Enter the unique code you received when your company was registered.
                                 </p>
 
                                 <button
