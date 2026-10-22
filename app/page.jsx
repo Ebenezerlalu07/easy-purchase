@@ -965,9 +965,24 @@ export default function ProductsPage() {
                                 <Minus className="h-3 w-3" />
                               </button>
 
-                              <span className="min-w-8 text-center text-[12px] font-bold text-[#101411]">
-                                {selectedQuantity}
-                              </span>
+                              <input
+                                type="number"
+                                min="1"
+                                max={product.stock}
+                                value={selectedQuantity}
+                                onChange={(e) => {
+                                  const value = Math.max(
+                                    1,
+                                    Math.min(Number(product.stock), Number(e.target.value) || 1)
+                                  );
+
+                                  setSelectedQuantities((prev) => ({
+                                    ...prev,
+                                    [String(product.id)]: value,
+                                  }));
+                                }}
+                                className="h-8 w-[65px] rounded-full bg-transparent text-center text-[12px] font-bold text-[#101411] outline-none"
+                              />
 
                               <button
                                 type="button"
@@ -1717,8 +1732,8 @@ function LanguageSelector() {
               type="button"
               onClick={() => changeLanguage(item.code)}
               className={`flex w-full items-center justify-between rounded-[16px] border px-4 py-3.5 text-left transition-colors ${active
-                  ? "border-[#D8FF65] bg-[#D8FF65] text-[#101411]"
-                  : "border-white/10 bg-white/5 text-white hover:border-[#D8FF65]/60 hover:bg-white/10"
+                ? "border-[#D8FF65] bg-[#D8FF65] text-[#101411]"
+                : "border-white/10 bg-white/5 text-white hover:border-[#D8FF65]/60 hover:bg-white/10"
                 }`}
             >
               <div className="flex items-center gap-3">
@@ -1733,8 +1748,8 @@ function LanguageSelector() {
 
                   <p
                     className={`mt-0.5 text-[12px] ${active
-                        ? "text-black/60"
-                        : "text-white/55"
+                      ? "text-black/60"
+                      : "text-white/55"
                       }`}
                   >
                     {item.native}
