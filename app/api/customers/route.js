@@ -1,4 +1,3 @@
-
 import { NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
 import { randomBytes } from "node:crypto";
@@ -12,26 +11,33 @@ const DB_NAME = process.env.MONGODB_DB || process.env.MONGODB_DATABASE;
 const globalForMongo = globalThis;
 
 if (!globalForMongo.__easyPurchaseMongo) {
-  globalForMongo.__easyPurchaseMongo = {
-    client: null,
-    promise: null,
-  };
+  globalForMongo.__easyPurchaseMongo = { client: null, promise: null };
 }
 
 const cached = globalForMongo.__easyPurchaseMongo;
 
 async function getDb() {
   if (!MONGODB_URI) {
-    throw new Error("MONGODB_URI is not configured in .env.local");
+    throw new Error("MONGODB_URI is not configured.");
   }
 
   if (!cached.promise) {
-    const client = new MongoClient(MONGODB_URI);
-
-    cached.promise = client.connect().then((connectedClient) => {
-      cached.client = connectedClient;
-      return connectedClient;
+    const client = new MongoClient(MONGODB_URI, {
+      serverSelectionTimeoutMS: 10000,
     });
+
+    cached.promise = client
+      .connect()
+      .then((connectedClient) => {
+        cached.client = connectedClient;
+        return connectedClient;
+      })
+      .catch((error) => {
+        // Allow a later request to retry after a temporary connection failure.
+        cached.promise = null;
+        cached.client = null;
+        throw error;
+      });
   }
 
   const client = await cached.promise;
@@ -41,7 +47,6 @@ async function getDb() {
 const cleanString = (value) =>
   typeof value === "string" ? value.trim() : "";
 
-// Treat capitalization and repeated spaces as equivalent.
 function normalizeCompanyName(value) {
   return cleanString(value)
     .normalize("NFKC")
@@ -89,6 +94,46 @@ async function findByCompanyCode(collection, code) {
   });
 }
 
+/*
+ * Supports both newer records (normalizedCompanyName) and older records
+ * that only contain companyName. This avoids requiring a database migration
+ * or index-creation permission during a customer registration request.
+ */
+async function findExistingCompany(collection, companyName, normalizedName) {
+  const existingByNormalizedName = await collection.findOne({
+    normalizedCompanyName: normalizedName,
+  });
+
+  if (existingByNormalizedName) return existingByNormalizedName;
+
+  const possibleMatches = await collection
+    .find(
+      { companyName: { $exists: true } },
+      {
+        projection: {
+          _id: 1,
+          companyName: 1,
+          companyCode: 1,
+          contactPerson: 1,
+          phone: 1,
+          emailContacts: 1,
+          deliveryLocation: 1,
+          normalizedCompanyName: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      },
+    )
+    .toArray();
+
+  return (
+    possibleMatches.find(
+      (customer) =>
+        normalizeCompanyName(customer.companyName) === normalizedName,
+    ) || null
+  );
+}
+
 function createCompanyCode(companyName) {
   const prefix =
     cleanString(companyName)
@@ -98,9 +143,7 @@ function createCompanyCode(companyName) {
       .toUpperCase()
       .slice(0, 4) || "COMP";
 
-  return `${prefix}-UC-${randomBytes(2)
-    .toString("hex")
-    .toUpperCase()}`;
+  return `${prefix}-UC-${randomBytes(3).toString("hex").toUpperCase()}`;
 }
 
 function getMailer() {
@@ -108,7 +151,7 @@ function getMailer() {
 
   if (!SMTP_HOST || !SMTP_PORT || !SMTP_USER || !SMTP_PASS) {
     throw new Error(
-      "Email is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASS."
+      "Email is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASS.",
     );
   }
 
@@ -127,7 +170,7 @@ async function emailCompanyCode(customer) {
   const mailer = getMailer();
   const from = process.env.SMTP_FROM || process.env.SMTP_USER;
 
-  const results = await Promise.all(
+  return Promise.all(
     customer.emailContacts.map(async ({ email, role }) => {
       try {
         const info = await mailer.sendMail({
@@ -152,7 +195,7 @@ async function emailCompanyCode(customer) {
           : [];
 
         const sent = accepted.some(
-          (address) => address.toLowerCase() === email.toLowerCase()
+          (address) => address.toLowerCase() === email.toLowerCase(),
         );
 
         console.info("Company code email result:", {
@@ -168,83 +211,18 @@ async function emailCompanyCode(customer) {
         console.error("Company code email failed:", {
           companyCode: customer.companyCode,
           email,
-          error:
-            error instanceof Error ? error.message : "Unknown error",
+          error: error instanceof Error ? error.message : "Unknown error",
         });
 
         return {
           email,
           role,
           sent: false,
-          error:
-            error instanceof Error ? error.message : "Unknown error",
+          error: error instanceof Error ? error.message : "Unknown error",
         };
       }
-    })
+    }),
   );
-
-  return results;
-}
-
-/*
- * Prepare existing records before creating the unique index.
- *
- * If two existing records have the same normalized name, resolve
- * those duplicates manually before deploying this route.
- */
-async function ensureCustomerIndexes(customers) {
-  const migrationFlag = "__easyPurchaseCustomerIndexesReady";
-
-  if (globalForMongo[migrationFlag]) return;
-
-  const oldCustomers = await customers
-    .find(
-      { normalizedCompanyName: { $exists: false } },
-      { projection: { _id: 1, companyName: 1 } }
-    )
-    .toArray();
-
-  for (const customer of oldCustomers) {
-    const normalized = normalizeCompanyName(customer.companyName);
-
-    if (normalized) {
-      await customers.updateOne(
-        {
-          _id: customer._id,
-          normalizedCompanyName: { $exists: false },
-        },
-        {
-          $set: { normalizedCompanyName: normalized },
-        }
-      );
-    }
-  }
-
-  // Unique index: one normalized company name per registration.
-  await customers.createIndex(
-    { normalizedCompanyName: 1 },
-    {
-      unique: true,
-      name: "unique_normalized_company_name",
-      partialFilterExpression: {
-        normalizedCompanyName: { $type: "string" },
-      },
-    }
-  );
-
-  // Unique index: no two companies can have the same code.
-  await customers.createIndex(
-    { companyCode: 1 },
-    {
-      unique: true,
-      name: "unique_company_code",
-      partialFilterExpression: {
-        companyCode: { $type: "string" },
-      },
-    }
-  );
-
-  globalForMongo[migrationFlag] = true;
 }
 
 function registrationResponse(customer, alreadyRegistered = false) {
@@ -266,18 +244,16 @@ export async function GET(request) {
 
     if (!code) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "A company code is required.",
-        },
-        { status: 400 }
+        { success: false, error: "A company code is required." },
+        { status: 400 },
       );
     }
 
     const db = await getDb();
-    const customers = db.collection("customers");
-
-    const customer = await findByCompanyCode(customers, code);
+    const customer = await findByCompanyCode(
+      db.collection("customers"),
+      code,
+    );
 
     if (!customer) {
       return NextResponse.json(
@@ -285,7 +261,7 @@ export async function GET(request) {
           success: false,
           error: "Company code not found. Please check the code and try again.",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -294,14 +270,18 @@ export async function GET(request) {
       customer: serializeCustomer(customer),
     });
   } catch (error) {
-    console.error("GET /api/customers error:", error);
+    console.error("GET /api/customers error:", {
+      name: error?.name,
+      message: error?.message,
+      code: error?.code,
+    });
 
     return NextResponse.json(
       {
         success: false,
         error: "Unable to look up the company right now.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -319,18 +299,12 @@ export async function POST(request) {
 
       if (!companyCode) {
         return NextResponse.json(
-          {
-            success: false,
-            error: "Enter your company unique code.",
-          },
-          { status: 400 }
+          { success: false, error: "Enter your company unique code." },
+          { status: 400 },
         );
       }
 
-      const customer = await findByCompanyCode(
-        customers,
-        companyCode
-      );
+      const customer = await findByCompanyCode(customers, companyCode);
 
       if (!customer) {
         return NextResponse.json(
@@ -338,7 +312,7 @@ export async function POST(request) {
             success: false,
             error: "Company code not found. Please check the code and try again.",
           },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -354,7 +328,7 @@ export async function POST(request) {
           success: false,
           error: 'Invalid action. Use "register" or "lookup".',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -369,7 +343,7 @@ export async function POST(request) {
           success: false,
           error: "Company name, contact person, and phone are required.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -379,7 +353,7 @@ export async function POST(request) {
           success: false,
           error: "Add at least one valid company email address.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -387,35 +361,29 @@ export async function POST(request) {
 
     if (!normalizedCompanyName) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "Enter a valid company name.",
-        },
-        { status: 400 }
+        { success: false, error: "Enter a valid company name." },
+        { status: 400 },
       );
     }
 
-    await ensureCustomerIndexes(customers);
-
-    // Check for an existing company BEFORE generating a new code.
-    const existingCustomer = await customers.findOne({
+    // Check existing registrations without creating indexes at request time.
+    const existingCustomer = await findExistingCompany(
+      customers,
+      companyName,
       normalizedCompanyName,
-    });
+    );
 
     if (existingCustomer) {
       return registrationResponse(existingCustomer, true);
     }
 
-    // Generate a code only for a new company.
-    let companyCode;
+    // Generate a code and check it before insertion.
+    let companyCode = "";
     let codeIsUnique = false;
 
     for (let attempt = 0; attempt < 10; attempt += 1) {
       companyCode = createCompanyCode(companyName);
-
-      const existingCode = await customers.findOne({
-        companyCode,
-      });
+      const existingCode = await customers.findOne({ companyCode });
 
       if (!existingCode) {
         codeIsUnique = true;
@@ -429,12 +397,11 @@ export async function POST(request) {
           success: false,
           error: "Could not generate a unique company code. Please try again.",
         },
-        { status: 500 }
+        { status: 503 },
       );
     }
 
     const now = new Date();
-
     const customer = {
       companyCode,
       companyName,
@@ -451,55 +418,44 @@ export async function POST(request) {
 
     try {
       const result = await customers.insertOne(customer);
-
-      savedCustomer = await customers.findOne({
-        _id: result.insertedId,
-      });
+      savedCustomer = await customers.findOne({ _id: result.insertedId });
     } catch (error) {
+      // If a concurrent request created this company, return that record.
       if (error?.code === 11000) {
-        // Another request may have registered the same company first.
-        const existing = await customers.findOne({
+        const existing = await findExistingCompany(
+          customers,
+          companyName,
           normalizedCompanyName,
-        });
-
-        if (existing) {
-          return registrationResponse(existing, true);
-        }
-
-        // A company-code collision can safely be retried by the client.
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Registration conflict. Please try again.",
-          },
-          { status: 409 }
         );
+
+        if (existing) return registrationResponse(existing, true);
       }
 
       throw error;
     }
 
-    // The company is saved first. Email failures won't undo registration.
+    if (!savedCustomer) {
+      throw new Error("Company record was inserted but could not be read back.");
+    }
+
+    // Registration is already saved. Email problems must not turn it into
+    // a failed registration response.
     let emailResults = [];
 
     try {
       emailResults = await emailCompanyCode(savedCustomer);
-    } catch (emailSetupError) {
-      console.error(
-        "Company code email setup failed:",
-        emailSetupError instanceof Error
-          ? emailSetupError.message
-          : "Unknown error"
-      );
+    } catch (emailError) {
+      console.error("Company code email setup failed:", {
+        name: emailError?.name,
+        message: emailError?.message,
+        code: emailError?.code,
+      });
 
       emailResults = emailContacts.map(({ email, role }) => ({
         email,
         role,
         sent: false,
-        error:
-          emailSetupError instanceof Error
-            ? emailSetupError.message
-            : "Email configuration error",
+        error: "Email delivery is not configured or is temporarily unavailable.",
       }));
     }
 
@@ -513,21 +469,28 @@ export async function POST(request) {
         alreadyRegistered: false,
         message: allEmailsSent
           ? "Company registered successfully. The unique code was emailed to all company contacts."
-          : "Company registered successfully, but the code email could not be confirmed for every contact. Check SMTP settings and server logs.",
+          : "Company registered successfully. Your company code is available below; email delivery could not be confirmed.",
         customer: serializeCustomer(savedCustomer),
         emailDelivery: emailResults,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
-    console.error("POST /api/customers error:", error);
+    // Keep the response safe for customers while recording useful diagnostics
+    // in the server runtime logs.
+    console.error("POST /api/customers error:", {
+      name: error?.name,
+      message: error?.message,
+      code: error?.code,
+      stack: error?.stack,
+    });
 
     return NextResponse.json(
       {
         success: false,
-        error: "Unable to process the company request right now.",
+        error: "Unable to process the company request right now. Please try again.",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
