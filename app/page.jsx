@@ -517,7 +517,7 @@ export default function ProductsPage() {
                 </div>
 
                 <h1 className="mt-6 max-w-[1000px] text-[50px] font-medium leading-[0.92] tracking-[-0.06em] sm:text-[66px] md:text-[80px] lg:text-[94px]">
-                  Everything your
+                  Everything yourrr
                   <br />
                   <span className="text-[#D8FF65]">project needs.</span>
                 </h1>
@@ -765,7 +765,7 @@ export default function ProductsPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <FilterDropdown
+                {/* <FilterDropdown
                   value={sort}
                   options={sortOptions}
                   onChange={(value) => {
@@ -773,7 +773,7 @@ export default function ProductsPage() {
                     setCurrentPage(1);
                   }}
                   compact
-                />
+                /> */}
 
                 <button
                   type="button"

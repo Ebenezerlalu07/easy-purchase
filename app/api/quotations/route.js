@@ -141,27 +141,6 @@ function getQuotationItems(quotation) {
   });
 }
 
-function getCompanyEmailRecipients(value, primaryEmail) {
-  const candidates = [...(Array.isArray(value) ? value : []), primaryEmail];
-
-  const seen = new Set();
-  const recipients = [];
-
-  for (const candidate of candidates) {
-    const email = (typeof candidate === "string" ? candidate : candidate?.email)
-      ?.trim()
-      .toLowerCase();
-
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) continue;
-    if (seen.has(email)) continue;
-
-    seen.add(email);
-    recipients.push(email);
-  }
-
-  return recipients;
-}
-
 function getMailer() {
   const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
 
@@ -287,7 +266,7 @@ function createQuotationPdf(quotation) {
 
     doc.fillColor(MUTED).font("Helvetica").fontSize(8.5);
 
-    text(`Company Code : ${safe(quotation.companyCode, safe(quotation.id, "TRBM-[Quotation number]") )}`, 37, 168, 300);
+    text(`Ref. ${safe(quotation.id, "TRBM-[Quotation number]")}`, 37, 168, 300);
 
     text(
       `Date: ${safe(quotation.date, new Date().toLocaleDateString("en-GB"))}`,
@@ -702,12 +681,8 @@ export async function POST(request) {
     id: await nextQuotationId(),
 
     company: clean(body.company),
-    companyCode: clean(
-      body.companyCode || body.customer?.companyCode || body.companyDetails?.companyCode,
-    ),
     contactName: clean(body.contactName),
     email: clean(body.email),
-    companyEmails: getCompanyEmailRecipients(body.companyEmails, body.email),
     phone: clean(body.phone),
     project: clean(body.project),
 
@@ -760,140 +735,64 @@ export async function POST(request) {
     const adminEmail =
       process.env.QUOTATION_ADMIN_EMAIL || "easypurchaseadmin@gmail.com";
 
-    const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+    await mailer.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: adminEmail,
+      replyTo: quotation.email,
+      subject: `New quotation request ${quotation.id} — ${quotation.contactName}`,
 
-    let adminResult = null;
-    try {
-      adminResult = await mailer.sendMail({
-        from,
-        to: adminEmail,
-        replyTo: quotation.email,
-        subject: `New quotation request ${quotation.id} — ${quotation.contactName}`,
-        text: [
-          "A new quotation request has arrived.",
-          `Reference: ${quotation.id}`,
-          `Customer: ${quotation.contactName}`,
-          `Company: ${quotation.company}`,
-          `Primary email: ${quotation.email}`,
-          `Company recipient emails: ${quotation.companyEmails.join(", ")}`,
-          `Phone: ${quotation.phone}`,
-          `Items: ${productList.length}`,
-          `Estimate total: AED ${quotation.total.toFixed(2)}`,
-          "",
-          "The automatically generated estimate is attached.",
-        ].join("\n"),
-        attachments: [
-          {
-            filename: `${quotation.id}-Top-Range-Estimate.pdf`,
-            content: pdf,
-            contentType: "application/pdf",
-          },
-        ],
-      });
-    } catch (adminError) {
-      console.error("Quotation admin email failed:", {
-        quotationId: quotation.id,
-        recipient: adminEmail,
-        error:
-          adminError instanceof Error ? adminError.message : "Unknown error",
-      });
-    }
+      text: [
+        "A new quotation request has arrived.",
+        `Reference: ${quotation.id}`,
+        `Customer: ${quotation.contactName}`,
+        `Company: ${quotation.company}`,
+        `Email: ${quotation.email}`,
+        `Phone: ${quotation.phone}`,
+        `Items: ${productList.length}`,
+        `Estimate total: AED ${quotation.total.toFixed(2)}`,
+        "",
+        "The automatically generated estimate is attached.",
+      ].join("\n"),
 
-    // Send an individual message to every registered company contact.
-    // This avoids one bad address preventing the other recipients from being attempted.
-    const recipientResults = await Promise.all(
-      quotation.companyEmails.map(async (recipient) => {
-        try {
-          const info = await mailer.sendMail({
-            from,
-            to: recipient,
-            subject: `Your Top Range quotation`,
-            text: [
-              `Dear ${quotation.contactName},`,
-              "",
-              "Please find attached the automatically generated estimate for your product request.",
-              `Reference: ${quotation.id}`,
-              "",
-              "For any changes, reply to this email.",
-              "",
-              "Top Range Building Materials",
-              "Maliha Road, Sharjah",
-              "+971 50 468 2745",
-            ].join("\n"),
-            attachments: [
-              {
-                filename: `${quotation.id}-Top-Range-Estimate.pdf`,
-                content: pdf,
-                contentType: "application/pdf",
-              },
-            ],
-          });
+      attachments: [
+        {
+          filename: `${quotation.id}-Top-Range-Estimate.pdf`,
+          content: pdf,
+          contentType: "application/pdf",
+        },
+      ],
+    });
 
-          const accepted = Array.isArray(info.accepted)
-            ? info.accepted.map(String)
-            : [];
-          const rejected = Array.isArray(info.rejected)
-            ? info.rejected.map(String)
-            : [];
+    await mailer.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: quotation.email,
 
-          console.info("Quotation email recipient result:", {
-            quotationId: quotation.id,
-            recipient,
-            accepted,
-            rejected,
-            messageId: info.messageId,
-          });
+      subject: `Your Top Range quotation`,
 
-          return {
-            email: recipient,
-            sent: accepted.some(
-              (address) => address.toLowerCase() === recipient,
-            ),
-            accepted,
-            rejected,
-          };
-        } catch (recipientError) {
-          console.error("Quotation email failed for recipient:", {
-            quotationId: quotation.id,
-            recipient,
-            error:
-              recipientError instanceof Error
-                ? recipientError.message
-                : "Unknown error",
-          });
+      text: [
+        `Dear ${quotation.contactName},`,
+        "",
+        "Please find attached the automatically generated estimate for your product request.",
+        `Reference: ${quotation.id}`,
+        "",
+        "For any changes, reply to this email.",
+        "",
+        "Top Range Building Materials",
+        "Maliha Road, Sharjah",
+        "+971 50 468 2745",
+      ].join("\n"),
 
-          return {
-            email: recipient,
-            sent: false,
-            error:
-              recipientError instanceof Error
-                ? recipientError.message
-                : "Unknown error",
-          };
-        }
-      }),
-    );
+      attachments: [
+        {
+          filename: `${quotation.id}-Top-Range-Estimate.pdf`,
+          content: pdf,
+          contentType: "application/pdf",
+        },
+      ],
+    });
 
-    const allCustomerEmailsSent =
-      recipientResults.length > 0 &&
-      recipientResults.every((result) => result.sent);
-
-    quotation.emailDelivery = {
-      adminSent:
-        Boolean(adminResult) &&
-        Array.isArray(adminResult.accepted) &&
-        adminResult.accepted
-          .map(String)
-          .some(
-            (address) =>
-              address.toLowerCase() === String(adminEmail).toLowerCase(),
-          ),
-      customerRecipients: recipientResults,
-    };
-    quotation.estimateSent = allCustomerEmailsSent;
-    quotation.estimateSentAt = allCustomerEmailsSent
-      ? new Date().toISOString()
-      : null;
+    quotation.estimateSent = true;
+    quotation.estimateSentAt = new Date().toISOString();
     quotation.updatedAt = new Date().toISOString();
 
     const updated = [
@@ -906,12 +805,8 @@ export async function POST(request) {
     return NextResponse.json(
       {
         quotation,
-        message: allCustomerEmailsSent
-          ? "Quotation request saved and estimate emailed to all company contacts and admin."
-          : "Quotation request saved. Email delivery was attempted for all company contacts; check emailDelivery for recipient results.",
-        warning: allCustomerEmailsSent
-          ? undefined
-          : "One or more customer email addresses did not confirm acceptance. Check the recipient results and server logs.",
+        message:
+          "Quotation request saved and estimate emailed to the customer and admin.",
       },
       { status: 201 },
     );
